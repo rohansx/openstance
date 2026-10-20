@@ -232,4 +232,43 @@ mod tests {
         assert_eq!(z, Components::default());
         assert_eq!(total(&z, &c.weights), 0.0);
     }
+
+    proptest::proptest! {
+        #[test]
+        fn components_stay_in_unit_interval(
+            days in proptest::option::of(-1000.0f64..5000.0),
+            n in 0u32..10_000,
+            out in 0u32..500,
+            replies in 0u32..500,
+            starts in 0u32..500,
+            meets in 0u32..500,
+            chans in 0usize..5,
+        ) {
+            let all = [Channel::Email, Channel::Calendar, Channel::Linkedin, Channel::Social];
+            let i = ScoreInputs {
+                last_contact: None,
+                days_since_last: days,
+                n_interactions: n,
+                n_out: out,
+                n_replies: replies,
+                n_threads_started: starts,
+                n_meetings: meets,
+                channels: all[..chans.min(4)].to_vec(),
+            };
+            let c = cfg();
+            let k = components(&i, &c);
+            for v in [k.recency, k.frequency, k.reciprocity, k.meetings, k.breadth] {
+                proptest::prop_assert!((0.0..=1.0).contains(&v));
+            }
+            let s = total(&k, &c.weights);
+            proptest::prop_assert!((0.0..=1.0 + 1e-12).contains(&s));
+        }
+
+        #[test]
+        fn monotone_in_days_and_counts(d in 0.0f64..3000.0, step in 0.0f64..100.0, n in 0u32..1000) {
+            proptest::prop_assert!(recency(Some(d + step), 180.0) <= recency(Some(d), 180.0));
+            proptest::prop_assert!(frequency(n + 1, 20.0) >= frequency(n, 20.0));
+            proptest::prop_assert!(meetings(n + 1, 3.0) >= meetings(n, 3.0));
+        }
+    }
 }

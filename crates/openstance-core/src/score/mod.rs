@@ -21,6 +21,7 @@ use crate::PersonId;
 
 pub mod bulk;
 pub mod components;
+mod load;
 pub mod presets;
 pub mod ties;
 
@@ -274,7 +275,8 @@ impl Channel {
 /// Raw per-person counts behind the components.
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]
 pub struct ScoreInputs {
-    /// Latest contact-group interaction at or before `now`.
+    /// Latest contact-group interaction (meetings only once they are at or
+    /// before `now`; a future-dated email clamps to 0 days).
     pub last_contact: Option<i64>,
     /// Fractional days since `last_contact`, clamped at 0.
     pub days_since_last: Option<f64>,
@@ -306,43 +308,164 @@ pub struct ScoreReport {
 /// Bulk detection, scoring and ties for every person; writes
 /// `meta.scored_at` and `meta.score_config_hash`.
 pub fn recompute_all(conn: &Connection, cfg: &ScoreConfig, now: i64) -> Result<ScoreReport> {
-    let _ = (conn, cfg, now);
-    todo!("score stream: P1-CORE-10/11/13 recompute_all")
+    let mut report = score_pass(conn, cfg, None, now)?;
+    report.ties = ties::rebuild(conn, cfg, None, now)?;
+    set_meta(conn, "scored_at", &now.to_string())?;
+    set_meta(conn, "score_config_hash", &cfg.hash())?;
+    Ok(report)
 }
 
-/// The same for `people` only (and every tie touching them).
+/// The same for `people` only (and every tie touching them). Leaves
+/// `meta.scored_at` alone: everyone else still carries the older score.
 pub fn recompute_people(
     conn: &Connection,
     cfg: &ScoreConfig,
     people: &[PersonId],
     now: i64,
 ) -> Result<ScoreReport> {
-    let _ = (conn, cfg, people, now);
-    todo!("score stream: recompute_people")
+    let mut report = score_pass(conn, cfg, Some(people), now)?;
+    report.ties = ties::rebuild(conn, cfg, Some(people), now)?;
+    Ok(report)
+}
+
+/// Bulk flags, components, score and the stats columns (`last_contact`,
+/// `first_seen`, `n_interactions`) in one load and one batched UPDATE.
+fn score_pass(
+    conn: &Connection,
+    cfg: &ScoreConfig,
+    people: Option<&[PersonId]>,
+    now: i64,
+) -> Result<ScoreReport> {
+    let aggs = load::load(conn, people, now)?;
+    let mut st = conn.prepare_cached(
+        "UPDATE person SET is_bulk = ?1, score = ?2, score_r = ?3, score_f = ?4, score_c = ?5,
+                score_m = ?6, score_b = ?7, last_contact = ?8, first_seen = ?9,
+                n_interactions = ?10
+         WHERE id = ?11",
+    )?;
+    let mut report = ScoreReport::default();
+    for (id, a) in &aggs {
+        let bulk = bulk::rule(conn, cfg, a)?.is_some();
+        let (c, total) = if a.is_self || bulk {
+            (Components::default(), 0.0)
+        } else {
+            let c = components::components(&a.inputs, cfg);
+            (c, components::total(&c, &cfg.weights))
+        };
+        if !a.is_self {
+            report.scored += 1;
+        }
+        report.bulk += u64::from(bulk);
+        st.execute(rusqlite::params![
+            bulk as i64,
+            total,
+            c.recency,
+            c.frequency,
+            c.reciprocity,
+            c.meetings,
+            c.breadth,
+            a.inputs.last_contact,
+            a.first_seen,
+            a.inputs.n_interactions,
+            id,
+        ])?;
+    }
+    Ok(report)
+}
+
+fn set_meta(conn: &Connection, key: &str, value: &str) -> Result<()> {
+    conn.execute(
+        "INSERT INTO meta(key, value) VALUES (?1, ?2)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        [key, value],
+    )?;
+    Ok(())
 }
 
 /// Recompute R and S for everyone from stored components and
-/// `last_contact` (one UPDATE pass).
+/// `last_contact` (one UPDATE pass). Bulk and self people stay at 0.
+/// Updates `meta.scored_at`; returns the number of people updated.
 pub fn refresh_recency(conn: &Connection, cfg: &ScoreConfig, now: i64) -> Result<u64> {
-    let _ = (conn, cfg, now);
-    todo!("score stream: refresh_recency")
+    let rows: Vec<(i64, Option<i64>, [f64; 4])> = {
+        let mut st = conn.prepare(
+            "SELECT id, last_contact, score_f, score_c, score_m, score_b
+             FROM person WHERE is_bulk = 0 AND is_self = 0",
+        )?;
+        let it = st.query_map([], |r| {
+            Ok((
+                r.get(0)?,
+                r.get(1)?,
+                [r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?],
+            ))
+        })?;
+        it.collect::<std::result::Result<_, _>>()?
+    };
+    let mut up = conn.prepare_cached("UPDATE person SET score_r = ?1, score = ?2 WHERE id = ?3")?;
+    for (id, last, [f, c, m, b]) in &rows {
+        let days = last.map(|l| ((now - l) as f64 / 86_400.0).max(0.0));
+        let comps = Components {
+            recency: components::recency(days, cfg.half_life_days),
+            frequency: *f,
+            reciprocity: *c,
+            meetings: *m,
+            breadth: *b,
+        };
+        up.execute(rusqlite::params![
+            comps.recency,
+            components::total(&comps, &cfg.weights),
+            id
+        ])?;
+    }
+    set_meta(conn, "scored_at", &now.to_string())?;
+    Ok(rows.len() as u64)
 }
 
 /// Load the raw inputs for one person (used by `who` and tests).
 pub fn inputs(conn: &Connection, person: PersonId, now: i64) -> Result<ScoreInputs> {
-    let _ = (conn, person, now);
-    todo!("score stream: inputs")
+    load::load(conn, Some(&[person]), now)?
+        .remove(&person)
+        .map(|a| a.inputs)
+        .ok_or_else(|| Error::NotFound(format!("person {person}")))
 }
 
-/// The full `ScoreComponents` JSON for one person, with `raw` filled.
+/// The full `ScoreComponents` JSON for one person, with `raw` filled. The
+/// components are the stored ones, so they recombine to the stored score.
 pub fn detail(
     conn: &Connection,
     cfg: &ScoreConfig,
     person: PersonId,
     now: i64,
 ) -> Result<json::ScoreComponents> {
-    let _ = (conn, cfg, person, now);
-    todo!("score stream: detail")
+    use rusqlite::OptionalExtension;
+    let stored: Option<[f64; 5]> = conn
+        .query_row(
+            "SELECT score_r, score_f, score_c, score_m, score_b FROM person WHERE id = ?1",
+            [person],
+            |r| Ok([r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?]),
+        )
+        .optional()?;
+    let [recency, frequency, reciprocity, meetings, breadth] =
+        stored.ok_or_else(|| Error::NotFound(format!("person {person}")))?;
+    let i = inputs(conn, person, now)?;
+    Ok(json::ScoreComponents {
+        recency,
+        frequency,
+        reciprocity,
+        meetings,
+        breadth,
+        weights: cfg.weights.into(),
+        preset: cfg.preset_name().to_string(),
+        half_life_days: cfg.half_life_days,
+        raw: Some(json::ScoreRaw {
+            days_since_last: i.days_since_last,
+            n_interactions: i.n_interactions,
+            messages_from_you: i.n_out,
+            replies_from_them: i.n_replies,
+            threads_they_started: i.n_threads_started,
+            n_meetings: i.n_meetings,
+            channels: i.channels.iter().map(|c| c.as_str().to_string()).collect(),
+        }),
+    })
 }
 
 #[cfg(test)]
