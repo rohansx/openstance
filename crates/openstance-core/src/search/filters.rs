@@ -157,11 +157,22 @@ pub fn build(q: &Query) -> SqlFilter {
             let ph = f.bind(Value::Integer(u));
             cond.push_str(&format!(" AND i.at < {ph}"));
         }
-        f.sql.push_str(&format!(
-            " AND EXISTS (SELECT 1 FROM interaction_person ip
+        if q.met_in_person == Some(true) {
+            // Meetings are rare: find them once through the
+            // interaction(kind, external_id) index instead of scanning every
+            // interaction of every candidate person.
+            f.sql.push_str(&format!(
+                " AND p.id IN (SELECT ip.person_id FROM interaction i
+       JOIN interaction_person ip ON ip.interaction_id = i.id
+       WHERE i.kind = 'meeting'{cond})"
+            ));
+        } else {
+            f.sql.push_str(&format!(
+                " AND EXISTS (SELECT 1 FROM interaction_person ip
        JOIN interaction i ON i.id = ip.interaction_id
        WHERE ip.person_id = p.id AND i.kind IN ({kinds}){cond})"
-        ));
+            ));
+        }
     }
     if q.met_in_person == Some(false) {
         f.sql.push_str(
@@ -287,6 +298,30 @@ mod tests {
             [6],
             "connections count as contact"
         );
+    }
+
+    /// `--met` must find meetings through the `interaction(kind, ...)` index,
+    /// not by scanning every interaction of every person (that plan cost
+    /// ~300 ms on the 20k-person perf graph, where meetings are rare).
+    #[test]
+    fn met_filter_is_driven_by_the_interaction_kind_index() {
+        let c = indexed();
+        let f = build(&with(|q| q.met_in_person = Some(true)));
+        let sql = format!(
+            "EXPLAIN QUERY PLAN SELECT p.id FROM person p WHERE {} {ORDER_BY}",
+            f.sql
+        );
+        let mut stmt = c.prepare(&sql).unwrap();
+        let plan: Vec<String> = stmt
+            .query_map(rusqlite::params_from_iter(f.params.iter()), |r| {
+                r.get::<_, String>(3)
+            })
+            .unwrap()
+            .collect::<rusqlite::Result<_>>()
+            .unwrap();
+        let plan = plan.join("\n");
+        assert!(plan.contains("interaction_global_id"), "{plan}");
+        assert!(!plan.contains("CORRELATED"), "{plan}");
     }
 
     #[test]

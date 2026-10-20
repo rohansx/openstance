@@ -4,8 +4,8 @@ expression: "format!(\"{}\\n-- params --\\n{:?}\", f.sql, f.params)"
 ---
 p.is_self = 0 AND p.is_bulk = 0 AND (p.id IN (SELECT rowid FROM person_fts WHERE person_fts MATCH ?1)
        OR p.id IN (SELECT person_id FROM identity WHERE kind = 'email' AND (value LIKE ?2 ESCAPE '\' OR value LIKE ?3 ESCAPE '\' OR value LIKE ?4 ESCAPE '\' OR value LIKE ?5 ESCAPE '\' OR value LIKE ?6 ESCAPE '\' OR value LIKE ?7 ESCAPE '\' OR value LIKE ?8 ESCAPE '\' OR value LIKE ?9 ESCAPE '\'))) AND p.id IN (SELECT rowid FROM person_fts WHERE person_fts MATCH ?10) AND p.id IN (SELECT rowid FROM person_fts WHERE person_fts MATCH ?11) AND EXISTS (SELECT 1 FROM override o JOIN identity oi ON oi.id = o.person_id
-       WHERE oi.person_id = p.id AND o.field = 'tag' AND lower(o.value) IN (?12)) AND EXISTS (SELECT 1 FROM interaction_person ip
-       JOIN interaction i ON i.id = ip.interaction_id
-       WHERE ip.person_id = p.id AND i.kind IN ('meeting') AND i.at >= ?13 AND i.at < ?14) AND p.last_contact < ?15 AND p.score_c > 0 AND p.score >= ?16 AND p.score_f >= 0.5 AND p.score_r < 0.2
+       WHERE oi.person_id = p.id AND o.field = 'tag' AND lower(o.value) IN (?12)) AND p.id IN (SELECT ip.person_id FROM interaction i
+       JOIN interaction_person ip ON ip.interaction_id = i.id
+       WHERE i.kind = 'meeting' AND i.at >= ?13 AND i.at < ?14) AND p.last_contact < ?15 AND p.score_c > 0 AND p.score >= ?16 AND p.score_f >= 0.5 AND p.score_r < 0.2
 -- params --
 [Text("company : (\"stripe\" OR \"jane street\")"), Text("%@stripe.%"), Text("%.stripe.%"), Text("%@stripe.%"), Text("%.stripe.%"), Text("%@janestreet.%"), Text("%.janestreet.%"), Text("%@jane-street.%"), Text("%.jane-street.%"), Text("title : (\"founder\"* OR \"cofounder\"* OR \"founding\"*)"), Text("location : (\"san francisco\" OR \"sf\" OR \"bay area\")"), Text("angels"), Integer(100), Integer(200), Integer(300), Real(0.5)]

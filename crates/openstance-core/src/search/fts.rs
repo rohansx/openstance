@@ -214,34 +214,25 @@ pub fn candidates(
     if m.is_empty() || allowed.is_some_and(<[_]>::is_empty) {
         return Ok(Vec::new());
     }
-    let limit = i64::try_from(limit).unwrap_or(i64::MAX);
-    let hits = match allowed {
-        None => {
-            let sql = format!(
-                "SELECT rowid, -{BM25} AS rel FROM person_fts WHERE person_fts MATCH ?1
-                 ORDER BY rel DESC, rowid ASC LIMIT ?2"
-            );
-            let mut stmt = conn.prepare_cached(&sql)?;
-            let v = stmt
-                .query_map(params![m, limit], |r| Ok((r.get(0)?, r.get(1)?)))?
-                .collect::<rusqlite::Result<Vec<_>>>()?;
-            v
+    // One MATCH ordered by bm25, filtered by `allowed` in Rust. A
+    // `rowid IN (...)` constraint makes FTS5 re-run the MATCH once per
+    // allowed rowid (seconds at 20k people), so it is never pushed down.
+    let sql = format!(
+        "SELECT rowid, -{BM25} AS rel FROM person_fts WHERE person_fts MATCH ?1
+         ORDER BY rel DESC, rowid ASC"
+    );
+    let allowed: Option<std::collections::HashSet<PersonId>> =
+        allowed.map(|ids| ids.iter().copied().collect());
+    let mut stmt = conn.prepare_cached(&sql)?;
+    let mut rows = stmt.query(params![m])?;
+    let mut hits = Vec::new();
+    while hits.len() < limit {
+        let Some(r) = rows.next()? else { break };
+        let id: PersonId = r.get(0)?;
+        if allowed.as_ref().is_none_or(|a| a.contains(&id)) {
+            hits.push((id, r.get(1)?));
         }
-        Some(ids) => {
-            let sql = format!(
-                "SELECT rowid, -{BM25} AS rel FROM person_fts WHERE person_fts MATCH ?1
-                   AND rowid IN (SELECT value FROM json_each(?3))
-                 ORDER BY rel DESC, rowid ASC LIMIT ?2"
-            );
-            let mut stmt = conn.prepare_cached(&sql)?;
-            let v = stmt
-                .query_map(params![m, limit, json_ids(ids)], |r| {
-                    Ok((r.get(0)?, r.get(1)?))
-                })?
-                .collect::<rusqlite::Result<Vec<_>>>()?;
-            v
-        }
-    };
+    }
     Ok(hits)
 }
 
@@ -370,6 +361,67 @@ mod tests {
             [2]
         );
         assert_eq!(ids(&candidates(&c, "angels", None, 9).unwrap()), [6]);
+    }
+
+    /// Raw `person_fts` rows only (candidates never reads `person`): `n`
+    /// people whose subjects all share the term "update".
+    fn wide_index(n: i64) -> Connection {
+        let c = graph();
+        c.execute("DELETE FROM person_fts", []).unwrap();
+        let mut stmt = c
+            .prepare("INSERT INTO person_fts(rowid, display_name, subjects) VALUES (?1, ?2, ?3)")
+            .unwrap();
+        for id in 1..=n {
+            let subjects: Vec<String> = (0..20)
+                .map(|k| format!("Acme update {}", id * 7 + k))
+                .collect();
+            let name = if id % 10 == 0 {
+                "Update Person"
+            } else {
+                "Some Person"
+            };
+            stmt.execute(params![id, name, subjects.join(" ")]).unwrap();
+        }
+        drop(stmt);
+        c
+    }
+
+    #[test]
+    fn restricted_candidates_are_the_allowed_prefix_of_the_global_ranking() {
+        let c = wide_index(500);
+        let all = candidates(&c, "update", None, 10_000).unwrap();
+        assert_eq!(all.len(), 500);
+        // Every other id allowed; the limit must apply after the filter.
+        let allowed: Vec<PersonId> = (1..=500).filter(|i| i % 2 == 0).collect();
+        let got = candidates(&c, "update", Some(&allowed), 30).unwrap();
+        let want: Vec<(PersonId, f64)> = all
+            .iter()
+            .copied()
+            .filter(|(id, _)| id % 2 == 0)
+            .take(30)
+            .collect();
+        assert_eq!(got, want);
+    }
+
+    /// P1-CORE-16 budget: bm25 top-200 < 10 ms on 20k people. Restricting to
+    /// an allowed set must cost about one MATCH, not one MATCH per allowed
+    /// rowid (that plan took 5 s on the 20k perf graph).
+    #[test]
+    fn restricted_candidates_scale_like_one_match() {
+        let n = 4000;
+        let c = wide_index(n);
+        let allowed: Vec<PersonId> = (1..=n).collect();
+        let t = std::time::Instant::now();
+        let free = candidates(&c, "acme update", None, 200).unwrap();
+        let unrestricted = t.elapsed();
+        let t = std::time::Instant::now();
+        let restricted = candidates(&c, "acme update", Some(&allowed), 200).unwrap();
+        let elapsed = t.elapsed();
+        assert_eq!(free, restricted);
+        assert!(
+            elapsed < unrestricted * 5 + std::time::Duration::from_millis(100),
+            "restricted {elapsed:?} vs unrestricted {unrestricted:?}"
+        );
     }
 
     #[test]
