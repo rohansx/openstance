@@ -565,6 +565,7 @@ pub type ColumnMap = BTreeMap<String, String>;
 // ---------------------------------------------------------------------------
 
 /// The importers compiled into this build, in detection order.
+#[allow(clippy::vec_init_then_push)]
 pub fn registry(opts: &ImportOptions) -> Vec<Box<dyn Importer>> {
     #[allow(unused_mut)]
     let mut v: Vec<Box<dyn Importer>> = Vec::new();

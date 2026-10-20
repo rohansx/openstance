@@ -520,10 +520,15 @@ mod tests {
 
     #[test]
     fn effective_limit_is_clamped() {
-        let mut q = Query::default();
-        q.limit = 0;
+        let q = Query {
+            limit: 0,
+            ..Query::default()
+        };
         assert_eq!(q.effective_limit(), 1);
-        q.limit = 5000;
+        let q = Query {
+            limit: 5000,
+            ..Query::default()
+        };
         assert_eq!(q.effective_limit(), MAX_LIMIT);
     }
 
