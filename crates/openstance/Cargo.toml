@@ -49,6 +49,7 @@ time.workspace = true
 csv.workspace = true
 
 [dev-dependencies]
+openstance-core = { workspace = true, features = ["test-util"] }
 assert_cmd.workspace = true
 predicates.workspace = true
 tempfile.workspace = true
