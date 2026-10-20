@@ -11,9 +11,9 @@ publish.workspace = true
 [features]
 default = ["mbox", "linkedin", "vcf"]
 # Phase 1 importers. Each gates one module and its parser dependencies.
-mbox = ["dep:mail-parser", "dep:memchr"]
-linkedin = ["dep:csv"]
-vcf = ["dep:quoted_printable"]
+mbox = ["dep:mail-parser", "dep:memchr", "dep:regex"]
+linkedin = ["dep:csv", "dep:regex"]
+vcf = ["dep:quoted_printable", "dep:regex"]
 
 [dependencies]
 serde.workspace = true
@@ -25,10 +25,12 @@ mail-parser = { workspace = true, optional = true }
 memchr = { workspace = true, optional = true }
 csv = { workspace = true, optional = true }
 quoted_printable = { workspace = true, optional = true }
+regex = { workspace = true, optional = true }
 
 [dev-dependencies]
 tempfile.workspace = true
 serde_json.workspace = true
+insta.workspace = true
 
 [lints]
 workspace = true
