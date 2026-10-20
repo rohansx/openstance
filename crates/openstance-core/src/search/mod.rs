@@ -59,3 +59,6 @@ pub fn rerun_command(q: &Query) -> String {
     let _ = q;
     todo!("search stream: rerun_command")
 }
+
+#[cfg(test)]
+pub(crate) mod testkit;

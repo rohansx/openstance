@@ -369,7 +369,7 @@ const COMMON_WORDS: &[&str] = &[
 ];
 
 /// Personal mail domain labels that never yield a company.
-const FREEMAIL_LABELS: &[&str] = &[
+pub(crate) const FREEMAIL_LABELS: &[&str] = &[
     "gmail",
     "googlemail",
     "outlook",
