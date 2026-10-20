@@ -3,8 +3,7 @@
 //! (busy two-way) is not, Priya and Marcus share exactly 3 email
 //! interactions, and the self person never appears in `tie`.
 //!
-//! Needs ingest + resolve + the importers end to end; ignored until the
-//! resolve stream enables `fixtures_expected.rs` too.
+//! Runs ingest + resolve + the importers end to end.
 
 use std::path::PathBuf;
 
@@ -55,7 +54,6 @@ fn person_by_email(g: &Graph, email: &str) -> i64 {
 }
 
 #[test]
-#[ignore = "enable when ingest + resolve + importers land (P1-CORE-12)"]
 fn bulk_fixture_digest_is_bulk_and_priya_is_not() {
     let g = imported();
     let digest = person_by_email(&g, "news@digest.example");
@@ -82,7 +80,6 @@ fn bulk_fixture_digest_is_bulk_and_priya_is_not() {
 }
 
 #[test]
-#[ignore = "enable when ingest + resolve + importers land (P1-CORE-12)"]
 fn tie_fixture_priya_marcus_share_three_emails() {
     let g = imported();
     let priya = person_by_email(&g, "priya@northwind.example");
