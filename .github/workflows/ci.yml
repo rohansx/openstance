@@ -1,0 +1,67 @@
+# P1-CI-02: fmt, clippy -D warnings, tests on Linux and macOS, cargo deny,
+# and the dependency-direction check. See docs/engineering/ci-and-release.md.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+  # Tests must never touch the network.
+  OPENSTANCE_DENY_NETWORK: "1"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+      - run: cargo clippy --workspace --all-targets --no-default-features --locked -- -D warnings
+      - name: Dependency direction
+        run: ./scripts/check-deps.sh
+      - name: Fixtures match their generator
+        run: |
+          cargo run --locked -q -p openstance-fixtures --bin gen-fixtures
+          git diff --exit-code -- fixtures/
+
+  deny:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check advisories bans licenses sources
+
+  test:
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-14]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.os }}
+      - run: cargo build --workspace --locked
+      - run: cargo test --workspace --locked
+      - run: cargo test --workspace --locked --doc
+      - name: Importers build without features
+        run: cargo check -p openstance-import --no-default-features --locked
