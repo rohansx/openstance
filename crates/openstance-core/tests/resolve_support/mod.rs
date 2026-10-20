@@ -223,3 +223,52 @@ pub fn add_override(
     .unwrap();
     c.last_insert_rowid()
 }
+
+/// Canonical dump of every derived table (ids included).
+pub fn derived_dump(c: &Connection) -> Vec<String> {
+    let mut out = Vec::new();
+    for (name, sql) in [
+        (
+            "person",
+            "SELECT id, display_name, title, company, location, bio, first_seen, last_contact,
+                    n_interactions, printf('%.9f', score), printf('%.9f', score_r),
+                    printf('%.9f', score_f), printf('%.9f', score_c), printf('%.9f', score_m),
+                    printf('%.9f', score_b), is_bulk, is_self, do_not_share, no_enrich
+             FROM person ORDER BY id",
+        ),
+        (
+            "identity",
+            "SELECT id, person_id, printf('%.4f', confidence), match_rule FROM identity ORDER BY id",
+        ),
+        ("interaction", "SELECT id, direction FROM interaction ORDER BY id"),
+        (
+            "interaction_person",
+            "SELECT interaction_id, identity_id, role, person_id FROM interaction_person
+             ORDER BY interaction_id, identity_id, role",
+        ),
+        (
+            "tie",
+            "SELECT a, b, kind, printf('%.9f', weight), last_at, n_shared FROM tie ORDER BY a, b, kind",
+        ),
+        (
+            "person_fts",
+            "SELECT rowid, display_name, title, company, location, bio, tags, handles, subjects
+             FROM person_fts ORDER BY rowid",
+        ),
+    ] {
+        let mut st = c.prepare(sql).unwrap();
+        let n = st.column_count();
+        let rows = st
+            .query_map([], |r| {
+                let mut s = String::from(name);
+                for i in 0..n {
+                    let v: rusqlite::types::Value = r.get(i)?;
+                    s.push_str(&format!("|{v:?}"));
+                }
+                Ok(s)
+            })
+            .unwrap();
+        out.extend(rows.map(Result::unwrap));
+    }
+    out
+}

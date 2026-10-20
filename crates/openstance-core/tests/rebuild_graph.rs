@@ -516,3 +516,34 @@ fn er23_self_person_is_absent_from_ties_and_fts() {
         .unwrap();
     assert_eq!(n, 0);
 }
+
+/// Regression (found by `rebuild_props`): a later import that adds my mail
+/// to someone else on an existing thread changes who started / replied on
+/// that thread, so everyone on the thread must be recomputed.
+#[test]
+fn incremental_recomputes_everyone_on_a_thread_that_gained_mail() {
+    let mut g = graph(me());
+    let o = ("owner@example.com", "Owen Ryder");
+    g.write(|tx, cfg| {
+        let t = mbox(
+            tx,
+            &[
+                Mail::new("a1", ("tariq@fabrikam.example", "Tariq Bellweather"), o).thread("t0"),
+                Mail::new("a2", o, ("tariq@fabrikam.example", "Tariq Bellweather")).thread("t1"),
+            ],
+        );
+        rebuild::incremental(tx, cfg, &t, NOW)
+    })
+    .unwrap();
+    g.write(|tx, cfg| {
+        let t = mbox(
+            tx,
+            &[Mail::new("b1", o, ("ines@halcyon.example", "Ines Quillfeather")).thread("t0")],
+        );
+        rebuild::incremental(tx, cfg, &t, NOW)
+    })
+    .unwrap();
+    let incremental = dump(g.conn());
+    g.rebuild().unwrap();
+    assert_eq!(dump(g.conn()), incremental);
+}

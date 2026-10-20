@@ -196,6 +196,16 @@ pub fn materialize_diff(
     touched: &Touched,
 ) -> Result<Materialized> {
     let stored = stored_assignments(conn)?;
+    // New interactions still carry a NULL derived direction. Their threads
+    // matter to everyone on the thread (thread roots, replies and the bulk
+    // rule look at whole threads), so collect them before materializing.
+    let mut threads: BTreeSet<String> = conn
+        .prepare(
+            "SELECT DISTINCT thread_key FROM interaction
+             WHERE direction IS NULL AND thread_key IS NOT NULL",
+        )?
+        .query_map([], |r| r.get(0))?
+        .collect::<rusqlite::Result<_>>()?;
     let before_people = stored_people(conn)?;
     let before_self: BTreeSet<PersonId> = conn
         .prepare("SELECT id FROM person WHERE is_self = 1")?
@@ -284,6 +294,30 @@ pub fn materialize_diff(
         for id in &touched.identities {
             let p = res.assignments.get(id).map(|a| a.person_id);
             ip.execute(rusqlite::params![id, p])?;
+        }
+    }
+    // Threads of identities whose person changed (their directions and
+    // attribution change), then everyone on any of those threads.
+    {
+        let mut st = conn.prepare_cached(
+            "SELECT DISTINCT i.thread_key FROM interaction_person ip
+             JOIN interaction i ON i.id = ip.interaction_id
+             WHERE ip.identity_id = ?1 AND i.thread_key IS NOT NULL",
+        )?;
+        for id in &changed {
+            for t in st.query_map([id], |r| r.get::<_, String>(0))? {
+                threads.insert(t?);
+            }
+        }
+        let mut st = conn.prepare_cached(
+            "SELECT DISTINCT ip.person_id FROM interaction i
+             JOIN interaction_person ip ON ip.interaction_id = i.id
+             WHERE i.thread_key = ?1 AND ip.person_id IS NOT NULL",
+        )?;
+        for t in &threads {
+            for p in st.query_map([t], |r| r.get::<_, i64>(0))? {
+                affected.insert(p?);
+            }
         }
     }
     // Removed people last, once nothing references them.
