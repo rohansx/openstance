@@ -1,0 +1,20 @@
+---
+source: crates/openstance-import/tests/mbox.rs
+expression: stats
+---
+{
+  "records_read": 177,
+  "interactions_new": 0,
+  "interactions_dup": 0,
+  "identities_new": 0,
+  "identities_seen": 0,
+  "skipped": {
+    "bad_date": 1,
+    "unsupported": 1
+  },
+  "bytes": 96890,
+  "elapsed_ms": 0,
+  "self_candidates": [
+    "email:owner@example.com"
+  ]
+}
