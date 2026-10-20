@@ -1,0 +1,140 @@
+# ~/.openstance/config.toml - every key optional; values shown are defaults.
+# Reference: docs/tech-spec/configuration.md section 3.
+
+[db]
+path = "~/.openstance/graph.db"
+busy_timeout_ms = 5000
+
+[score]
+preset = "default"            # default | founder | recruiter | seller | community
+# weights = { recency = 0.35, frequency = 0.20, reciprocity = 0.25, meetings = 0.15, breadth = 0.05 }
+half_life_days = 180          # R = exp(-ln(2) * days_since_last / half_life_days)
+frequency_scale = 20          # F = 1 - exp(-n_interactions / frequency_scale)
+meetings_scale = 3            # M = 1 - exp(-n_meetings / meetings_scale)
+thread_start_multiplier = 2.0 # C: a thread they started counts double
+tie_scale = 3                 # tie weight = 1 - exp(-D / tie_scale)
+tie_max_participants = 20     # interactions with more people create no ties
+
+[score.bulk]
+min_messages = 50             # 50+ messages from them and zero replies either way -> bulk
+list_unsubscribe_ratio = 0.5  # or List-Unsubscribe on more than this share of their messages
+
+[resolution]
+suggest_jaro_winkler = 0.92   # name similarity at or above this is suggested in review, never auto-merged
+common_names_top_n = 5000     # names in the top-N list never merge on name alone
+large_company_threshold = 50  # common name at a company this big in your graph -> suggestion, not merge
+company_aliases = {}          # e.g. { "stripe inc" = "stripe" }
+freemail_extra = []           # extra freemail domains (never used as a company signal)
+role_localparts_extra = []    # extra role addresses (never glue people together)
+gmail_domains = ["gmail.com", "googlemail.com"]  # dot/plus-insensitive domains; the first is canonical
+
+[search]
+default_limit = 30
+candidates_fts = 200
+candidates_vec = 200
+text_weight = 0.5             # fused = text_weight * fts_norm + (1 - text_weight) * vec_norm
+relationship_lift = 0.5       # final = fused * ((1 - relationship_lift) + relationship_lift * score)
+evidence_per_result = 3
+include_bulk = false
+
+[model]
+embedder = "fastembed:bge-small-en-v1.5"
+parser = "rules"
+reranker = "none"
+cache_dir = "~/.openstance/models"   # env OPENSTANCE_MODEL_DIR
+timeout_local_ms = 5000
+timeout_remote_ms = 10000
+rerank_top_n = 50
+
+[model.ollama]
+base_url = "http://127.0.0.1:11434"  # a non-loopback host counts as remote
+
+[model.openai]
+base_url = "https://api.openai.com/v1"
+api_key_env = "OPENAI_API_KEY"
+json_mode = "schema"          # schema | object | prompt
+# dimensions = 512            # optional, embeddings only
+
+[model.anthropic]
+api_key_env = "ANTHROPIC_API_KEY"
+
+[enrich]
+backend = "none"              # none | treg | ownkeys
+max_usd_per_run = 0.50
+allow_egress_default = false
+respect_do_not_share = true
+timeout_secs = 20
+
+[enrich.treg]
+endpoint = "https://api.treg.to"
+token_env = "OPENSTANCE_TREG_TOKEN"
+
+[enrich.ownkeys]
+order = ["pdl", "apollo", "clearbit"]
+
+[enrich.ownkeys.prices]       # micro-USD per call; unset op = quoted as 0 with a warning
+# profile = 10000
+# find_email = 10000
+# verify_email = 5000
+# company = 5000
+
+[me]
+identities = []               # your own handles, e.g. ["email:rohan@example.com", "linkedin_url:rohan-sharma"]
+
+[import]
+email_bodies = false          # headers only; --bodies to opt in per run
+max_message_mb = 50           # mbox messages larger than this are skipped (header still read)
+default_region = ""           # ISO country for phone numbers without +, e.g. "US", "IN"
+timezone = ""                 # for naive timestamps; empty = system local
+ics_max_attendees = 50        # larger events are skipped
+
+[share]
+keypair = "~/.openstance/age.key"
+default_ttl = "30d"
+owner_label = ""              # shown to recipients as the claimed owner; empty = $USER
+armor = false
+max_import_mb = 100
+bucket_strong = 0.60
+bucket_medium = 0.30
+
+[share.recipients]            # alias = "age1..."
+
+[serve]
+host = "127.0.0.1"
+port = 7411
+token_path = "~/.openstance/api.token"
+ui = true
+cors_origins = []
+max_upload_mb = 2048
+
+[mcp]
+read_only = false
+default_limit = 20
+
+[playbooks.path]
+limit = 3
+
+[playbooks.refresh]
+min_interactions = 5
+limit = 50
+
+[playbooks.watch]
+targets = []
+top_n = 100
+
+[playbooks.reconnect]
+limit = 10
+min_frequency = 0.5
+max_recency = 0.2
+
+[playbooks.brief]
+prose = false
+
+[playbooks.verify]
+fresh_days = 30
+
+[log]
+level = "warn"                # stderr: error | warn | info | debug | trace
+file = "~/.openstance/logs/openstance.log"
+file_level = "info"
+format = "text"               # text | json
