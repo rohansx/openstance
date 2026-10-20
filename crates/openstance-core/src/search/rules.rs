@@ -213,12 +213,25 @@ fn canonical_location(v: &str) -> Option<String> {
 }
 
 /// Aliases applied to leftover text tokens (the v0.1 synonym map).
-const TEXT_ALIASES: &[(&str, &str)] = &[
+pub const TEXT_ALIASES: &[(&str, &str)] = &[
     ("devtools", "developer tools"),
     ("sf", "san francisco"),
     ("bangalore", "bengaluru"),
     ("nyc", "new york"),
 ];
+
+/// Every spelling of the text-alias phrases found in `text` (`developer
+/// tools` -> `devtools`), so FTS finds documents written either way.
+pub fn text_alias_expansions(text: &str) -> Vec<String> {
+    let padded = format!(" {} ", text.to_lowercase());
+    let mut out = Vec::new();
+    for (alias, canonical) in TEXT_ALIASES {
+        if padded.contains(&format!(" {canonical} ")) && !padded.contains(&format!(" {alias} ")) {
+            out.push((*alias).to_string());
+        }
+    }
+    out
+}
 
 /// Words that never become `text` (the v0.1 `STOP` list, extended).
 const STOPWORDS: &[&str] = &[

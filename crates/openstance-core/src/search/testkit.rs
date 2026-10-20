@@ -11,6 +11,8 @@
 //! | 6 | Lena Park | Partner, Halcyon Ventures, London; tag angels; connection only |
 //! | 7 | Ravi Iyer | no title/company; email at contoso.example; "devtools dinner" |
 
+#![allow(clippy::type_complexity)]
+
 use rusqlite::Connection;
 
 pub const DAY: i64 = 86_400;
