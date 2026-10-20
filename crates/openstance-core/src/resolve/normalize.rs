@@ -479,6 +479,21 @@ const LEGAL_FORMS: &[&str] = &[
 /// `company_key`: NFKC, lowercase, drop punctuation, leading `the`, trailing
 /// legal forms, collapse whitespace (before the domain/alias map).
 pub fn company_key(name: &str) -> String {
+    // Applied to a fixpoint (like `name_key`) so the key is idempotent:
+    // dropping a character can leave combining marks out of canonical order
+    // or expose another leading article.
+    let mut cur = company_key_once(name);
+    for _ in 0..4 {
+        let next = company_key_once(&cur);
+        if next == cur {
+            break;
+        }
+        cur = next;
+    }
+    cur
+}
+
+fn company_key_once(name: &str) -> String {
     let s: String = name.nfkc().collect::<String>().to_lowercase();
     let s: String = s
         .chars()
@@ -506,7 +521,7 @@ pub fn company_key(name: &str) -> String {
             break;
         }
     }
-    t.join(" ")
+    t.join(" ").nfc().collect()
 }
 
 /// Rule 2 alias key: on `gmail_domains` drop dots and map to the first
@@ -883,6 +898,18 @@ mod tests {
         assert_eq!(prettify_local_part("jane_doe+news@example.com"), "Jane Doe");
         assert_eq!(prettify_local_part("jdoe@example.com"), "Jdoe");
         assert_eq!(prettify_local_part("jean-luc@example.com"), "Jean Luc");
+    }
+
+    /// Found by the proptest: removing a quote left two combining marks out
+    /// of canonical order, so a second pass reordered them. Also a doubled
+    /// leading article.
+    #[test]
+    fn company_key_is_idempotent_on_regressions() {
+        for s in ["\u{b4}\"\u{16af0}", "The the Acme", "the The Acme LLC Inc"] {
+            let k = company_key(s);
+            assert_eq!(company_key(&k), k, "{s:?}");
+        }
+        assert_eq!(company_key("The the Acme"), "acme");
     }
 
     proptest::proptest! {
