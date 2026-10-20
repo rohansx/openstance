@@ -117,6 +117,26 @@ const COMPANIES: &[&str] = &[
     "Coho",
 ];
 
+/// Syllables for the per-person surname suffix (fixed width, so the
+/// encoding is injective).
+const SYLLABLES: &[&str] = &[
+    "ba", "ce", "di", "fo", "gu", "ha", "ke", "li", "mo", "nu", "pa", "ri", "so", "ta", "ve", "zu",
+];
+
+/// `i` in base 16 spelled with [`SYLLABLES`]: a pronounceable, unique suffix.
+fn syllable_suffix(mut i: u32) -> String {
+    let mut out = Vec::new();
+    loop {
+        out.push(SYLLABLES[(i % 16) as usize]);
+        i /= 16;
+        if i == 0 {
+            break;
+        }
+    }
+    out.reverse();
+    out.concat()
+}
+
 /// A synthetic person.
 #[derive(Debug, Clone)]
 pub struct SynthPerson {
@@ -147,8 +167,10 @@ pub fn population(p: &GraphParams) -> Vec<SynthPerson> {
             } else {
                 format!("{}.{}{}@{}", f.to_lowercase(), l.to_lowercase(), i, domain)
             };
+            // Unique surname per person: a real graph has few exact
+            // name+company collisions, and each one is a rule-3 merge.
             SynthPerson {
-                name: format!("{f} {l}"),
+                name: format!("{f} {l}{}", syllable_suffix(i)),
                 email,
                 company,
                 slug: format!("{}-{}-{i}", f.to_lowercase(), l.to_lowercase()),
@@ -301,6 +323,17 @@ mod tests {
         let people = population(&p);
         let bulk = people.iter().filter(|x| x.bulk).count();
         assert!(bulk > 0 && bulk < 20, "about 3% bulk, got {bulk}");
+    }
+
+    /// Same display name + same company is a rule-3 merge (entity-resolution
+    /// rule 3), so a perf graph of N people must not repeat a name, or it
+    /// resolves to far fewer than N people.
+    #[test]
+    fn perf_population_has_distinct_names() {
+        let people = population(&GraphParams::default());
+        let names: std::collections::HashSet<&str> =
+            people.iter().map(|p| p.name.as_str()).collect();
+        assert_eq!(names.len(), people.len(), "duplicate display names");
     }
 
     #[test]
