@@ -149,11 +149,11 @@ pub fn resolve(conn: &Connection, cfg: &Config) -> Result<Resolution> {
 pub fn materialize_all(conn: &Connection, res: &Resolution) -> Result<Materialized> {
     let before: BTreeSet<PersonId> = stored_people(conn)?;
     conn.execute_batch(
-        "DELETE FROM tie;
+        "UPDATE identity SET person_id = NULL, confidence = NULL, match_rule = NULL;
+         UPDATE interaction_person SET person_id = NULL;
+         DELETE FROM tie;
          DELETE FROM person_fts;
-         DELETE FROM person;
-         UPDATE identity SET person_id = NULL, confidence = NULL, match_rule = NULL;
-         UPDATE interaction_person SET person_id = NULL;",
+         DELETE FROM person;",
     )?;
     let people = res.people();
     {
@@ -246,14 +246,6 @@ pub fn materialize_diff(
         }
     }
 
-    if !removed.is_empty() {
-        let mut del_tie = conn.prepare_cached("DELETE FROM tie WHERE a = ?1 OR b = ?1")?;
-        let mut del_person = conn.prepare_cached("DELETE FROM person WHERE id = ?1")?;
-        for p in &removed {
-            del_tie.execute([p])?;
-            del_person.execute([p])?;
-        }
-    }
     {
         let mut ins = conn.prepare_cached("INSERT INTO person(id) VALUES (?1)")?;
         for p in now_people.difference(&before_people) {
@@ -292,6 +284,15 @@ pub fn materialize_diff(
         for id in &touched.identities {
             let p = res.assignments.get(id).map(|a| a.person_id);
             ip.execute(rusqlite::params![id, p])?;
+        }
+    }
+    // Removed people last, once nothing references them.
+    if !removed.is_empty() {
+        let mut del_tie = conn.prepare_cached("DELETE FROM tie WHERE a = ?1 OR b = ?1")?;
+        let mut del_person = conn.prepare_cached("DELETE FROM person WHERE id = ?1")?;
+        for p in &removed {
+            del_tie.execute([p])?;
+            del_person.execute([p])?;
         }
     }
     let now_self: BTreeSet<PersonId> = res.self_person.into_iter().collect();
