@@ -1,8 +1,6 @@
 //! P1-CORE-12: importing every Phase 1 fixture yields exactly the totals in
 //! `fixtures/EXPECTED.md` (generated from `fixtures/gen`).
 //!
-//! Ignored until the resolve, score and import streams land their
-//! implementations; the resolve stream removes the `#[ignore]`.
 
 use std::path::PathBuf;
 
@@ -46,7 +44,6 @@ fn fixture_config_loads_strictly() {
 }
 
 #[test]
-#[ignore = "enable when ingest + resolve + score + importers land (P1-CORE-12)"]
 fn fixture_totals_match_expected_md() {
     let mut g = fixture_graph();
     g.import(&fixture_files(), &ImportRequest::default())
@@ -64,7 +61,6 @@ fn fixture_totals_match_expected_md() {
 }
 
 #[test]
-#[ignore = "enable when ingest + resolve land (P1-CORE-05)"]
 fn reimporting_the_fixtures_is_a_no_op() {
     let mut g = fixture_graph();
     g.import(&fixture_files(), &ImportRequest::default())

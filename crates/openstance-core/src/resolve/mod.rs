@@ -302,8 +302,8 @@ pub fn materialize_diff(
         if let Some(s) = res.self_person {
             conn.execute("UPDATE person SET is_self = 1 WHERE id = ?1", [s])?;
         }
-        affected.extend(before_self.intersection(&now_people).copied());
-        affected.extend(now_self.iter().copied());
+        // Directions change for everyone, so every score may change.
+        affected.extend(now_people.iter().copied());
     }
     write_self_cache(conn, res)?;
     if self_changed {

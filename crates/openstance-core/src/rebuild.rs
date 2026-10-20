@@ -33,6 +33,9 @@ use serde::Serialize;
 use crate::config::Config;
 use crate::error::Result;
 use crate::ingest::Touched;
+use crate::resolve::{self, Resolution};
+use crate::score::{self, ScoreConfig};
+use crate::search;
 use crate::PersonId;
 
 /// What a rebuild (full or incremental) did.
@@ -58,10 +61,61 @@ pub struct RebuildReport {
     pub took_ms: u64,
 }
 
+fn score_config(cfg: &Config) -> Result<ScoreConfig> {
+    let (sc, warnings) = ScoreConfig::from_config(&cfg.score)?;
+    for w in warnings {
+        tracing::warn!(warning = %w, "score config");
+    }
+    Ok(sc)
+}
+
+fn count(conn: &Connection, sql: &str) -> Result<u64> {
+    let n: i64 = conn.query_row(sql, [], |r| r.get(0))?;
+    Ok(u64::try_from(n).unwrap_or(0))
+}
+
+fn finish_report(
+    conn: &Connection,
+    res: &Resolution,
+    affected: usize,
+    removed: usize,
+    started: std::time::Instant,
+) -> Result<RebuildReport> {
+    Ok(RebuildReport {
+        people: count(conn, "SELECT count(*) FROM person")?,
+        affected: affected as u64,
+        removed: removed as u64,
+        flagged: count(
+            conn,
+            "SELECT count(DISTINCT person_id) FROM identity
+             WHERE person_id IS NOT NULL AND match_rule IN ('name_company', 'name_thread')",
+        )?,
+        bulk: count(conn, "SELECT count(*) FROM person WHERE is_bulk = 1")?,
+        ties: count(conn, "SELECT count(*) FROM tie")?,
+        blocked_by_override: res.blocked_by_override,
+        conflicting_overrides: res.conflicting_overrides.clone(),
+        took_ms: u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
+    })
+}
+
 /// Full rebuild of all derived data (steps 4-18).
 pub fn rebuild(conn: &Connection, cfg: &Config, now: i64) -> Result<RebuildReport> {
-    let _ = (conn, cfg, now);
-    todo!("resolve stream: P1-CORE-09 rebuild")
+    let started = std::time::Instant::now();
+    let score_cfg = score_config(cfg)?;
+    let res = resolve::resolve(conn, cfg)?;
+    let m = resolve::materialize_all(conn, &res)?;
+    resolve::fields::materialize_fields(conn, None)?;
+    score::recompute_all(conn, &score_cfg, now)?;
+    search::fts::reindex_all(conn)?;
+    conn.execute(
+        "INSERT INTO meta(key, value) VALUES ('last_rebuild_at', ?1)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        [now.to_string()],
+    )?;
+    for id in &res.conflicting_overrides {
+        tracing::warn!(override_id = id, "conflicting override skipped");
+    }
+    finish_report(conn, &res, m.affected.len(), m.removed.len(), started)
 }
 
 /// Rebuild-lite after an import, merge or split. Must give the same derived
@@ -72,8 +126,15 @@ pub fn incremental(
     touched: &Touched,
     now: i64,
 ) -> Result<RebuildReport> {
-    let _ = (conn, cfg, touched, now);
-    todo!("resolve stream: P1-CORE-09 incremental")
+    let started = std::time::Instant::now();
+    let score_cfg = score_config(cfg)?;
+    let res = resolve::resolve(conn, cfg)?;
+    let m = resolve::materialize_diff(conn, &res, touched)?;
+    resolve::fields::materialize_fields(conn, Some(&m.affected))?;
+    score::recompute_people(conn, &score_cfg, &m.affected, now)?;
+    search::fts::remove_people(conn, &m.removed)?;
+    search::fts::reindex_people(conn, &m.affected)?;
+    finish_report(conn, &res, m.affected.len(), m.removed.len(), started)
 }
 
 /// Steps 15-17 for people whose clusters did not change (after `edit`).
@@ -83,6 +144,9 @@ pub fn refresh_people(
     people: &[PersonId],
     now: i64,
 ) -> Result<()> {
-    let _ = (conn, cfg, people, now);
-    todo!("resolve stream: P1-CORE-09 refresh_people")
+    let score_cfg = score_config(cfg)?;
+    resolve::fields::materialize_fields(conn, Some(people))?;
+    score::recompute_people(conn, &score_cfg, people, now)?;
+    search::fts::reindex_people(conn, people)?;
+    Ok(())
 }
