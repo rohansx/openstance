@@ -409,3 +409,16 @@ fn default_label_uses_export_folder_date_else_mtime() {
     let re = regex::Regex::new(r"^linkedin \d{4}-\d{2}-\d{2}$").unwrap();
     assert!(re.is_match(&label), "{label}");
 }
+
+#[test]
+fn golden_fixture_stats() {
+    for (name, file) in [
+        ("linkedin_connections_stats", "linkedin/Connections.csv"),
+        ("linkedin_messages_stats", "linkedin/messages.csv"),
+        ("linkedin_invitations_stats", "linkedin/Invitations.csv"),
+    ] {
+        let (mut stats, _) = run(&imp(), &fixture(file));
+        stats.elapsed_ms = 0; // wall time varies
+        insta::assert_json_snapshot!(name, stats);
+    }
+}

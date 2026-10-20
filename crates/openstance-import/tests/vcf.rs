@@ -304,3 +304,10 @@ fn detect_levels() {
     );
     assert_eq!(i.detect(&fixture("mbox/small.mbox")), Detection::No);
 }
+
+#[test]
+fn golden_fixture_stats() {
+    let (mut stats, _) = run(&imp(), &fixture("vcf/contacts.vcf"));
+    stats.elapsed_ms = 0; // wall time varies
+    insta::assert_json_snapshot!("vcf_fixture_stats", stats);
+}

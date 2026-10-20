@@ -1,0 +1,17 @@
+---
+source: crates/openstance-import/tests/linkedin_csv.rs
+expression: stats
+---
+{
+  "records_read": 2,
+  "interactions_new": 0,
+  "interactions_dup": 0,
+  "identities_new": 0,
+  "identities_seen": 0,
+  "skipped": {},
+  "bytes": 457,
+  "elapsed_ms": 0,
+  "self_candidates": [
+    "linkedin_url:owen-ryder-example"
+  ]
+}
