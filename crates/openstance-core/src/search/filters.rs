@@ -53,7 +53,7 @@ fn column_match(col: &str, terms: &[String], prefix: bool) -> String {
 
 /// LIKE patterns for a company's email domains (`%@stripe.%`, `%.stripe.%`).
 /// Personal mail labels never match.
-fn domain_patterns(company: &str) -> Vec<String> {
+pub(crate) fn domain_patterns(company: &str) -> Vec<String> {
     let lower = company.trim().to_lowercase();
     let words: Vec<String> = lower
         .split(|c: char| !c.is_alphanumeric())

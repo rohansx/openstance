@@ -585,7 +585,7 @@ impl Lexicon {
 }
 
 /// NFKC, lowercase, punctuation (except `& ' -`) to spaces, collapse spaces.
-fn simple_norm(s: &str) -> String {
+pub(crate) fn simple_norm(s: &str) -> String {
     let s: String = s
         .nfkc()
         .flat_map(char::to_lowercase)
