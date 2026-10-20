@@ -653,8 +653,8 @@ pub fn rerun_command_in(q: &Query, tz: chrono_tz::Tz) -> String {
     parts.join(" ")
 }
 
-#[cfg(test)]
-pub(crate) mod testkit;
+#[cfg(any(test, feature = "test-util"))]
+pub mod testkit;
 
 #[cfg(test)]
 #[path = "search_tests.rs"]

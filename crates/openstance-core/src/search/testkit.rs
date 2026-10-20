@@ -10,11 +10,15 @@
 //! | 5 | Sam Ito | Product Manager, Fabrikam; email at stripe.example; lost touch |
 //! | 6 | Lena Park | Partner, Halcyon Ventures, London; tag angels; connection only |
 //! | 7 | Ravi Iyer | no title/company; email at contoso.example; "devtools dinner" |
+//!
+//! Compiled for core's own tests and, with the `test-util` feature, for
+//! integration tests in other crates (the CLI).
 
 #![allow(clippy::type_complexity)]
 
 use rusqlite::Connection;
 
+/// Seconds per day.
 pub const DAY: i64 = 86_400;
 
 /// 2026-10-20T12:00:00Z.
@@ -33,6 +37,7 @@ pub fn ago(days: i64) -> i64 {
     NOW - days * DAY
 }
 
+/// Insert the graph above into a migrated, empty database.
 pub fn seed(c: &Connection) {
     c.execute_batch(
         "INSERT INTO source(id, kind, label, imported_at) VALUES

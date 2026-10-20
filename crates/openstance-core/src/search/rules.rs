@@ -850,10 +850,14 @@ fn iso_period(tok: &str) -> Option<(NaiveDate, NaiveDate)> {
 }
 
 /// Parse a CLI date argument: `YYYY`, `YYYY-MM`, `YYYY-MM-DD`, or relative
-/// `90d`, `2w`, `6m`, `1y` (that long before `today`). Returns the start of
+/// `90d`, `2w`, `6m`, `1y` (that long before `today`), or `@<unix seconds>`
+/// (what `rerun` writes for non-midnight instants). Returns the start of
 /// the period in unix seconds (local midnight in `tz`).
 pub fn parse_date_arg(s: &str, today: i64, tz: chrono_tz::Tz) -> Option<i64> {
     let s = s.trim().to_lowercase();
+    if let Some(unix) = s.strip_prefix('@') {
+        return unix.parse().ok();
+    }
     if let Some((start, _)) = iso_period(&s) {
         return Some(start_of(start, tz));
     }

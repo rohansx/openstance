@@ -451,6 +451,8 @@ fn date_args_accept_cli_forms() {
     assert_eq!(parse_date_arg("2w", t, tz), Some(d(2026, 10, 6)));
     assert_eq!(parse_date_arg("6m", t, tz), Some(d(2026, 4, 20)));
     assert_eq!(parse_date_arg("1y", t, tz), Some(d(2025, 10, 20)));
+    assert_eq!(parse_date_arg("@1735669800", t, tz), Some(1_735_669_800));
+    assert_eq!(parse_date_arg("@x", t, tz), None);
     assert_eq!(parse_date_arg("Q5", t, tz), None);
     assert_eq!(parse_date_arg("2025-13", t, tz), None);
 }
