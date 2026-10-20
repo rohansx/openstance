@@ -4,6 +4,9 @@ services:
     build: .
     ports: ["127.0.0.1:18790:18790"]
     env_file: [.env]
+    environment:
+      TREG_SINGLE_USER: "true"
+      TREG_SINGLE_USER_TOKEN_FILE: /data/local-token
     volumes: [treg-data:/data]
 volumes:
   treg-data:
