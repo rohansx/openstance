@@ -1,0 +1,261 @@
+# Search evaluation, first tier (P1-CORE-17).
+#
+# Run: cargo test -p openstance-core --test search_eval -- --nocapture
+#
+# The graph is the Phase 1 fixture set (fixtures/EXPECTED.md) imported with
+# fixtures/config.toml, searched with the rules parser and no reranker at a
+# fixed "now". Expectations name people by a stable handle (see [people]),
+# never by row id. `expect_top5` is an order-insensitive set (may be < 5);
+# `must_not` lists people that must not appear in the top 5.
+#
+# Metrics: Recall@5 = mean over queries with expectations of
+# |expected ∩ top5| / |expected|; MRR = mean of 1 / rank of the first
+# expected person (0 when none is in the results); must_not violations =
+# count over all queries. The test fails below the thresholds.
+
+[settings]
+parser = "rules"
+reranker = "none"
+config = "fixtures/config.toml"
+now = "2026-10-20T12:00:00Z"
+fixtures = [
+  "fixtures/mbox/small.mbox",
+  "fixtures/linkedin/Connections.csv",
+  "fixtures/linkedin/messages.csv",
+  "fixtures/linkedin/Invitations.csv",
+  "fixtures/vcf/contacts.vcf",
+]
+
+# Baseline (2026-10, rules tier): Recall@5 1.000, MRR 1.000, 0 violations.
+# Thresholds are the baseline minus the allowed drop (testing-strategy.md:
+# 0.02 recall, 0.03 MRR), so a single regressed query fails the test.
+[thresholds]
+recall_at_5 = 0.98
+mrr = 0.97
+must_not_violations = 0
+
+[people]
+priya = "email:priya@northwind.example"
+sam = "linkedin_url:sam-ito-nw"
+alex_nw = "linkedin_url:alex-kim-northwind"
+alex_ct = "email:alex.kim@contoso.example"
+kenji = "linkedin_url:kenji-watanabe-nw"
+ravi = "email:ravi@contoso.example"
+marcus = "email:marcus@contoso.example"
+hannah = "email:hannah@contoso.example"
+amara = "linkedin_url:amara-nwosu"
+lena = "linkedin_url:lena-park-design"
+kofi = "email:kofi@tailspin.example"
+mira = "email:mira@tailspin.example"
+elena = "email:elena@tailspin.example"
+jose = "linkedin_url:jose-garcia-tailspin"
+sofia = "linkedin_url:sofia-marchetti"
+lars = "email:lars@tailspin.example"
+ines_li = "linkedin_url:ines-quillfeather"
+ines_vcf = "email:ines.q@mail.test"
+john = "linkedin_url:john-quillby"
+jon = "email:jon.quillby@brightwater.example"
+chidi = "linkedin_url:chidi-okafor"
+hugo = "linkedin_url:hugo-brandt"
+dana = "email:dana.whitfield@gmail.test"
+tariq = "email:tariq@fabrikam.example"
+pat = "email:pat@fabrikam.example"
+nora = "email:nora@fabrikam.example"
+digest = "email:news@digest.example"
+
+# --- structured: company, title, location, flags ---------------------------
+
+[[q]]
+id = "q01"
+text = "who do I know at Northwind"
+expect_top5 = ["priya", "sam", "alex_nw", "kenji"]
+must_not = ["alex_ct"]
+tags = ["structured", "company"]
+
+[[q]]
+id = "q02"
+text = "people at Contoso"
+expect_top5 = ["ravi", "marcus", "hannah", "amara", "alex_ct"]
+tags = ["structured", "company", "email-domain"]
+
+[[q]]
+id = "q03"
+text = "Tailspin"
+expect_top5 = ["kofi", "mira", "elena", "jose", "sofia"]
+tags = ["structured", "company", "bare-mention"]
+
+[[q]]
+id = "q04"
+text = "founders"
+expect_top5 = ["ines_li", "kenji"]
+must_not = ["ines_vcf"]
+tags = ["structured", "title"]
+
+[[q]]
+id = "q05"
+text = "cto"
+expect_top5 = ["john"]
+must_not = ["jon"]
+tags = ["structured", "title"]
+
+[[q]]
+id = "q06"
+text = "recruiters"
+expect_top5 = ["chidi"]
+tags = ["structured", "title"]
+
+[[q]]
+id = "q07"
+text = "engineers"
+expect_top5 = ["priya", "marcus", "alex_nw"]
+tags = ["structured", "title"]
+
+[[q]]
+id = "q08"
+text = "product managers"
+expect_top5 = ["sam"]
+tags = ["structured", "title"]
+
+[[q]]
+id = "q09"
+text = "head of sales"
+expect_top5 = ["amara", "mira"]
+tags = ["structured", "title"]
+
+[[q]]
+id = "q10"
+text = "people in Bengaluru"
+expect_top5 = ["priya"]
+tags = ["structured", "location"]
+
+[[q]]
+id = "q11"
+text = "in Lisbon"
+expect_top5 = ["mira"]
+tags = ["structured", "location"]
+
+[[q]]
+id = "q12"
+text = "who replied at Fabrikam"
+expect_top5 = ["tariq", "pat"]
+must_not = ["chidi", "nora"]
+tags = ["structured", "company", "replied"]
+
+[[q]]
+id = "q13"
+text = "since 2026 at Tailspin"
+expect_top5 = ["kofi", "mira", "elena"]
+must_not = ["jose", "sofia", "lars"]
+tags = ["structured", "company", "date"]
+
+[[q]]
+id = "q14"
+filters = { company = ["contoso"], replied = false }
+expect_top5 = ["lena"]
+must_not = ["ravi", "marcus", "hannah"]
+tags = ["structured", "flags-only"]
+
+# --- free text over FTS fields, including subjects -------------------------
+
+[[q]]
+id = "q15"
+text = "devtools dinner"
+expect_top5 = ["kofi", "hugo"]
+tags = ["text", "subjects", "alias"]
+
+[[q]]
+id = "q16"
+text = "book club"
+expect_top5 = ["dana"]
+tags = ["text", "subjects"]
+
+[[q]]
+id = "q17"
+text = "climbing"
+expect_top5 = ["tariq"]
+tags = ["text", "subjects"]
+
+[[q]]
+id = "q18"
+text = "launch party"
+expect_top5 = ["mira"]
+tags = ["text", "subjects"]
+
+[[q]]
+id = "q19"
+text = "pricing page"
+expect_top5 = ["ravi"]
+tags = ["text", "subjects"]
+
+[[q]]
+id = "q20"
+text = "Priya Raman"
+expect_top5 = ["priya"]
+tags = ["text", "name"]
+
+[[q]]
+id = "q21"
+text = "seed fund partner"
+expect_top5 = ["sofia"]
+tags = ["text", "title"]
+
+[[q]]
+id = "q22"
+text = "design"
+expect_top5 = ["lena", "elena"]
+tags = ["text", "title", "subjects"]
+
+[[q]]
+id = "q23"
+text = "research"
+expect_top5 = ["hannah"]
+tags = ["text", "title", "subjects"]
+
+[[q]]
+id = "q24"
+text = "Quick question about your API"
+expect_top5 = ["nora"]
+tags = ["text", "subjects"]
+
+[[q]]
+id = "q25"
+text = "hiring"
+expect_top5 = ["pat", "marcus"]
+tags = ["text", "subjects", "handles"]
+
+# --- mixed -------------------------------------------------------------------
+
+[[q]]
+id = "q26"
+text = "security review"
+expect_top5 = ["alex_ct"]
+tags = ["mixed", "industry"]
+
+[[q]]
+id = "q27"
+text = "Northwind platform sync"
+expect_top5 = ["priya"]
+tags = ["mixed", "company", "subjects"]
+
+[[q]]
+id = "q28"
+text = "Alex Kim at Northwind"
+expect_top5 = ["alex_nw"]
+must_not = ["alex_ct"]
+tags = ["mixed", "common-name"]
+
+# --- adversarial ------------------------------------------------------------
+
+[[q]]
+id = "q29"
+text = "digest"
+expect_top5 = []
+must_not = ["digest"]
+tags = ["adversarial", "bulk"]
+
+[[q]]
+id = "q30"
+text = "news@digest.example weekly"
+expect_top5 = []
+must_not = ["digest"]
+tags = ["adversarial", "bulk"]
