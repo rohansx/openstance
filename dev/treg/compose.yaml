@@ -1,0 +1,9 @@
+# Local treg for openstance enrichment tests: `docker compose -f dev/treg/compose.yaml up -d`
+services:
+  treg:
+    build: .
+    ports: ["127.0.0.1:18790:18790"]
+    env_file: [.env]
+    volumes: [treg-data:/data]
+volumes:
+  treg-data:
