@@ -1,0 +1,25 @@
+[package]
+name = "openstance-enrich"
+description = "Enricher trait, request/quote/result types, and the NullEnricher"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+# Phase 3 and later. Empty in Phase 1.
+treg = []
+ownkeys = []
+mock = []
+test-util = []
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

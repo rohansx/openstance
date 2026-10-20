@@ -1,0 +1,20 @@
+[package]
+name = "openstance-api"
+description = "Local HTTP API (Phase 4): routes mapped to openstance-core calls"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+ui = []
+
+[dependencies]
+openstance-core.workspace = true
+openstance-mcp.workspace = true
+
+[lints]
+workspace = true

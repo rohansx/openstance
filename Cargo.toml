@@ -1,0 +1,106 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/openstance-core",
+    "crates/openstance-import",
+    "crates/openstance-enrich",
+    "crates/openstance-model",
+    "crates/openstance-mcp",
+    "crates/openstance-api",
+    "crates/openstance",
+    "fixtures/gen",
+]
+default-members = [
+    "crates/openstance-core",
+    "crates/openstance-import",
+    "crates/openstance-enrich",
+    "crates/openstance-model",
+    "crates/openstance-mcp",
+    "crates/openstance-api",
+    "crates/openstance",
+    "fixtures/gen",
+]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.85"
+license = "Apache-2.0"
+repository = "https://github.com/openstance/openstance"
+publish = false
+
+# Every dependency Phase 1 needs is declared here so member crates only ever
+# write `dep.workspace = true`. Later phases add their own entries
+# (sqlite-vec, age, tokio, axum, rmcp, fastembed, ureq, ...).
+[workspace.dependencies]
+# internal crates
+openstance-core = { path = "crates/openstance-core" }
+openstance-import = { path = "crates/openstance-import", default-features = false }
+openstance-enrich = { path = "crates/openstance-enrich", default-features = false }
+openstance-model = { path = "crates/openstance-model", default-features = false }
+openstance-mcp = { path = "crates/openstance-mcp" }
+openstance-api = { path = "crates/openstance-api" }
+
+# storage
+rusqlite = { version = "0.32", features = ["bundled", "functions", "vtab", "backup"] }
+
+# serialization and config
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+toml = "0.8"
+schemars = "1"
+
+# errors and logging
+thiserror = "2"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+
+# text, names, matching
+unicode-normalization = "0.1"
+strsim = "0.11"
+regex = "1"
+idna = "1"
+url = "2"
+psl = "2"
+phonenumber = "0.3"
+
+# hashing
+blake3 = "1"
+
+# time
+time = { version = "0.3", features = ["formatting", "parsing", "macros"] }
+chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
+chrono-tz = "0.10"
+
+# importers
+mail-parser = "0.9"
+memchr = "2"
+csv = "1"
+quoted_printable = "0.5"
+lru = "0.12"
+
+# CLI
+clap = { version = "4", features = ["derive", "env"] }
+
+# dev / test
+tempfile = "3"
+proptest = "1"
+insta = { version = "1", features = ["json"] }
+assert_cmd = "2"
+predicates = "3"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+dbg_macro = "warn"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+strip = "symbols"
+opt-level = 3
+
+[profile.dev.package."*"]
+opt-level = 2

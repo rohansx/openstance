@@ -1,0 +1,29 @@
+[package]
+name = "openstance-model"
+description = "Embedder, QueryParser and Reranker traits, the Query type, and Null implementations"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+# Backends land in later phases; the features exist so the binary's umbrella
+# features can already name them. They compile nothing in Phase 1.
+fastembed = []
+ollama = []
+openai = []
+anthropic = []
+test-util = []
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+schemars.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+
+[lints]
+workspace = true
