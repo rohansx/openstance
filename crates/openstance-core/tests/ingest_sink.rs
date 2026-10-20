@@ -482,7 +482,7 @@ fn importing_the_same_file_twice_is_a_no_op() {
     let dir = tempfile::tempdir().unwrap();
     let p = write(dir.path(), "a.mbox", "a@example.com,Ada Example\n");
     let mut g = graph();
-    let first = g.import(&[p.clone()], &raw_only()).unwrap();
+    let first = g.import(std::slice::from_ref(&p), &raw_only()).unwrap();
     assert!(!first.sources[0].skipped_duplicate_file);
     let before = dump(g.conn());
     let again = g.import(&[p], &raw_only()).unwrap();
@@ -513,7 +513,7 @@ fn an_importer_panic_rolls_the_whole_file_back() {
     let before = dump(g.conn());
     let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         CALLS.fetch_add(1, Ordering::SeqCst);
-        g.import(&[bad.clone()], &raw_only())
+        g.import(std::slice::from_ref(&bad), &raw_only())
     }));
     assert!(r.is_err(), "the panic propagates to the caller");
     assert_eq!(CALLS.load(Ordering::SeqCst), 1);

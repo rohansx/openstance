@@ -153,6 +153,10 @@ pub(crate) struct Observations {
     pub override_refs: BTreeSet<IdentityId>,
 }
 
+/// A co-reference card being collected: `(interaction_id, slot)`, its
+/// identities, the matchable names on it, and whether it is enrichment.
+type Card = ((i64, i64), BTreeSet<IdentityId>, BTreeSet<String>, bool);
+
 /// One `interaction_person` row with what resolution needs.
 struct ObsRow {
     interaction_id: i64,
@@ -183,7 +187,7 @@ impl Observations {
 
         let mut raw_names: BTreeMap<IdentityId, BTreeSet<String>> = BTreeMap::new();
         // card (interaction_id, slot) -> (identities, matchable names on the card)
-        let mut card: Option<((i64, i64), BTreeSet<IdentityId>, BTreeSet<String>, bool)> = None;
+        let mut card: Option<Card> = None;
         let mut card_names: BTreeMap<IdentityId, BTreeSet<String>> = BTreeMap::new();
         let mut card_count: BTreeMap<IdentityId, usize> = BTreeMap::new();
 
@@ -208,22 +212,20 @@ impl Observations {
                 enrich: source_kind.starts_with("enrich:"),
             })
         })?;
-        let mut flush =
-            |card: Option<((i64, i64), BTreeSet<IdentityId>, BTreeSet<String>, bool)>,
-             obs: &mut Observations| {
-                if let Some((_, ids, names, enrich)) = card {
-                    if ids.len() > 1 && !enrich {
-                        for id in &ids {
-                            card_names
-                                .entry(*id)
-                                .or_default()
-                                .extend(names.iter().cloned());
-                            *card_count.entry(*id).or_insert(0) += 1;
-                        }
-                        obs.coref.push(ids.into_iter().collect());
+        let mut flush = |card: Option<Card>, obs: &mut Observations| {
+            if let Some((_, ids, names, enrich)) = card {
+                if ids.len() > 1 && !enrich {
+                    for id in &ids {
+                        card_names
+                            .entry(*id)
+                            .or_default()
+                            .extend(names.iter().cloned());
+                        *card_count.entry(*id).or_insert(0) += 1;
                     }
+                    obs.coref.push(ids.into_iter().collect());
                 }
-            };
+            }
+        };
         for row in rows {
             let r = row?;
             obs.observed.insert(r.identity_id);
