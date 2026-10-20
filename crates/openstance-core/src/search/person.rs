@@ -116,7 +116,9 @@ fn latest_scalar(conn: &Connection, id: PersonId, field: &str) -> Result<Option<
 }
 
 /// Where each displayed scalar came from: `override`, `<kind>:<label>` of
-/// the newest source whose hint equals the value, or `null`. Read-only over
+/// the most recently imported observation whose hint equals the value (walks
+/// the `interaction_person(person_id, interaction_id)` index backwards and
+/// stops at the first hit), or `null`. Read-only over
 /// raw tables (search never calls resolve).
 pub fn field_sources(
     conn: &Connection,
@@ -139,7 +141,7 @@ pub fn field_sources(
                          JOIN interaction i ON i.id = ip.interaction_id
                          JOIN source s ON s.id = i.source_id
                          WHERE ip.person_id = ?1 AND ip.{col} = ?2
-                         ORDER BY i.at DESC, i.id DESC LIMIT 1"
+                         ORDER BY ip.person_id DESC, ip.interaction_id DESC LIMIT 1"
                     );
                     conn.prepare_cached(&sql)?
                         .query_row(params![id, v], |r| {
