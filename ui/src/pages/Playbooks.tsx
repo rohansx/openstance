@@ -15,6 +15,9 @@ interface FieldSpec {
   required?: boolean;
   default?: string | boolean;
   placeholder?: string;
+  /** number inputs: lower bound and step (default 1 and 1). */
+  min?: number;
+  step?: number;
 }
 
 interface PlaybookSpec {
@@ -63,7 +66,11 @@ const PLAYBOOKS: PlaybookSpec[] = [
     summary: 'People you used to talk to often and have not lately, with the subject of your last exchange.',
     egress: 'none',
     egressNote: 'Local · $0 · no messages sent',
-    fields: [{ key: 'limit', label: 'People', kind: 'number', default: '10' }],
+    fields: [
+      { key: 'limit', label: 'People', kind: 'number', default: '10' },
+      { key: 'min_frequency', label: 'Minimum past frequency F (0 to 1)', kind: 'number', default: '0.5', min: 0, step: 0.05 },
+      { key: 'max_recency', label: 'Maximum recency R now (0 to 1)', kind: 'number', default: '0.2', min: 0, step: 0.05 },
+    ],
   },
   {
     name: 'accounts',
@@ -297,7 +304,8 @@ function Runner({ spec, params }: { spec: PlaybookSpec; params: Record<string, s
               ) : (
                 <input
                   type={f.kind === 'number' ? 'number' : 'text'}
-                  min={f.kind === 'number' ? 1 : undefined}
+                  min={f.kind === 'number' ? (f.min ?? 1) : undefined}
+                  step={f.kind === 'number' ? (f.step ?? 1) : undefined}
                   value={String(values[f.key] ?? '')}
                   placeholder={f.placeholder}
                   onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}

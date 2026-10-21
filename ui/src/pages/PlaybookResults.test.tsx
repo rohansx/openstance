@@ -1,12 +1,13 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Outcome } from '../api/types';
 import { fx } from '../test/fixtures';
+import type { RecordedCall } from '../test/mockApi';
 import { renderApp } from '../test/render';
 
 // U4: playbook results are rendered human-first, with the raw JSON behind a
-// toggle.
+// toggle. U8: runner forms send the inputs of docs/tech-spec/playbooks.md.
 
 function outcome(playbook: string, result: unknown, status: Outcome['status'] = 'done'): Outcome {
   const base = fx.quoteOutcome();
@@ -224,5 +225,44 @@ describe('playbook results, human-first (U4)', () => {
   it('an unrecognized result shape falls back to the raw JSON, open', async () => {
     const { runner } = await run('reconnect', { something: 'else' });
     expect(within(runner).getByText('Raw JSON').closest('details')).toHaveAttribute('open');
+  });
+});
+
+describe('runner inputs match playbooks.md (U8)', () => {
+  const bodies = (calls: RecordedCall[]) => calls.map((c) => (c.body as { input: Record<string, unknown> }).input);
+
+  it('reconnect sends limit, min_frequency and max_recency', async () => {
+    const { api } = await run('reconnect', { people: [] });
+    expect(bodies(api.callsTo('POST /playbooks/reconnect'))[0]).toEqual({ limit: 10, min_frequency: 0.5, max_recency: 0.2 });
+  });
+
+  it('accounts, refresh, verify and watch send the spec inputs', async () => {
+    let r = await run('accounts', { companies: [] }, async (runner) => {
+      await userEvent.type(within(runner).getByRole('textbox', { name: /companies/i }), 'stripe.com{Enter}Anthropic');
+    });
+    expect(bodies(r.api.callsTo('POST /playbooks/accounts'))[0]).toEqual({ companies: ['stripe.com', 'Anthropic'], one_hop: true, limit_per_company: 10 });
+    r.unmount();
+
+    r = await run('refresh', { updated: [], not_found: [], skipped: [] });
+    expect(bodies(r.api.callsTo('POST /playbooks/refresh'))[0]).toEqual({ min_interactions: 5, limit: 50 });
+    r.unmount();
+
+    r = await run('verify', { email: null }, type(/^person/i, 'priya@stripe.example'));
+    expect(bodies(r.api.callsTo('POST /playbooks/verify'))[0]).toEqual({ person: 'priya@stripe.example' });
+    r.unmount();
+
+    r = await run('watch', { moves: [], checked: 0 }, async (runner) => {
+      await userEvent.type(within(runner).getByRole('textbox', { name: /target companies/i }), 'Anthropic{Enter}OpenAI');
+    });
+    expect(bodies(r.api.callsTo('POST /playbooks/watch'))[0]).toEqual({ targets: ['Anthropic', 'OpenAI'], check_profiles: false, top_n: 100 });
+  });
+
+  it('a server error for a playbook it does not support yet is a clear message, not a crash', async () => {
+    renderApp('#/playbooks/watch', {
+      'POST /playbooks/watch': { status: 404, body: { v: 1, error: { code: 'not_found', message: 'not found: playbook "watch"' } } },
+    });
+    const runner = await screen.findByRole('region', { name: /run watch/i });
+    await userEvent.click(within(runner).getByRole('button', { name: /get plan and quote/i }));
+    await waitFor(() => expect(within(runner).getByRole('alert')).toHaveTextContent('not found: playbook "watch"'));
   });
 });

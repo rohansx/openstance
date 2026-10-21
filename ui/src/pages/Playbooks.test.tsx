@@ -110,7 +110,7 @@ describe('Playbook runner with quote gate (P4-UI-06)', () => {
     await userEvent.click(within(runner).getByRole('button', { name: /^run/i }));
     expect(await within(runner).findByRole('link', { name: 'Tom Okafor' })).toHaveAttribute('href', '#/people/812');
     expect(bodies(api.callsTo('POST /playbooks/reconnect'))[0]).toEqual({
-      input: { limit: 10 },
+      input: { limit: 10, min_frequency: 0.5, max_recency: 0.2 },
       allow_egress: false,
       max_usd: null,
       plan_only: false,
