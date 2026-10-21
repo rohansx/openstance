@@ -71,8 +71,8 @@ fn replies_count_without_me_identities() {
     let dir = tempfile::tempdir().unwrap();
     let file = write_mbox(dir.path());
     let providers = Providers::with_importers(registry(&ImportOptions::default()));
-    let mut g = Graph::open_in_memory(Config::default(), providers, Box::new(FixedClock(NOW)))
-        .unwrap();
+    let mut g =
+        Graph::open_in_memory(Config::default(), providers, Box::new(FixedClock(NOW))).unwrap();
     g.import(&[file], &ImportRequest::default()).unwrap();
 
     let maya: i64 = g
