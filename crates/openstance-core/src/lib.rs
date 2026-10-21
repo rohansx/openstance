@@ -28,6 +28,7 @@ pub mod db;
 pub mod embed;
 pub mod error;
 pub mod export;
+pub mod graphq;
 pub mod ingest;
 pub mod json;
 pub mod overrides;
@@ -430,17 +431,24 @@ impl Graph {
         search::search(&self.conn, &self.cfg, &self.providers.models, req)
     }
 
-    /// Person detail (`who`).
+    /// Person detail (`who`) with the default limits.
     pub fn who(&self, person: &PersonKey) -> Result<PersonDetail> {
-        let r = resolve_person(&self.conn, person)?;
-        search::person::detail(
-            &self.conn,
-            &self.cfg,
-            r.person,
-            r.resolved_from,
-            DetailOptions::default(),
-            self.now(),
-        )
+        self.get_person(person, DetailOptions::default())
+    }
+
+    /// `get_person`: the full `PersonDetail` of a person reference
+    /// (P2-CORE-04). Limits are clamped to 50.
+    pub fn get_person(&self, person: &PersonKey, opts: DetailOptions) -> Result<PersonDetail> {
+        graphq::get_person(&self.conn, &self.cfg, person, opts, self.now())
+    }
+
+    /// `how_connected`: warm paths to a target in the graph (P2-CORE-05).
+    pub fn how_connected(
+        &self,
+        target: &PersonKey,
+        opts: graphq::HowOptions,
+    ) -> Result<graphq::HowConnectedResponse> {
+        graphq::how_connected(&self.conn, target, opts, self.now())
     }
 
     /// Export people.
