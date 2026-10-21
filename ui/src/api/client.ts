@@ -249,7 +249,7 @@ export function createClient(opts: ClientOptions) {
         xhr.upload.onprogress = (e) => {
           if (onProgress) onProgress({ loaded: e.loaded, total: e.lengthComputable ? e.total : 0 });
         };
-        xhr.onerror = () => reject(new ApiError(0, 'network', 'Upload failed: cannot reach openstance serve.'));
+        xhr.onerror = () => reject(new ApiError(0, 'network', 'Upload failed: cannot reach openstance serve. Is it still running? Start it with `openstance serve` and reload this page.'));
         xhr.onload = () => {
           let body: unknown;
           try {

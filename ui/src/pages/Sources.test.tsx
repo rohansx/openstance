@@ -105,3 +105,14 @@ describe('import file input accessibility (U6)', () => {
     expect(input).toHaveAccessibleDescription(/linkedin.*mbox.*ics.*vcf/i);
   });
 });
+
+describe('file picker shows what was chosen', () => {
+  it('hides the native "No file chosen" control and names the selected file', async () => {
+    renderApp('#/sources');
+    const panel = await screen.findByRole('region', { name: /import your contacts/i });
+    const input = within(panel).getByLabelText(/choose export files/i);
+    expect(input).toHaveClass('sr-only');
+    await userEvent.upload(input, new File(['x'], 'Complete_LinkedInDataExport.zip'));
+    expect(within(panel).getByTestId('picked-files')).toHaveTextContent('Complete_LinkedInDataExport.zip');
+  });
+});

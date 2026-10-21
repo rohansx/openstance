@@ -648,10 +648,22 @@ code {
   background: #f6f8f0;
   margin: 14px 0;
 }
-.dropzone input[type='file'] {
-  display: block;
-  max-width: 100%;
-  font-size: 11px;
+.picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.picker .btn {
+  cursor: pointer;
+}
+.picker .picked {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.dropzone:has(input[type='file']:focus-visible) .picker .btn {
+  outline: 2px solid #3f5640;
+  outline-offset: 2px;
 }
 .dropzone small {
   display: block;

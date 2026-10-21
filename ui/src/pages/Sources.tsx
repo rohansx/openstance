@@ -145,8 +145,18 @@ function ImportPanel({ onImported }: { onImported: () => void }) {
           <label className="field" htmlFor="import-files">
             Choose export files
           </label>
+          <div className="picker">
+            <label htmlFor="import-files" className="btn" aria-hidden="true">
+              <Icon name="upload" />
+              {count ? 'Change files' : 'Choose files…'}
+            </label>
+            <span data-testid="picked-files" className={count ? 'picked' : 'muted'}>
+              {count ? files.map((f) => f.name).join(', ') : 'No file selected yet'}
+            </span>
+          </div>
           <input
             id="import-files"
+            className="sr-only"
             type="file"
             multiple
             aria-describedby="import-files-hint"
@@ -156,9 +166,7 @@ function ImportPanel({ onImported }: { onImported: () => void }) {
             }}
           />
           <small className="muted" id="import-files-hint">
-            {count > 0
-              ? `Selected: ${files.map((f) => f.name).join(', ')}`
-              : 'LinkedIn export .zip or Connections.csv, mail .mbox, calendar .ics, contacts .vcf or an X archive.'}
+            LinkedIn export .zip or Connections.csv, mail .mbox, calendar .ics, contacts .vcf or an X archive.
           </small>
         </div>
         <label className="field">
