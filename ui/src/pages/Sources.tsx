@@ -226,6 +226,14 @@ function ImportPanel({ onImported }: { onImported: () => void }) {
               {s.skipped_duplicate_file ? <span className="tag warn">already imported · skipped</span> : <span className="tag">imported</span>}
             </div>
           ))}
+          {result.sources
+            .filter((s) => s.self_adopted?.length)
+            .map((s) => (
+              <p className="note" key={`self-${s.id}`}>
+                Treating {s.self_adopted!.map((h) => h.replace(/^email:/, '')).join(', ')} as you, so you never show up as your own contact. To change
+                it, set <code>[me] identities</code> in config.toml.
+              </p>
+            ))}
           <p className="note">
             Took {n(result.took_ms)} ms.{' '}
             {db ? (

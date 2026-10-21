@@ -488,6 +488,8 @@ export interface SourceImport {
   interactions: number;
   skipped_duplicate_file: boolean;
   stats?: ImportStats;
+  /** handles (`kind:value`) this import adopted as "me" while `[me] identities` was empty */
+  self_adopted?: string[];
 }
 
 export interface ImportResponse {

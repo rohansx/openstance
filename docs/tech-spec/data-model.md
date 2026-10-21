@@ -130,6 +130,7 @@ CREATE TABLE meta (
 --   normalizer_version        '1'   (see entity-resolution.md)
 --   last_rebuild_at           '<unix seconds>'
 --   self_identity_ids         '[12, 873]'  (derived cache, see section 4.3)
+--   me_adopted                '["email:you@example.com"]'  (self handles adopted at import while [me] identities is empty)
 
 -- ------------------------------------------------------------
 -- RAW: where data came from. One row per import run or enrichment run.
@@ -433,7 +434,7 @@ Identity kinds:
 | `list_unsub` | raw | Bulk signal from headers. |
 | `direction` | derived | Recomputed at rebuild: if a self identity has role `from`/`sender`/`organizer` -> `out`; else if a self identity is any other participant -> `in` (meetings -> `mutual`); else `dir_hint`; else `none`. |
 
-**Self.** The user's own handles come from config `[me] identities = ["email:rohan@example.com", "linkedin_url:rohan-sharma"]`, plus auto-detection at first import (the `From` that dominates Gmail's `Sent` label; the LinkedIn profile owner from `Profile.csv`), which `openstance init`/first import proposes and writes to config after confirmation. The person cluster containing any self identity gets `is_self = 1`. The resolved ids are cached in `meta.self_identity_ids`. Key definition: [configuration.md](configuration.md).
+**Self.** The user's own handles come from config `[me] identities = ["email:rohan@example.com", "linkedin_url:rohan-sharma"]`, or, while that key is empty, from auto-detection at import (the `From` that dominates Gmail's `Sent` label, the X archive account, the single LinkedIn owner in SENT messages and invitations): unambiguous candidates are adopted, reported in the import output and stored in `meta.me_adopted`; ambiguous ones are only proposed ([configuration.md](configuration.md) `[me]`). The person cluster containing any self identity gets `is_self = 1`. The resolved ids are cached in `meta.self_identity_ids`. Key definition: [configuration.md](configuration.md).
 
 **Global dedupe.** For `email` and `meeting`, `external_id` (Message-ID, event UID) is globally unique, so the Sink skips an interaction whose `(kind, external_id)` already exists in **any** source (index `interaction_global_id`). This prevents a Takeout mbox and a later IMAP sync from double-counting frequency.
 

@@ -258,7 +258,7 @@ Phases follow [../plan/roadmap.md](../plan/roadmap.md).
 | participants | `From` -> role `from`; `To` -> `to`; `Cc` -> `cc`; `Bcc` -> `bcc`; each address is one participant with one `Email` handle and the display name as `hints.name` |
 
 - **Skips:** `X-Gmail-Labels` containing `Spam` or `Trash` (counted, configurable with `--include-spam`); `Chat` labelled items (Hangouts logs) skipped.
-- **Self inference:** the importer counts `From` addresses on `Sent`-labelled messages and reports the top one in `ImportStats` (`self_candidates`); the CLI proposes it for `[me] identities` on first import.
+- **Self inference:** the importer counts `From` addresses on `Sent`-labelled messages and reports the top one in `ImportStats` (`self_candidates`). While `[me] identities` is empty, core adopts it as the self handle when it sent at least 80% of this source's `Sent` mail (stored in `meta.me_adopted`, reported as `self_adopted` and by the CLI); otherwise the CLI only proposes it ([configuration.md](configuration.md) `[me]`).
 - **Bodies (opt-in, Phase 3 stretch):** with `email_bodies = true`, for messages **from** non-self people only, read up to 8 KiB of the `text/plain` part, take the block after `-- ` or the last 12 lines, and extract title/company/phone/location with regexes plus the domain map. Hints go to the `from` participant's `hints`; the body is discarded. Never applied to bulk senders.
 - **Target:** 5 GB mbox in under 2 minutes, RSS under 500 MB ([../engineering/performance-targets.md](../engineering/performance-targets.md)).
 
@@ -317,7 +317,7 @@ Target: 5k connection rows in under 2 s.
 
 | File | Fields | Emits |
 |---|---|---|
-| `data/account.js` | `accountId`, `username`, `accountDisplayName` | self candidates (`XUserId`, `XHandle`) |
+| `data/account.js` | `accountId`, `username`, `accountDisplayName` | self candidates (`XUserId`, `XHandle`), adopted as the self handles while `[me] identities` is empty |
 | `data/following.js` | `following.accountId`, `following.userLink` | `follow` interaction, `dir_hint=out`, participant role `subject` with `XUserId` |
 | `data/follower.js` | `follower.accountId` | `follow` interaction, `dir_hint=in` |
 | `data/direct-messages.js` | `dmConversation.conversationId`, `messages[].messageCreate.{id, senderId, recipientId, createdAt}` | `dm` interaction per message, `thread_key` = conversationId; `text` never read |
@@ -409,7 +409,7 @@ openstance source rm <id>
 $ openstance import ~/Downloads/takeout-2026-10.zip ~/Downloads/Connections.csv
 mbox          work gmail (Inbox, Sent)   412,233 messages  38.2s  10,791/s
               skipped: 1,204 spam/trash, 37 bad date, 2 header too large
-              self: rohan@example.com (from Sent) -> added to [me] identities
+self          treating rohan@example.com as you; to change it, set [me] identities in ~/.openstance/config.toml
 linkedin_csv  linkedin 2026-10-15        4,812 connections, 3,140 messages  0.9s
 resolution    +6,912 people, 214 merged by email, 31 flagged (name+company 22, name+thread 9)
               run `openstance review` to confirm or split flagged merges

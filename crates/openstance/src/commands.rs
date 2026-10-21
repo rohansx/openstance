@@ -263,7 +263,7 @@ fn import(ctx: &Ctx, a: ImportArgs) -> Result<()> {
     let preset = openstance_core::score::ScoreConfig::from_config(&g.config().score)
         .map(|(s, _)| s.preset_name().to_string())
         .unwrap_or_else(|_| "default".into());
-    render::import_summary(&resp, &counts, &preset);
+    render::import_summary(&resp, &counts, &preset, &ctx.loaded.paths.config_file);
     Ok(())
 }
 

@@ -620,7 +620,7 @@ Output goes to stdout. Logs, progress bars and prompts go to stderr. With `--jso
 openstance init [--db <path>] [--me <email>]... [--force-keys]
 ```
 
-This creates `~/.openstance/`, the database (schema migrations applied), `config.toml` (all keys commented out, showing defaults), the age keypair `age.key`, and `api.token`. `--me` writes `[me] identities` (otherwise the first import proposes them). It is idempotent: on an existing setup it changes nothing. Pending migrations run automatically whenever any command opens an older database, after a `graph.db.bak-v<N>` backup ([data-model.md](data-model.md#8-migrations)).
+This creates `~/.openstance/`, the database (schema migrations applied), `config.toml` (all keys commented out, showing defaults), the age keypair `age.key`, and `api.token`. `--me` writes `[me] identities`; without it, imports adopt an unambiguous self handle (the dominant `Sent` From, the X archive account) and say so, and only propose ambiguous ones ([configuration.md](configuration.md) `[me]`). It is idempotent: on an existing setup it changes nothing. Pending migrations run automatically whenever any command opens an older database, after a `graph.db.bak-v<N>` backup ([data-model.md](data-model.md#8-migrations)).
 
 ```console
 $ openstance init

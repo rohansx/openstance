@@ -45,9 +45,10 @@ tempfile.workspace = true
 
 [dev-dependencies]
 # Integration tests import the real fixture files, so they enable the
-# Phase 1 importers. This is a dev-dependency only: `cargo tree -e normal`
-# for openstance-core stays free of concrete importers.
-openstance-import = { workspace = true, features = ["mbox", "linkedin", "vcf"] }
+# Phase 1 importers and the X archive (self adoption tests). This is a
+# dev-dependency only: `cargo tree -e normal` for openstance-core stays free
+# of concrete importers.
+openstance-import = { workspace = true, features = ["mbox", "linkedin", "vcf", "x-archive"] }
 # P3: playbook and egress-gate tests use the recording MockEnricher.
 openstance-enrich = { workspace = true, features = ["mock"] }
 tempfile.workspace = true

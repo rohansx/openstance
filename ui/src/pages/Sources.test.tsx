@@ -50,6 +50,20 @@ describe('Sources and import', () => {
     expect(within(result).getByText(/linkedin_csv · linkedin 2026-10 · 4,812 identities · 4,812 interactions/)).toBeInTheDocument();
   });
 
+  it('says which handle the import treated as you', async () => {
+    const XHR = installFakeXhr();
+    renderApp('#/sources');
+    const panel = await screen.findByRole('region', { name: /import your contacts/i });
+    await userEvent.upload(within(panel).getByLabelText(/choose export files/i), new File(['From x'], 'takeout.mbox'));
+    await userEvent.click(within(panel).getByRole('button', { name: /^import 1 file/i }));
+    const res = fx.importStats();
+    res.sources[0]!.self_adopted = ['email:you@example.com'];
+    act(() => XHR.last!.respond(200, res));
+    const result = await within(panel).findByRole('region', { name: /import result/i });
+    expect(within(result).getByText(/treating you@example\.com as you/i)).toBeInTheDocument();
+    expect(within(result).getByText(/\[me\] identities/)).toBeInTheDocument();
+  });
+
   it('sends the importer kind and the mbox bodies opt-in when chosen', async () => {
     const XHR = installFakeXhr();
     renderApp('#/sources');

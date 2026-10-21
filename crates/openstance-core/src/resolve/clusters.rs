@@ -14,10 +14,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use openstance_import::HandleKind;
 use rusqlite::Connection;
 
-use super::normalize::{alias_key, is_matchable, name_key, normalize_handle, NormalizeContext};
+use super::normalize::{alias_key, is_matchable, name_key};
 use super::rules::DataFiles;
 use super::{Assignment, MatchRule, Resolution};
 use crate::config::Config;
@@ -373,29 +372,14 @@ fn merge_attrs(
     }
 }
 
-/// `[me] identities` resolved to identity ids (missing handles skipped).
+/// `[me] identities` (or, while that is empty, the handles adopted from
+/// imports, see [`super::me`]) resolved to identity ids (missing handles
+/// skipped).
 pub(crate) fn me_identity_ids(conn: &Connection, cfg: &Config) -> Result<Vec<IdentityId>> {
-    let ctx = NormalizeContext {
-        default_region: Some(cfg.import.default_region.clone()).filter(|r| !r.trim().is_empty()),
-        importer_kind: String::new(),
-    };
     let mut out = Vec::new();
-    let mut st = conn.prepare_cached("SELECT id FROM identity WHERE kind = ?1 AND value = ?2")?;
-    for spec in &cfg.me.identities {
-        let (kind, raw) = match spec.split_once(':') {
-            Some((k, v)) if HandleKind::parse(k.trim()).is_some() => (k.trim(), v),
-            _ if spec.contains('@') => ("email", spec.as_str()),
-            _ => continue,
-        };
-        let Some(hk) = HandleKind::parse(kind) else {
-            continue;
-        };
-        let Some(value) = normalize_handle(hk, raw, &ctx) else {
-            continue;
-        };
-        let mut rows = st.query([kind, value.as_str()])?;
-        if let Some(row) = rows.next()? {
-            out.push(row.get(0)?);
+    for spec in super::me::effective(conn, cfg)? {
+        if let Some(id) = super::me::identity_of(conn, cfg, &spec)? {
+            out.push(id);
         }
     }
     out.sort_unstable();

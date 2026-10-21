@@ -161,7 +161,7 @@ Overrides win over rules every time. The resolution-relevant fields (full table 
 |---|---|
 | `merged_into` (`person_id = X`, `value = Y`) | **Must-link**: the identities `X` and `Y` are in the same person. Applied before any rule. |
 | `split_from` (`person_id = X`, `value = Y`) | **Cannot-link**: the identities `X` and `Y` are never in the same person. Checked on **every** union, including rule 1 exact co-reference from a later import and must-links. |
-| `[me] identities` (config) | Must-link among the user's own handles; the resulting cluster is `is_self`. |
+| `[me] identities` (config; while empty, the handles adopted at import, `meta.me_adopted`) | Must-link among the user's own handles; the resulting cluster is `is_self`. |
 
 Precedence and conflict handling:
 
@@ -401,7 +401,7 @@ Field edits (`--title`, `--company`, `--tag`, `--note`, `--no-share`, `--no-enri
 | User merged A+B in January, enrichment in March says B's email is someone else's | Enrichment never unmerges; collision listed as suggestion. |
 | Must-link A-B and B-C, cannot-link A-C | The later must-link (by `set_at`) is skipped and reported. |
 | Person merged into another; MCP client still holds the old id | `get_person(old)` returns the surviving person with `resolved_from`. |
-| User's own second address not in `[me]` | Appears as a person with very high score; first-import self detection proposes it; `merge` into self fixes it. |
+| User's own second address not in `[me]` | Appears as a person with very high score; import-time self detection adopts it when unambiguous (and `[me] identities` is empty) or proposes it; `merge` into self fixes it. |
 
 ---
 

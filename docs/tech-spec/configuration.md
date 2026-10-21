@@ -335,7 +335,7 @@ See [models.md](models.md) and [../architecture/security-and-threat-model.md](..
 
 | Key | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `identities` | array | `[]` | your own handles as `kind:value` (`email:...`, `linkedin_url:...`, `x_handle:...`). They are must-linked into the self person, which never appears in results or ties and decides `interaction.direction`. If empty, the first import proposes candidates (Gmail `Sent` label, LinkedIn `Profile.csv`) and writes them here after confirmation. `openstance init --me <email>` sets it directly |
+| `identities` | array | `[]` | your own handles as `kind:value` (`email:...`, `linkedin_url:...`, `x_handle:...`). They are must-linked into the self person, which never appears in results or ties and decides `interaction.direction`. If empty, every import's unambiguous self candidates are adopted automatically and reported (`self: treating you@example.com as you; to change it, set [me] identities in <config>`; `self_adopted` in the import JSON; a note in the web UI's import result): the `From` of at least 80% of an mbox's `Sent`-labelled mail, the X archive's own account, the only LinkedIn owner seen across SENT messages and invitations. Adopted handles live in the graph (`meta.me_adopted`), not in this file, and are used exactly like this key; ambiguous candidates (and calendar owners) are only proposed. Setting this key replaces the adopted handles entirely. `openstance init --me <email>` sets it directly |
 
 Column maps can also be passed per run (`--map`). See [ingestion.md](ingestion.md).
 
