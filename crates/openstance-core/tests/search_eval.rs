@@ -19,6 +19,10 @@ use serde::Deserialize;
 struct EvalFile {
     settings: Settings,
     thresholds: Thresholds,
+    /// Embedder-tier thresholds (P2-CORE-06); the rules tier ignores them.
+    #[serde(default)]
+    #[allow(dead_code)]
+    embedder: Option<EmbedderTier>,
     people: BTreeMap<String, String>,
     q: Vec<EvalQuery>,
 }
@@ -43,6 +47,16 @@ struct Thresholds {
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
+#[allow(dead_code)]
+struct EmbedderTier {
+    embedder: String,
+    recall_at_5: f64,
+    mrr: f64,
+    must_not_violations: usize,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct EvalQuery {
     id: String,
     #[serde(default)]
@@ -54,6 +68,9 @@ struct EvalQuery {
     must_not: Vec<String>,
     #[serde(default)]
     tags: Vec<String>,
+    /// `embedder`: semantic phrasing, run only by the embedder tier.
+    #[serde(default)]
+    tier: Option<String>,
 }
 
 fn repo() -> PathBuf {
@@ -104,7 +121,15 @@ fn search_eval_rules_tier() {
         "Phase 1 tier runs the rules parser"
     );
     assert_eq!(eval.settings.reranker, "none");
-    assert!(eval.q.len() >= 20, "at least 20 queries");
+    assert!(eval.q.len() >= 50, "at least 50 queries (P2-CORE-06)");
+    for q in &eval.q {
+        assert!(
+            matches!(q.tier.as_deref(), None | Some("embedder")),
+            "{}: unknown tier {:?}",
+            q.id,
+            q.tier
+        );
+    }
 
     let cfg_text = std::fs::read_to_string(root.join(&eval.settings.config)).unwrap();
     let (mut cfg, _) = config::parse_str(&cfg_text, true).unwrap();
@@ -145,8 +170,18 @@ fn search_eval_rules_tier() {
     let mut all = Tally::default();
     let mut by_tag: BTreeMap<String, Tally> = BTreeMap::new();
     let mut failures = Vec::new();
-    println!("search eval (rules tier): {} queries", eval.q.len());
-    for q in &eval.q {
+    let skipped: Vec<&str> = eval
+        .q
+        .iter()
+        .filter(|q| q.tier.is_some())
+        .map(|q| q.id.as_str())
+        .collect();
+    println!(
+        "search eval (rules tier): {} queries, {} embedder-tier skipped",
+        eval.q.len() - skipped.len(),
+        skipped.len()
+    );
+    for q in eval.q.iter().filter(|q| q.tier.is_none()) {
         let resp = g
             .search(&SearchRequest {
                 text: q.text.clone(),
@@ -220,6 +255,9 @@ fn search_eval_rules_tier() {
             Tally::mean(&t.rr),
             t.violations
         );
+    }
+    if !skipped.is_empty() {
+        println!("embedder tier only (skipped here): {}", skipped.join(", "));
     }
     if !failures.is_empty() {
         println!("queries below perfect: {}", failures.join(", "));

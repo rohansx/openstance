@@ -1,4 +1,4 @@
-# Search evaluation, first tier (P1-CORE-17).
+# Search evaluation (P1-CORE-17, extended to 50 queries by P2-CORE-06).
 #
 # Run: cargo test -p openstance-core --test search_eval -- --nocapture
 #
@@ -7,6 +7,16 @@
 # fixed "now". Expectations name people by a stable handle (see [people]),
 # never by row id. `expect_top5` is an order-insensitive set (may be < 5);
 # `must_not` lists people that must not appear in the top 5.
+#
+# Tiers. A query with no `tier` runs in every tier, including the offline
+# rules tier above (NullEmbedder: FTS only), which CI always runs. A query
+# with `tier = "embedder"` is semantic: its phrasing shares no keyword with
+# the person it should find ("bouldering" -> a "climbing" thread), so FTS
+# alone cannot answer it. The rules tier skips (and lists) those queries;
+# the embedder tier (`[embedder]` below, fastembed bge-small-en-v1.5, model
+# cached between CI runs) runs all 50 and gates on its own thresholds. A
+# third tier with a local Ollama parser/reranker is for local use only
+# (docs/engineering/testing-strategy.md).
 #
 # Metrics: Recall@5 = mean over queries with expectations of
 # |expected ∩ top5| / |expected|; MRR = mean of 1 / rank of the first
@@ -26,12 +36,24 @@ fixtures = [
   "fixtures/vcf/contacts.vcf",
 ]
 
-# Baseline (2026-10, rules tier): Recall@5 1.000, MRR 1.000, 0 violations.
+# Baseline (2026-10, rules tier, the 40 untiered queries): Recall@5 1.000,
+# MRR 1.000, 0 violations.
 # Thresholds are the baseline minus the allowed drop (testing-strategy.md:
 # 0.02 recall, 0.03 MRR), so a single regressed query fails the test.
 [thresholds]
 recall_at_5 = 0.98
 mrr = 0.97
+must_not_violations = 0
+
+# Embedder tier: every query, rules parser, no reranker, fastembed embedder.
+# PROVISIONAL: no measured baseline yet (the fastembed fusion path lands in
+# P2-CORE-03). Replace with the first measured baseline minus the allowed
+# drop (0.02 recall, 0.03 MRR) once it has run. Turning the embedder off
+# must never drop the non-semantic queries below the rules-tier baseline.
+[embedder]
+embedder = "fastembed:bge-small-en-v1.5"
+recall_at_5 = 0.80
+mrr = 0.75
 must_not_violations = 0
 
 [people]
@@ -259,3 +281,143 @@ text = "news@digest.example weekly"
 expect_top5 = []
 must_not = ["digest"]
 tags = ["adversarial", "bulk"]
+
+# --- P2-CORE-06: more structured and free-text (rules tier) -----------------
+
+[[q]]
+id = "q31"
+text = "vp engineering"
+expect_top5 = ["priya"]
+tags = ["structured", "title"]
+
+[[q]]
+id = "q32"
+text = "data scientist at Tailspin"
+expect_top5 = ["jose"]
+tags = ["mixed", "company", "title"]
+
+[[q]]
+id = "q33"
+text = "staff engineer"
+expect_top5 = ["marcus"]
+tags = ["structured", "title"]
+
+[[q]]
+id = "q34"
+text = "who do I know at Brightwater"
+expect_top5 = ["john", "jon"]
+tags = ["structured", "company", "near-name"]
+
+[[q]]
+id = "q35"
+text = "people at Halcyon"
+expect_top5 = ["ines_li"]
+must_not = ["ines_vcf"]
+tags = ["structured", "company", "rare-name"]
+
+[[q]]
+id = "q36"
+text = "design lead"
+expect_top5 = ["lena"]
+tags = ["text", "title"]
+
+[[q]]
+id = "q37"
+text = "Hannah O'Neil"
+expect_top5 = ["hannah"]
+tags = ["text", "name", "apostrophe"]
+
+[[q]]
+id = "q38"
+text = "Jose Garcia"
+expect_top5 = ["jose"]
+tags = ["text", "name", "diacritics"]
+
+[[q]]
+id = "q39"
+text = "technical recruiter at Fabrikam"
+expect_top5 = ["chidi"]
+tags = ["mixed", "company", "title"]
+
+[[q]]
+id = "q40"
+text = "product manager at Northwind"
+expect_top5 = ["sam"]
+must_not = ["alex_nw", "priya"]
+tags = ["structured", "company", "title"]
+
+# --- P2-CORE-06: semantic phrasing (embedder tier only) ---------------------
+# None of these shares a keyword with the expected person's fields or
+# subjects; the probe that confirmed FTS misses them is in the P2-CORE-06
+# commit message. Phrasings avoid lexicon words ("developer", "investors",
+# "sales", "talent") that the rules parser would turn into hard filters.
+
+[[q]]
+id = "q41"
+text = "folks working on programming tools for coders"
+expect_top5 = ["kofi", "hugo"]
+tier = "embedder"
+tags = ["semantic", "subjects", "devtools"]
+
+[[q]]
+id = "q42"
+text = "people who write checks into startups"
+expect_top5 = ["sofia"]
+tier = "embedder"
+tags = ["semantic", "title"]
+
+[[q]]
+id = "q43"
+text = "machine learning and analytics folks"
+expect_top5 = ["jose"]
+tier = "embedder"
+tags = ["semantic", "title"]
+
+[[q]]
+id = "q44"
+text = "who gave feedback on how much we charge"
+expect_top5 = ["ravi"]
+tier = "embedder"
+tags = ["semantic", "subjects"]
+
+[[q]]
+id = "q45"
+text = "UX and visual design people"
+expect_top5 = ["lena", "elena"]
+tier = "embedder"
+tags = ["semantic", "title", "subjects"]
+
+[[q]]
+id = "q46"
+text = "people who sell to enterprises"
+expect_top5 = ["amara", "mira"]
+tier = "embedder"
+tags = ["semantic", "title"]
+
+[[q]]
+id = "q47"
+text = "folks I discussed bouldering with"
+expect_top5 = ["tariq"]
+tier = "embedder"
+tags = ["semantic", "subjects"]
+
+[[q]]
+id = "q48"
+text = "compliance auditors"
+expect_top5 = ["alex_ct"]
+tier = "embedder"
+tags = ["semantic", "subjects"]
+
+[[q]]
+id = "q49"
+text = "reading group friends"
+expect_top5 = ["dana"]
+tier = "embedder"
+tags = ["semantic", "subjects"]
+
+[[q]]
+id = "q50"
+text = "celebration event organizer"
+expect_top5 = ["mira"]
+tier = "embedder"
+tags = ["semantic", "subjects"]
