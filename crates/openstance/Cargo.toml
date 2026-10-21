@@ -23,6 +23,8 @@ importers-default = [
     "openstance-import/mbox",
     "openstance-import/linkedin",
     "openstance-import/vcf",
+    "openstance-import/ics",
+    "openstance-import/x-archive",
 ]
 models-local = ["openstance-model/fastembed"]
 models-remote = ["openstance-model/ollama", "openstance-model/openai", "openstance-model/anthropic"]

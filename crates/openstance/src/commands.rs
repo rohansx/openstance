@@ -202,6 +202,8 @@ fn import(ctx: &Ctx, a: ImportArgs) -> Result<()> {
             .filter(|r| !r.is_empty()),
         tz: search::timezone(&cfg),
         max_message_bytes: u64::from(cfg.import.max_message_mb) * 1024 * 1024,
+        ics_max_attendees: cfg.import.ics_max_attendees,
+        me_identities: cfg.me.identities.clone(),
         ..ImportOptions::default()
     };
     let providers = ctx.providers(&cfg, openstance_import::registry(&opts))?;
