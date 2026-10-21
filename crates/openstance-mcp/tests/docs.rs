@@ -7,7 +7,9 @@ use openstance_mcp::schema::TOOL_NAMES;
 use serde_json::Value;
 
 fn repo(rel: &str) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").join(rel)
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .join(rel)
 }
 
 fn read(rel: &str) -> String {

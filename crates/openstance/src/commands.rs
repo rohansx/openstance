@@ -127,6 +127,7 @@ pub fn dispatch(cli: Cli) -> Result<()> {
         Command::Mcp(a) => crate::mcp::run(
             ctx.loaded.config.clone(),
             &ctx.loaded.paths.db,
+            ctx.providers(&ctx.loaded.config, Vec::new())?,
             ctx.clock(),
             a,
         ),

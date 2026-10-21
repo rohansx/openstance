@@ -259,3 +259,76 @@ fn get_person_matches_who_json() {
     }
     s.finish();
 }
+
+#[test]
+fn how_connected_is_byte_identical_to_how_json() {
+    let home = seeded();
+    let h = home.path();
+    let mut s = Server::start(h, &[]);
+    let cases: [(&[&str], Value); 3] = [
+        (&["how", "Sam Ito"], json!({"target": "Sam Ito"})),
+        (
+            &["how-connected", "Priya Raman", "--limit", "1"],
+            json!({"target": "Priya Raman", "limit": 1}),
+        ),
+        (&["how", "Nobody Here"], json!({"target": "Nobody Here"})),
+    ];
+    for (flags, args) in cases {
+        let mut argv: Vec<&str> = flags.to_vec();
+        argv.extend(["--json", "--now", NOW]);
+        let expected = redact(cli(h, &argv));
+        let got = redact(s.call("how_connected", args.clone())["structuredContent"].clone());
+        assert_eq!(
+            serde_json::to_string_pretty(&got).unwrap(),
+            serde_json::to_string_pretty(&expected).unwrap(),
+            "{args}"
+        );
+    }
+    s.finish();
+}
+
+/// With vectors built (the deterministic `hash:<dims>` embedder, no model
+/// download), `search_people` fuses FTS and vectors exactly like
+/// `openstance search --json` (P2-CORE-03 through MCP).
+#[test]
+fn search_people_matches_search_json_in_hybrid_mode() {
+    let home = seeded();
+    let h = home.path();
+    let cfg_path = h.join("config.toml");
+    let cfg = std::fs::read_to_string(&cfg_path).unwrap().replace(
+        "# embedder = \"fastembed:bge-small-en-v1.5\"",
+        "embedder = \"hash:64\"",
+    );
+    assert!(cfg.contains("embedder = \"hash:64\""));
+    std::fs::write(&cfg_path, cfg).unwrap();
+    cli(h, &["rebuild", "--embeddings", "--json", "--now", NOW]);
+    let mut s = Server::start(h, &[]);
+    for (flags, args) in [
+        (
+            vec!["search", "devtools dinner", "--limit", "5"],
+            json!({"text": "devtools dinner", "limit": 5}),
+        ),
+        (
+            vec!["search", "board deck", "--limit", "10"],
+            json!({"text": "board deck", "limit": 10}),
+        ),
+    ] {
+        let mut argv = flags;
+        argv.extend(["--json", "--now", NOW]);
+        let expected = redact(cli(h, &argv));
+        assert_eq!(expected["models"]["embedder"], "hash:64", "{expected}");
+        let fused = expected["results"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| !r["relevance"]["vector"].is_null());
+        assert!(fused, "vectors took part: {expected}");
+        let got = redact(s.call("search_people", args.clone())["structuredContent"].clone());
+        assert_eq!(
+            serde_json::to_string_pretty(&got).unwrap(),
+            serde_json::to_string_pretty(&expected).unwrap(),
+            "{args}"
+        );
+    }
+    s.finish();
+}
