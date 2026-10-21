@@ -253,7 +253,7 @@ Phases follow [../plan/roadmap.md](../plan/roadmap.md).
 | `subject` | `Subject`, decoded, `Re:`/`Fwd:`/`AW:`/`SV:` prefixes kept (shown as evidence as the user saw it) |
 | `external_id` | `Message-ID` |
 | `thread_key` | `X-GM-THRID` if present, else the first id in `References`, else `In-Reply-To`, else own `Message-ID` |
-| `dir_hint` | `out` if `X-Gmail-Labels` contains `Sent`; else none (direction is derived from self identities at resolution) |
+| `dir_hint` | `out` if `X-Gmail-Labels` contains `Sent`; `in` if it has any other label (the message reached the owner's mailbox); none without labels. Resolution derives direction from self identities when a self person exists and falls back to the hint otherwise, so Takeout reciprocity works even when `[me] identities` is empty |
 | `list_unsub` | `List-Unsubscribe` present, or `Precedence` in (bulk, list, junk), or `Auto-Submitted` other than `no` |
 | participants | `From` -> role `from`; `To` -> `to`; `Cc` -> `cc`; `Bcc` -> `bcc`; each address is one participant with one `Email` handle and the display name as `hints.name` |
 

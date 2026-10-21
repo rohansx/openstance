@@ -94,10 +94,13 @@ fn fixture_directions_lists_and_self_candidate() {
         .filter(|i| i.dir_hint == Some(Direction::Out))
         .count();
     assert_eq!(out, 43, "Sent-labelled messages");
+    // Every other fixture message carries a non-Sent Gmail label: it reached
+    // the owner's mailbox, so it is hinted inbound (the only direction signal
+    // when `[me]` is empty).
     assert!(sink
         .interactions
         .iter()
-        .all(|i| i.dir_hint.is_none() || i.dir_hint == Some(Direction::Out)));
+        .all(|i| i.dir_hint == Some(Direction::In) || i.dir_hint == Some(Direction::Out)));
     let unsub = sink.interactions.iter().filter(|i| i.list_unsub).count();
     assert_eq!(unsub, 60, "Digest Weekly issues");
     assert_eq!(
@@ -130,7 +133,7 @@ fn fixture_first_message_mapping() {
     );
     assert_eq!(m.thread_key.as_deref(), Some("1810000000000001"));
     assert_eq!(m.subject.as_deref(), Some("Northwind platform sync #1"));
-    assert_eq!(m.dir_hint, None);
+    assert_eq!(m.dir_hint, Some(Direction::In), "Inbox label");
     assert!(!m.list_unsub);
     assert_eq!(
         names(m),
@@ -399,6 +402,35 @@ fn messages_without_addresses_are_skipped() {
         sink.skips,
         vec![(SkipReason::NoParticipants, "message 1".to_string())]
     );
+}
+
+#[test]
+fn gmail_labels_hint_direction_and_unlabelled_mail_stays_unknown() {
+    let content = [
+        msg(
+            "a@x.example Mon Jan 06 09:00:00 2025",
+            "X-Gmail-Labels: Sent\nMessage-ID: <s@x>\nDate: Mon, 06 Jan 2025 09:00:00 +0000\nFrom: a@x.example\nTo: b@y.example\n",
+        ),
+        msg(
+            "b@y.example Mon Jan 06 10:00:00 2025",
+            "X-Gmail-Labels: Inbox,Important\nMessage-ID: <i@y>\nDate: Mon, 06 Jan 2025 10:00:00 +0000\nFrom: b@y.example\nTo: a@x.example\n",
+        ),
+        msg(
+            "b@y.example Mon Jan 06 11:00:00 2025",
+            "X-Gmail-Labels: Archived\nMessage-ID: <r@y>\nDate: Mon, 06 Jan 2025 11:00:00 +0000\nFrom: b@y.example\nTo: a@x.example\n",
+        ),
+        msg(
+            "c@z.example Mon Jan 06 12:00:00 2025",
+            "Message-ID: <u@z>\nDate: Mon, 06 Jan 2025 12:00:00 +0000\nFrom: c@z.example\nTo: a@x.example\n",
+        ),
+    ]
+    .concat();
+    let (_, sink) = run_mbox(&content);
+    assert_eq!(by_id(&sink, "s@x").dir_hint, Some(Direction::Out));
+    assert_eq!(by_id(&sink, "i@y").dir_hint, Some(Direction::In));
+    assert_eq!(by_id(&sink, "r@y").dir_hint, Some(Direction::In));
+    // A plain mbox (no Takeout labels) says nothing about the mailbox owner.
+    assert_eq!(by_id(&sink, "u@z").dir_hint, None);
 }
 
 #[test]
