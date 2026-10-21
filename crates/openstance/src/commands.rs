@@ -59,6 +59,8 @@ impl Ctx {
     ) -> Result<Providers> {
         let mut p = Providers::with_importers(importers);
         p.models.embedder = crate::embeddings::embedder(cfg, &self.loaded.paths)?;
+        // `enrich.backend` (default "none": no socket is ever opened).
+        p.enricher = crate::playbook::enricher(cfg);
         Ok(p)
     }
 
@@ -134,6 +136,7 @@ pub fn dispatch(cli: Cli) -> Result<()> {
             &ctx.loaded.paths.db,
             ctx.providers(&ctx.loaded.config, Vec::new())?,
             ctx.clock(),
+            crate::view::dirs(&ctx),
             a,
         ),
     }

@@ -146,7 +146,7 @@ struct KeysShow {
     created: bool,
 }
 
-fn dirs(ctx: &Ctx) -> ShareDirs {
+pub(crate) fn dirs(ctx: &Ctx) -> ShareDirs {
     let user_home = std::env::var_os("HOME").map(PathBuf::from);
     ShareDirs::new(&ctx.loaded.config, &ctx.loaded.paths, user_home.as_deref())
 }

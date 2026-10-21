@@ -156,7 +156,7 @@ fn stdout_carries_only_json_rpc() {
     let home = seeded();
     let mut s = Server::start(home.path(), &[]);
     let tools = s.request("tools/list", json!({}));
-    assert_eq!(tools["result"]["tools"].as_array().unwrap().len(), 3);
+    assert_eq!(tools["result"]["tools"].as_array().unwrap().len(), 8);
     let r = s.call("search_people", json!({"text": "devtools dinner"}));
     assert_eq!(r["isError"], false, "{r}");
     let r = s.call("get_person", json!({"person": "Priya Raman"}));
