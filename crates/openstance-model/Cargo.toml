@@ -10,9 +10,9 @@ publish.workspace = true
 
 [features]
 default = []
-# Backends land in later phases; the features exist so the binary's umbrella
-# features can already name them. They compile nothing in Phase 1.
-fastembed = []
+# `fastembed` (Phase 2) compiles the in-process FastEmbedder; the other
+# backends arrive in Phase 4 and compile nothing yet.
+fastembed = ["dep:fastembed"]
 ollama = []
 openai = []
 anthropic = []
@@ -24,6 +24,7 @@ serde_json.workspace = true
 schemars.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
+fastembed = { workspace = true, optional = true }
 
 [lints]
 workspace = true

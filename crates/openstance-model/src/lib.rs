@@ -8,6 +8,8 @@
 //! later phases; core depends on this crate with `default-features = false`.
 #![warn(missing_docs)]
 
+pub mod embed;
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

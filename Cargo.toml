@@ -83,6 +83,12 @@ lru = "0.12"
 # CLI
 clap = { version = "4", features = ["derive", "env"] }
 
+# vectors and embeddings (Phase 2). sqlite-vec is compiled from C and
+# statically registered; fastembed is only ever enabled through
+# openstance-model's `fastembed` feature (core never depends on it).
+sqlite-vec = "=0.1.6"
+fastembed = { version = "=7.1.4", default-features = false, features = ["ort-download-binaries-rustls-tls", "hf-hub-rustls-tls"] }
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
 # dev / test
 tempfile = "3"
 proptest = "1"
