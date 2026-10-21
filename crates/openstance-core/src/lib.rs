@@ -34,6 +34,7 @@ pub mod ingest;
 pub mod json;
 pub mod keys;
 pub mod overrides;
+pub mod playbook;
 pub mod rebuild;
 pub mod resolve;
 pub mod score;
