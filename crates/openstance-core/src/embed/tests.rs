@@ -364,3 +364,62 @@ fn every_restricted_strategy_gives_the_same_hits() {
         }
     }
 }
+
+/// Records every batch it is given (texts in call order).
+struct Recording(HashEmbedder, std::sync::Mutex<Vec<Vec<String>>>);
+
+impl Embedder for Recording {
+    fn id(&self) -> &str {
+        self.0.id()
+    }
+    fn dims(&self) -> usize {
+        self.0.dims()
+    }
+    fn is_remote(&self) -> bool {
+        false
+    }
+    fn embed(&self, t: &[&str], k: EmbedKind) -> openstance_model::Result<Vec<Vec<f32>>> {
+        self.1
+            .lock()
+            .unwrap()
+            .push(t.iter().map(|s| s.to_string()).collect());
+        self.0.embed(t, k)
+    }
+}
+
+#[test]
+fn texts_are_embedded_shortest_first_so_batches_pad_little() {
+    // P2-MODEL-03: backends pad each batch to its longest text, so similar
+    // lengths are sent together. The stored vectors stay keyed by person.
+    let mut c = graph();
+    let e = Recording(HashEmbedder::new(64), std::sync::Mutex::new(Vec::new()));
+    let r = index(
+        &mut c,
+        &e,
+        &IndexOptions {
+            chunk: 2,
+            ..IndexOptions::default()
+        },
+        &mut |_| {},
+    )
+    .unwrap();
+    assert_eq!(r.embedded, 5);
+    let sent: Vec<String> = e.1.lock().unwrap().concat();
+    let lens: Vec<usize> = sent.iter().map(String::len).collect();
+    let mut sorted = lens.clone();
+    sorted.sort_unstable();
+    assert_eq!(lens, sorted, "texts not sent shortest first: {lens:?}");
+    // Each person's vector is the one for its own text.
+    for pid in vec_ids(&c) {
+        let text = embed_text(&c, pid).unwrap().unwrap();
+        let want = e.0.embed(&[text.as_str()], EmbedKind::Passage).unwrap();
+        let blob: Vec<u8> = c
+            .query_row(
+                "SELECT embedding FROM person_vec WHERE person_id = ?1",
+                [pid],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(blob, to_blob(&want[0]), "person {pid}");
+    }
+}

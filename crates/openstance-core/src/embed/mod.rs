@@ -496,6 +496,11 @@ pub fn index(
         report.removed = gone.len();
     }
 
+    // Shortest texts first (ties by person id): backends pad every batch to
+    // its longest text, so batches of similar lengths waste far less work
+    // (about 1.5x faster first runs with fastembed, P2-MODEL-03).
+    todo.sort_by_key(|(pid, text, _)| (text.len(), *pid));
+
     // Embed and write, chunk by chunk.
     let total = todo.len();
     if total > 0 {

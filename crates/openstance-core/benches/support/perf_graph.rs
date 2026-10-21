@@ -308,6 +308,7 @@ pub fn build(p: &PerfParams) -> Graph {
     c.execute_batch("BEGIN").unwrap();
     fts::reindex_all(c).unwrap();
     c.execute_batch("COMMIT").unwrap();
+    let t = std::time::Instant::now();
     let r = g
         .embed(&IndexOptions {
             force: true,
@@ -315,6 +316,13 @@ pub fn build(p: &PerfParams) -> Graph {
         })
         .expect("embedding pass");
     assert!(r.error.is_none(), "embedding failed: {:?}", r.error);
+    // P2-MODEL-03 throughput (first-run embedding), printed for the record.
+    eprintln!(
+        "perf graph: embedded {} people with {} in {} ms",
+        r.embedded,
+        r.embedder,
+        t.elapsed().as_millis()
+    );
     g
 }
 
