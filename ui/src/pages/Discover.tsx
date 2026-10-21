@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { chipsFromQuery, emptyQuery, queryToRequest } from '../api/query';
+import { chipsFromQuery, emptyQuery, FIELD_LABEL, parseRelax, queryToRequest, relaxQuery } from '../api/query';
 import type { Query, SearchRequest, SearchResponse } from '../api/types';
 import { useApp } from '../app/context';
 import { Empty, ErrorNote, Loading, PageHead } from '../components/bits';
@@ -182,11 +182,29 @@ export function Discover({ mode }: { mode: 'discover' | 'people' }) {
                   {w}
                 </div>
               ))}
-              {res.suggestions.map((s) => (
-                <div className="alert info" key={s}>
-                  {s}
-                </div>
-              ))}
+              {res.suggestions.map((s) => {
+                const relax = parseRelax(s);
+                if (!relax) {
+                  return (
+                    <div className="alert info" key={s}>
+                      {s}
+                    </div>
+                  );
+                }
+                const { field, count } = relax;
+                return (
+                  <div className="alert info relax" key={s}>
+                    <button
+                      type="button"
+                      className="btn text"
+                      title={`Rerun without the ${FIELD_LABEL[field]} filter (server: ${s})`}
+                      onClick={() => rerun(relaxQuery(res.query, field))}
+                    >
+                      Drop “{FIELD_LABEL[field]}” · {count} {count === 1 ? 'result' : 'results'}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
 

@@ -87,7 +87,7 @@ describe('Search page (P4-UI-02)', () => {
     });
     await search('devtools dinner');
     expect(await screen.findByText('embedder unavailable: text search only')).toBeInTheDocument();
-    expect(screen.getByText('drop met_in_person -> 12 results')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /drop “met in person” · 12 results/i })).toBeInTheDocument();
     expect(screen.getByText(/parser: ollama:qwen2\.5:7b/)).toBeInTheDocument();
     expect(screen.getByText(/fell back: timeout/)).toBeInTheDocument();
     expect(screen.getByText(/openstance search "devtools dinner" --met --no-parse/)).toBeInTheDocument();
@@ -178,5 +178,50 @@ describe('Results heading (U2)', () => {
     expect(heading()).toHaveTextContent(/^Everyone/);
     await search('devtools dinner');
     await waitFor(() => expect(heading()).toHaveTextContent('Results for “devtools dinner”'));
+  });
+});
+
+describe('Zero-result relax suggestions are buttons (U1)', () => {
+  const zero = (patch: Partial<SearchResponse['query']>, suggestions: string[]) =>
+    withQuery(patch, { results: [], total: 0, mode: 'structured', suggestions });
+
+  it('each suggestion removes exactly that filter and reruns with the rest of the query', async () => {
+    const empty = zero({ text: null, title: ['founder'], industry: ['fintech'], company: ['Stripe', 'Ramp'], met_in_person: true, limit: 30 }, [
+      'drop company -> 3 results',
+      'drop met_in_person -> 13 results',
+    ]);
+    const { api } = renderApp('#/discover', {
+      'POST /search': (c: { body: unknown }) => ((c.body as { text?: string }).text ? empty : fx.search()),
+    });
+    await search("fintech founders I've met");
+    const btn = await screen.findByRole('button', { name: /drop “met in person” · 13 results/i });
+    const before = api.callsTo('POST /search').length;
+    await userEvent.click(btn);
+    await waitFor(() => expect(api.callsTo('POST /search').length).toBe(before + 1));
+    expect(api.callsTo('POST /search').at(-1)!.body).toEqual({
+      company: ['Stripe', 'Ramp'],
+      title: ['founder'],
+      industry: ['fintech'],
+      include_bulk: false,
+      limit: 30,
+      parse: false,
+    });
+  });
+
+  it('dropping an array field clears all its values, like the server count', async () => {
+    const empty = zero({ text: 'fintech', company: ['Stripe', 'Ramp'], met_in_person: null, limit: 30 }, ['drop company -> 3 results']);
+    const { api } = renderApp('#/discover', {
+      'POST /search': (c: { body: unknown }) => ((c.body as { company?: string[]; parse?: boolean }).parse ? empty : fx.search()),
+    });
+    await search('fintech at stripe or ramp');
+    await userEvent.click(await screen.findByRole('button', { name: /drop “company” · 3 results/i }));
+    await waitFor(() => expect(api.callsTo('POST /search').at(-1)!.body).toEqual({ text: 'fintech', include_bulk: false, limit: 30, parse: false }));
+  });
+
+  it('a suggestion it cannot parse stays plain text', async () => {
+    renderApp('#/discover', { 'POST /search': zero({ met_in_person: true }, ['try fewer words']) });
+    await search('devtools dinner');
+    expect(await screen.findByText('try fewer words')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /try fewer words/i })).toBeNull();
   });
 });

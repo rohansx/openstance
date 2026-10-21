@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fx } from '../test/fixtures';
-import { addChip, chipsFromQuery, dateInput, editChip, emptyQuery, queryToRequest, removeChip } from './query';
+import { addChip, chipsFromQuery, dateInput, editChip, emptyQuery, parseRelax, queryToRequest, relaxQuery, removeChip } from './query';
 
 describe('query chips', () => {
   it('turns every set filter of the parsed query into a chip', () => {
@@ -66,5 +66,34 @@ describe('query chips', () => {
     expect(q.title).toEqual(['founder']);
     expect(addChip(emptyQuery(), 'replied', 'true').replied).toBe(true);
     expect(addChip(emptyQuery(), 'min_score', '0.5').min_score).toBe(0.5);
+  });
+});
+
+describe('zero-result relax suggestions (U1)', () => {
+  it('parses the server suggestion format', () => {
+    expect(parseRelax('drop met_in_person -> 18 results')).toEqual({ field: 'met_in_person', count: 18 });
+    expect(parseRelax('drop replied -> 1 result')).toEqual({ field: 'replied', count: 1 });
+    expect(parseRelax('drop last_contact_before -> 4 results')).toEqual({ field: 'last_contact_before', count: 4 });
+    expect(parseRelax('try fewer words')).toBeNull();
+    expect(parseRelax('drop nonsense -> 3 results')).toBeNull();
+  });
+
+  it('clears the whole field, exactly as the server computed the count', () => {
+    const q = { ...emptyQuery(), text: 'fintech', company: ['Stripe', 'Ramp'], title: ['founder'], met_in_person: true, since: 1735689600, limit: 30 };
+    const noCompany = relaxQuery(q, 'company');
+    expect(noCompany.company).toEqual([]);
+    expect(noCompany.title).toEqual(['founder']);
+    const noMet = relaxQuery(q, 'met_in_person');
+    expect(queryToRequest(noMet, false)).toEqual({
+      text: 'fintech',
+      company: ['Stripe', 'Ramp'],
+      title: ['founder'],
+      since: '2025-01-01',
+      include_bulk: false,
+      limit: 30,
+      parse: false,
+    });
+    expect(relaxQuery(q, 'since').since).toBeNull();
+    expect(relaxQuery({ ...q, min_score: 0.4 }, 'min_score').min_score).toBeNull();
   });
 });

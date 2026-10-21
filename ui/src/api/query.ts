@@ -165,3 +165,43 @@ export function queryToRequest(q: Query, parse = false): SearchRequest {
   req.parse = parse;
   return req;
 }
+
+// Zero-result hints (U1). The server computes `drop <field> -> N results`
+// by clearing that whole field of the parsed query (search.md, core
+// `search::suggestions`), so the rerun must clear it the same way.
+
+export const RELAX_FIELDS = [
+  'company',
+  'title',
+  'location',
+  'industry',
+  'tags',
+  'since',
+  'until',
+  'last_contact_before',
+  'met_in_person',
+  'replied',
+  'min_score',
+  'lost_touch',
+] as const;
+export type RelaxField = (typeof RELAX_FIELDS)[number];
+
+export interface Relax {
+  field: RelaxField;
+  count: number;
+}
+
+/** `drop met_in_person -> 18 results` to `{ field, count }`; null for any other hint. */
+export function parseRelax(s: string): Relax | null {
+  const m = /^drop (\w+) -> (\d+) results?$/.exec(s.trim());
+  if (!m || !(RELAX_FIELDS as readonly string[]).includes(m[1]!)) return null;
+  return { field: m[1] as RelaxField, count: Number(m[2]) };
+}
+
+/** The query with one field cleared entirely; everything else (text, limit) kept. */
+export function relaxQuery(q: Query, field: RelaxField): Query {
+  const next: Query = { ...q };
+  if (isArrayField(field)) next[field] = [];
+  else next[field] = null;
+  return next;
+}
