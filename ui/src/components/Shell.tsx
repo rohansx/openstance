@@ -3,7 +3,7 @@ import { configValue, useApp } from '../app/context';
 import { href, TITLES, type Route } from '../app/router';
 import { Icon, Logo, type IconName } from './Icon';
 
-type NavKey = Exclude<Route['name'], 'person'>;
+type NavKey = Exclude<Route['name'], 'person' | 'notfound'>;
 
 const NAV: { key: NavKey; label: string; icon: IconName; sepBefore?: boolean }[] = [
   { key: 'discover', label: 'Search people', icon: 'search' },
@@ -24,7 +24,7 @@ const fmt = (n: number) => n.toLocaleString('en-US');
 
 export function Shell({ route, children }: { route: Route; children: ReactNode }) {
   const { stats, health, config } = useApp();
-  const current: NavKey = route.name === 'person' ? 'people' : route.name;
+  const current: NavKey | null = route.name === 'person' ? 'people' : route.name === 'notfound' ? null : route.name;
   const backend = String(configValue(config, 'enrich.backend') ?? 'none');
   const parser = String(configValue(config, 'model.parser') ?? 'rules');
 

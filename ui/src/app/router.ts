@@ -16,7 +16,8 @@ export type Route =
   | { name: 'integrations' }
   | { name: 'agents' }
   | { name: 'egress' }
-  | { name: 'settings' };
+  | { name: 'settings' }
+  | { name: 'notfound'; path: string };
 
 const SIMPLE = ['discover', 'people', 'views', 'playbooks', 'shortlist', 'intros', 'sources', 'review', 'integrations', 'agents', 'egress', 'settings'] as const;
 
@@ -29,13 +30,16 @@ export function parseHash(hash: string): Route {
     return { name: 'playbooks', playbook: second, params };
   }
   if ((SIMPLE as readonly string[]).includes(head)) return { name: head } as Route;
-  return { name: 'discover' };
+  if (head === '') return { name: 'discover' };
+  return { name: 'notfound', path: path.replace(/^\/+/, '') };
 }
 
 export function href(route: Route): string {
   switch (route.name) {
     case 'person':
       return `#/people/${encodeURIComponent(route.id)}`;
+    case 'notfound':
+      return `#/${route.path}`;
     case 'playbooks':
       return route.playbook ? `#/playbooks/${encodeURIComponent(route.playbook)}` : '#/playbooks';
     default:
@@ -71,4 +75,5 @@ export const TITLES: Record<Route['name'], string> = {
   agents: 'Agent access',
   egress: 'Egress log',
   settings: 'Settings',
+  notfound: 'Not found',
 };

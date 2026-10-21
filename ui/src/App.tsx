@@ -8,6 +8,7 @@ import { Discover } from './pages/Discover';
 import { EgressLog } from './pages/EgressLog';
 import { Integrations } from './pages/Integrations';
 import { Intros } from './pages/Intros';
+import { NotFound } from './pages/NotFound';
 import { PersonPage } from './pages/PersonPage';
 import { Playbooks } from './pages/Playbooks';
 import { Review } from './pages/Review';
@@ -67,6 +68,9 @@ export function App() {
       break;
     case 'settings':
       page = <Settings />;
+      break;
+    case 'notfound':
+      page = <NotFound path={route.path} />;
       break;
   }
   return (
