@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(any(test, feature = "mock"))]
 pub mod mock;
+#[cfg(feature = "treg")]
+pub mod treg;
 
 /// Current unix time in seconds (0 if the clock is before 1970).
 pub fn unix_now() -> i64 {

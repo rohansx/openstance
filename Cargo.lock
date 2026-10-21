@@ -1864,6 +1864,9 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+ "tracing",
+ "tracing-subscriber",
+ "ureq",
 ]
 
 [[package]]

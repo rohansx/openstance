@@ -1,0 +1,21 @@
+{
+  "output": {
+    "full_name": "Priya Raman",
+    "first_name": "Priya",
+    "last_name": "Raman",
+    "title": "Staff Engineer",
+    "company": "Stripe",
+    "company_domain": "stripe.com",
+    "linkedin_url": "https://www.linkedin.com/in/priya-raman-example/",
+    "location": "San Francisco, CA"
+  },
+  "raw": { "note": "provider-native body; ignored by openstance" },
+  "_treg": {
+    "served_by": "alpha.people.enrich",
+    "provider": "alpha",
+    "tier": "platform",
+    "outcome": "hit",
+    "tried": [ { "endpoint_id": "alpha.people.enrich", "provider": "alpha", "outcome": "hit", "status": 200, "charged_micro": 20000 } ],
+    "charged_micro": 20000
+  }
+}

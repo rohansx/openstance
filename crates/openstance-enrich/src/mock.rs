@@ -58,7 +58,7 @@ struct FixtureEntry {
 #[serde(untagged)]
 enum FixtureFile {
     Many(Vec<FixtureEntry>),
-    One(FixtureEntry),
+    One(Box<FixtureEntry>),
 }
 
 /// Something the mock was asked to do, in order.
@@ -157,7 +157,7 @@ impl MockEnricher {
                 serde_json::from_str(&text).map_err(|e| err(&path, e.to_string()))?;
             let entries = match parsed {
                 FixtureFile::Many(v) => v,
-                FixtureFile::One(e) => vec![e],
+                FixtureFile::One(e) => vec![*e],
             };
             for e in entries {
                 m.responses.insert(e.request, e.response);

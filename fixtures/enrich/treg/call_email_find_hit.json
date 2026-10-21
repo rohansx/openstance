@@ -1,0 +1,5 @@
+{
+  "output": { "email": "priya@stripe.com", "confidence": 0.97, "first_name": "Priya", "last_name": "Raman", "verified": true },
+  "raw": null,
+  "_treg": { "served_by": "alpha.people.email.find", "provider": "alpha", "tier": "platform", "outcome": "hit", "tried": [], "charged_micro": 10000 }
+}

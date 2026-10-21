@@ -1,0 +1,9 @@
+{
+  "endpoint": { "id": "treg.people.email.verify", "kind": "routed", "cost": { "type": "per_call", "usd": 0.0 } },
+  "routing": {
+    "plan": [
+      { "endpoint_id": "alpha.people.email.verify", "accepts": [["email"]], "usd": 0.0 },
+      { "endpoint_id": "beta.people.email.verify", "accepts": [["email"]], "usd": 0.024 }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "endpoint": {
+    "id": "treg.people.enrich",
+    "kind": "routed",
+    "cost": { "type": "per_call", "value": 0.02, "currency": "USD", "unit": "call", "note": "lower bound; misses are billed too", "usd": 0.02 }
+  },
+  "provider": { "id": "treg" },
+  "siblings": [],
+  "routing": {
+    "plan": [
+      { "endpoint_id": "alpha.people.enrich", "accepts": [["email"], ["linkedin_url"]], "usd": 0.02 },
+      { "endpoint_id": "beta.people.enrich", "accepts": [["full_name", "domain"]], "usd": 0.38 }
+    ]
+  }
+}

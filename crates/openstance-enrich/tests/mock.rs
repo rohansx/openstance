@@ -20,7 +20,9 @@ fn priya_profile() -> EnrichRequest {
 
 #[test]
 fn fixtures_load_and_answer_matching_requests() {
-    let m = MockEnricher::from_fixtures().unwrap().with_fetched_at(1_700_000_000);
+    let m = MockEnricher::from_fixtures()
+        .unwrap()
+        .with_fetched_at(1_700_000_000);
     assert_eq!(m.name(), "mock");
     for op in [
         "profile",
@@ -145,9 +147,12 @@ fn responses_and_failures_can_be_set_in_code() {
     let m = MockEnricher::new()
         .with_response(q.clone(), EnrichData::WebHits { hits: vec![] })
         .fail_on(bad.clone())
-        .fail_with(EnrichRequest::VerifyEmail { email: "a@b.c".into() }, || {
-            EnrichError::Timeout
-        });
+        .fail_with(
+            EnrichRequest::VerifyEmail {
+                email: "a@b.c".into(),
+            },
+            || EnrichError::Timeout,
+        );
     assert_eq!(
         m.enrich(&job(None, q)).unwrap().data,
         EnrichData::WebHits { hits: vec![] }
@@ -179,7 +184,10 @@ fn unsupported_ops_are_refused() {
             email: "a@b.c".into(),
         },
     );
-    assert!(matches!(m.quote(&[j.clone()]), Err(EnrichError::Unsupported(_))));
+    assert!(matches!(
+        m.quote(std::slice::from_ref(&j)),
+        Err(EnrichError::Unsupported(_))
+    ));
     assert!(matches!(m.enrich(&j), Err(EnrichError::Unsupported(_))));
 }
 
