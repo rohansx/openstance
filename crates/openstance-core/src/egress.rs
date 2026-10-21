@@ -316,7 +316,9 @@ impl<'a> EgressGate<'a> {
         let now = self.g.now();
         for line in &lines {
             let id = self.insert_row(&line.job, line.micro_usd, now)?;
-            self.log_ids.push(id);
+            if !self.log_ids.contains(&id) {
+                self.log_ids.push(id);
+            }
             self.slots.push(Slot {
                 line: line.clone(),
                 log_id: id,
@@ -338,7 +340,38 @@ impl<'a> EgressGate<'a> {
         Ok(q)
     }
 
+    /// The `quoted` row of `job`: an unused one this run already wrote for
+    /// the same request (the CLI quotes, asks, then runs with the same run
+    /// id), or a new one.
     fn insert_row(&self, job: &EnrichJob, quoted: MicroUsd, now: i64) -> Result<i64> {
+        let request = outbound_json(job);
+        let price = i64::try_from(quoted).unwrap_or(i64::MAX);
+        let taken: Vec<i64> = self.slots.iter().map(|s| s.log_id).collect();
+        let mut st = self.conn().prepare_cached(
+            "SELECT id FROM enrich_log
+             WHERE run_id = ?1 AND backend = ?2 AND status = 'quoted' AND op = ?3
+               AND person_id IS ?4 AND request_json = ?5
+             ORDER BY id",
+        )?;
+        let existing: Vec<i64> = st
+            .query_map(
+                params![
+                    self.run_id,
+                    self.enricher.name(),
+                    job.request.op(),
+                    job.person_id,
+                    request
+                ],
+                |r| r.get(0),
+            )?
+            .collect::<rusqlite::Result<_>>()?;
+        if let Some(id) = existing.into_iter().find(|id| !taken.contains(id)) {
+            self.conn().execute(
+                "UPDATE enrich_log SET at = ?2, quoted_micro_usd = ?3 WHERE id = ?1",
+                params![id, now, price],
+            )?;
+            return Ok(id);
+        }
         self.conn().execute(
             "INSERT INTO enrich_log(run_id, at, backend, playbook, person_id, op, request_json,
                 quoted_micro_usd, status)
@@ -350,8 +383,8 @@ impl<'a> EgressGate<'a> {
                 self.playbook,
                 job.person_id,
                 job.request.op(),
-                outbound_json(job),
-                i64::try_from(quoted).unwrap_or(i64::MAX),
+                request,
+                price,
             ],
         )?;
         Ok(self.conn().last_insert_rowid())

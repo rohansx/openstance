@@ -321,3 +321,26 @@ fn run_ids_are_ulid_shaped_and_unique() {
     assert!(a.chars().all(|c| c.is_ascii_alphanumeric()));
     assert!(new_run_id(NOW + 10) > a);
 }
+
+#[test]
+fn requoting_the_same_jobs_in_one_run_reuses_the_quoted_rows() {
+    // The CLI shows the quote, asks, then runs again with the same run id:
+    // the audit log keeps one row per job, not one per look at the price.
+    let g = graph();
+    let mock = MockEnricher::new();
+    let jobs = vec![search("a"), search("b")];
+    let mut first = EgressGate::new(&g, &mock, "brief", "run-r", 500_000);
+    first.quote(jobs.clone()).unwrap();
+    let mut second = EgressGate::new(&g, &mock, "brief", "run-r", 500_000);
+    let q = second.quote(jobs.clone()).unwrap();
+    assert_eq!(rows(&g).len(), 2);
+    second.approve(&q).unwrap();
+    second.execute(&search("a")).unwrap();
+    second.execute(&search("b")).unwrap();
+    let statuses: Vec<String> = rows(&g).into_iter().map(|r| r.1).collect();
+    assert_eq!(statuses, vec!["not_found", "not_found"]);
+    // Another run never reuses them.
+    let mut other = EgressGate::new(&g, &mock, "brief", "run-s", 500_000);
+    other.quote(jobs).unwrap();
+    assert_eq!(rows(&g).len(), 4);
+}

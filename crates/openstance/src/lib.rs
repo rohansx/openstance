@@ -12,10 +12,14 @@ use std::process::ExitCode;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
+mod brief;
 mod commands;
 mod embeddings;
+mod enrich;
 mod how;
 pub mod mcp;
+mod path;
+mod playbook;
 mod render;
 mod view;
 mod who;
@@ -86,6 +90,12 @@ pub enum Command {
     View(view::ViewArgs),
     /// My age key for views (`keys show`).
     Keys(view::KeysArgs),
+    /// Find a warm intro path to anyone, in your graph or not (quote first).
+    Path(path::PathArgs),
+    /// Write a 10-line intro brief for a person (markdown on stdout).
+    Brief(brief::BriefArgs),
+    /// Enrichment audit: `enrich log` lists what left the machine and its cost.
+    Enrich(enrich::EnrichArgs),
 }
 
 /// `openstance init`.
@@ -391,6 +401,10 @@ where
     let json = cli.json;
     match commands::dispatch(cli) {
         Ok(()) => ExitCode::SUCCESS,
+        // A playbook already printed its outcome (quote: 3, budget: 4).
+        Err(e) if e.downcast_ref::<playbook::Exit>().is_some() => {
+            ExitCode::from(e.downcast_ref::<playbook::Exit>().map_or(1, |x| x.0))
+        }
         Err(e) => ExitCode::from(report_error(&e, json)),
     }
 }

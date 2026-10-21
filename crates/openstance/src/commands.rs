@@ -126,6 +126,9 @@ pub fn dispatch(cli: Cli) -> Result<()> {
         Command::Config(a) => config_cmd(&ctx, a),
         Command::View(a) => crate::view::run(&ctx, a),
         Command::Keys(a) => crate::view::keys(&ctx, a),
+        Command::Path(a) => crate::path::run(&ctx.open_default()?, ctx.json, a),
+        Command::Brief(a) => crate::brief::run(&ctx.open_default()?, ctx.json, a),
+        Command::Enrich(a) => crate::enrich::run(&ctx, a),
         Command::Mcp(a) => crate::mcp::run(
             ctx.loaded.config.clone(),
             &ctx.loaded.paths.db,
