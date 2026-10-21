@@ -15,10 +15,17 @@ path = "src/bin/gen_fixtures.rs"
 name = "gen-graph"
 path = "src/bin/gen_graph.rs"
 
+[[bin]]
+name = "gen-demo"
+path = "src/bin/gen_demo.rs"
+
 [dependencies]
 
 [dev-dependencies]
 tempfile.workspace = true
+# The demo acceptance test imports fixtures/demo/ through the real pipeline.
+openstance-core.workspace = true
+openstance-import = { workspace = true, features = ["mbox", "linkedin", "vcf"] }
 
 [lints]
 workspace = true

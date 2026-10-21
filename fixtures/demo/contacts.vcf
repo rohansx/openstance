@@ -1,0 +1,2493 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Chen;Maya;;;
+FN:Maya Chen
+ORG:Ledgerline
+TITLE:Co-founder & CEO
+EMAIL;type=INTERNET;type=WORK:maya@ledgerline.example
+TEL;type=CELL:+1 (201) 555-0101
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260101T000000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Marsh;Theo;;;
+FN:Theo Marsh
+ORG:Lumen Pay
+TITLE:Head of Partnerships
+EMAIL;type=INTERNET;type=WORK:theo@lumenpay.example
+TEL;type=CELL:+1 (201) 555-0102
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260101T020000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Duarte;Ines;;;
+FN:Ines Duarte
+ORG:Lumen Pay
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:ines@lumenpay.example
+TEL;type=CELL:+1 (201) 555-0103
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260101T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Ortiz;Rafael;;;
+FN:Rafael Ortiz
+ORG:Meridian Ventures
+TITLE:Partner
+EMAIL;type=INTERNET;type=WORK:rafael@meridianvc.example
+TEL;type=CELL:+1 (201) 555-0104
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260101T060000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Mehta;Arjun;;;
+FN:Arjun Mehta
+ORG:Tallyfin
+TITLE:Founder & CEO
+EMAIL;type=INTERNET;type=WORK:arjun@tallyfin.example
+TEL;type=CELL:+1 (201) 555-0105
+ADR;type=WORK:;;;London;;;UK
+REV:20260101T080000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Petrova;Nadia;;;
+FN:Nadia Petrova
+ORG:Quaystone
+TITLE:Co-founder & COO
+EMAIL;type=INTERNET;type=WORK:nadia@quaystone.example
+TEL;type=CELL:+1 (201) 555-0106
+ADR;type=WORK:;;;Toronto;ON;;Canada
+REV:20260101T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Gallagher;Owen;;;
+FN:Owen Gallagher
+ORG:Stackforge
+TITLE:Founder & CEO
+EMAIL;type=INTERNET;type=WORK:owen@stackforge.example
+TEL;type=CELL:+1 (201) 555-0107
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260101T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Adler;Ben;;;
+FN:Ben Adler
+ORG:Quillstack
+TITLE:SDK Engineer
+EMAIL;type=INTERNET;type=WORK:ben@quillstack.example
+TEL;type=CELL:+1 (201) 555-0108
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260101T180000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Grant;Hollis;;;
+FN:Hollis Grant
+ORG:Ridgeway
+TITLE:VP Engineering
+EMAIL;type=INTERNET;type=WORK:hollis@ridgeway.example
+TEL;type=CELL:+1 (201) 555-0109
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260101T220000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Alvarado;Colette;;;
+FN:Colette Alvarado
+ORG:Quillstack
+TITLE:Solutions Engineer
+EMAIL;type=INTERNET;type=WORK:colette@quillstack.example
+TEL;type=CELL:+1 (201) 555-0110
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260102T010000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Cormack;Carmen;;;
+FN:Carmen Cormack
+ORG:Granite Logistics
+TITLE:Finance Lead
+EMAIL;type=INTERNET;type=WORK:carmen@granitelogistics.example
+TEL;type=CELL:+1 (201) 555-0111
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260102T040000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Delacroix;Cedric;;;
+FN:Cedric Delacroix
+ORG:Vellum Desk
+TITLE:Co-founder
+EMAIL;type=INTERNET;type=WORK:cedric@vellumdesk.example
+TEL;type=CELL:+1 (201) 555-0112
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260102T070000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Lindahl;Jasper;;;
+FN:Jasper Lindahl
+ORG:Driftless
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:jasper@driftless.example
+TEL;type=CELL:+1 (201) 555-0113
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260102T090000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Ostrowski;Kaveh;;;
+FN:Kaveh Ostrowski
+ORG:Meridian Ventures
+TITLE:Venture Partner
+EMAIL;type=INTERNET;type=WORK:kostrowski@meridianvc.example
+TEL;type=CELL:+1 (201) 555-0114
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260102T100000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Achterberg;Beatrice;;;
+FN:Beatrice Achterberg
+ORG:Tinkerworks
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:beatrice.achterberg@tinkerworks.example
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260102T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Fitzroy;Anika;;;
+FN:Anika Fitzroy
+ORG:Greenloop
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:anika.fitzroy@greenloop.example
+TEL;type=CELL:+1 (201) 555-0115
+ADR;type=WORK:;;;Amsterdam;;;Netherlands
+REV:20260102T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Vasquez;Keira;;;
+FN:Keira Vasquez
+ORG:Driftless
+TITLE:Developer Advocate
+EMAIL;type=INTERNET;type=WORK:kvasquez@driftless.example
+TEL;type=CELL:+1 (201) 555-0116
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260102T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Kowalczyk;Tariq;;;
+FN:Tariq Kowalczyk
+ORG:Tallyfin
+TITLE:Marketing Lead
+EMAIL;type=INTERNET;type=WORK:tariq.kowalczyk@tallyfin.example
+TEL;type=CELL:+1 (201) 555-0117
+ADR;type=WORK:;;;London;;;UK
+REV:20260102T220000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Easterbrook;Freya;;;
+FN:Freya Easterbrook
+ORG:Quillstack
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:feasterbrook@quillstack.example
+TEL;type=CELL:+1 (201) 555-0118
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260103T020000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Easterbrook;Aria;;;
+FN:Aria Easterbrook
+ORG:Solstice Grid
+TITLE:Partnerships Manager
+EMAIL;type=INTERNET;type=WORK:aria.easterbrook@solsticegrid.example
+TEL;type=CELL:+1 (201) 555-0119
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260103T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Prescott;Ezra;;;
+FN:Ezra Prescott
+ORG:Juniper Health
+TITLE:Technical Recruiter
+EMAIL;type=INTERNET;type=WORK:eprescott@juniperhealth.example
+TEL;type=CELL:+1 (201) 555-0120
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260103T090000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Balogun;Keira;;;
+FN:Keira Balogun
+ORG:Hexwire
+TITLE:Senior Software Engineer
+EMAIL;type=INTERNET;type=WORK:keira@hexwire.example
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260103T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Quintero;Cedric;;;
+FN:Cedric Quintero
+ORG:Halden & Rowe
+TITLE:Counsel
+EMAIL;type=INTERNET;type=WORK:cedric.quintero@haldenrowe.example
+TEL;type=CELL:+1 (201) 555-0121
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260103T150000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Sandoval;Isla;;;
+FN:Isla Sandoval
+ORG:Keystone Shield
+TITLE:Co-founder
+TEL;type=CELL:+1 (201) 555-0122
+ADR;type=WORK:;;;Tel Aviv;;;Israel
+REV:20260103T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Cormack;Imani;;;
+FN:Imani Cormack
+ORG:Halden & Rowe
+TITLE:Associate
+EMAIL;type=INTERNET;type=WORK:imani@haldenrowe.example
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260104T000000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Vasquez;Amir;;;
+FN:Amir Vasquez
+ORG:Keystone Shield
+TITLE:Marketing Lead
+EMAIL;type=INTERNET;type=WORK:amir@keystoneshield.example
+TEL;type=CELL:+1 (201) 555-0123
+ADR;type=WORK:;;;Tel Aviv;;;Israel
+REV:20260104T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Wainwright;Ravi;;;
+FN:Ravi Wainwright
+ORG:Juniper Health
+TITLE:Marketing Lead
+EMAIL;type=INTERNET;type=WORK:rwainwright@juniperhealth.example
+TEL;type=CELL:+1 (201) 555-0124
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260104T040000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Prescott;Colette;;;
+FN:Colette Prescott
+ORG:Hexwire
+TITLE:Account Executive
+EMAIL;type=INTERNET;type=WORK:cprescott@hexwire.example
+TEL;type=CELL:+1 (201) 555-0125
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260104T060000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Lindahl;Soraya;;;
+FN:Soraya Lindahl
+ORG:Tallyfin
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:soraya.lindahl@tallyfin.example
+TEL;type=CELL:+1 (201) 555-0126
+ADR;type=WORK:;;;London;;;UK
+REV:20260104T070000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Yamamoto;Paloma;;;
+FN:Paloma Yamamoto
+ORG:Hexwire
+TITLE:Solutions Engineer
+EMAIL;type=INTERNET;type=WORK:pyamamoto@hexwire.example
+TEL;type=CELL:+1 (201) 555-0127
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260104T080000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Barrientos;Adrian;;;
+FN:Adrian Barrientos
+ORG:Driftless
+TITLE:Software Engineer
+EMAIL;type=INTERNET;type=WORK:abarrientos@driftless.example
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260104T100000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Varga;Eamon;;;
+FN:Eamon Varga
+ORG:Stackforge
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:eamon@stackforge.example
+TEL;type=CELL:+1 (201) 555-0128
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260104T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Balogun;Tariq;;;
+FN:Tariq Balogun
+ORG:Patchwork Labs
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:tbalogun@patchworklabs.example
+TEL;type=CELL:+1 (201) 555-0129
+ADR;type=WORK:;;;Toronto;ON;;Canada
+REV:20260104T140000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Fitzroy;Elena;;;
+FN:Elena Fitzroy
+ORG:Marigold Goods
+TITLE:Customer Success Lead
+EMAIL;type=INTERNET;type=WORK:efitzroy@marigoldgoods.example
+TEL;type=CELL:+1 (201) 555-0130
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260104T150000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Ishikawa;Elena;;;
+FN:Elena Ishikawa
+ORG:Patchwork Labs
+TITLE:Technical Writer
+EMAIL;type=INTERNET;type=WORK:elena.ishikawa@patchworklabs.example
+TEL;type=CELL:+1 (201) 555-0131
+ADR;type=WORK:;;;Toronto;ON;;Canada
+REV:20260104T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Oduya;Ravi;;;
+FN:Ravi Oduya
+ORG:Hexwire
+TITLE:Senior Software Engineer
+EMAIL;type=INTERNET;type=WORK:roduya@hexwire.example
+TEL;type=CELL:+1 (201) 555-0132
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260104T180000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Sandoval;Idris;;;
+FN:Idris Sandoval
+ORG:Solstice Grid
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:idris@solsticegrid.example
+TEL;type=CELL:+1 (201) 555-0133
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260105T020000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Jablonski;Harriet;;;
+FN:Harriet Jablonski
+ORG:Hexwire
+TITLE:Engineering Manager
+TEL;type=CELL:+1 (201) 555-0134
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260105T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Whitlock;Malik;;;
+FN:Malik Whitlock
+ORG:Solstice Grid
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:malik@solsticegrid.example
+TEL;type=CELL:+1 (201) 555-0135
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260105T050000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Iversen;Farah;;;
+FN:Farah Iversen
+ORG:Quillstack
+TITLE:Senior Software Engineer
+EMAIL;type=INTERNET;type=WORK:fiversen@quillstack.example
+TEL;type=CELL:+1 (201) 555-0136
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260105T060000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Rautio;Bilal;;;
+FN:Bilal Rautio
+ORG:Northstar Seed
+TITLE:Venture Partner
+EMAIL;type=INTERNET;type=WORK:bilal.rautio@northstarseed.example
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260105T070000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Balogun;Aiko;;;
+FN:Aiko Balogun
+ORG:Mosaic Studio
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:aiko.balogun@mosaicstudio.example
+TEL;type=CELL:+1 (201) 555-0137
+ADR;type=WORK:;;;Paris;;;France
+REV:20260105T080000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Yilmaz;Zara;;;
+FN:Zara Yilmaz
+ORG:Driftless
+TITLE:Developer Advocate
+EMAIL;type=INTERNET;type=WORK:zyilmaz@driftless.example
+TEL;type=CELL:+1 (201) 555-0138
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260105T100000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Pacheco;Ulla;;;
+FN:Ulla Pacheco
+ORG:Ridgeway
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:ulla@ridgeway.example
+TEL;type=CELL:+1 (201) 555-0139
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260105T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Dalgaard;Mateo;;;
+FN:Mateo Dalgaard
+ORG:Ridgeway
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:mdalgaard@ridgeway.example
+TEL;type=CELL:+1 (201) 555-0140
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260105T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Valdivia;Wen;;;
+FN:Wen Valdivia
+ORG:Greenloop
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:wen.valdivia@greenloop.example
+TEL;type=CELL:+1 (201) 555-0141
+ADR;type=WORK:;;;Amsterdam;;;Netherlands
+REV:20260105T180000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Takahashi;Freya;;;
+FN:Freya Takahashi
+ORG:Juniper Health
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:ftakahashi@juniperhealth.example
+TEL;type=CELL:+1 (201) 555-0142
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260105T190000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Schreiber;Wen;;;
+FN:Wen Schreiber
+ORG:Northstar Seed
+TITLE:Venture Partner
+EMAIL;type=INTERNET;type=WORK:wen.schreiber@northstarseed.example
+TEL;type=CELL:+1 (201) 555-0143
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260105T230000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Schreiber;Hiro;;;
+FN:Hiro Schreiber
+ORG:Harbor Lane Capital
+TITLE:Venture Partner
+EMAIL;type=INTERNET;type=WORK:hiro@harborlane.example
+TEL;type=CELL:+1 (201) 555-0144
+ADR;type=WORK:;;;London;;;UK
+REV:20260106T000000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Nakashima;Carmen;;;
+FN:Carmen Nakashima
+ORG:Hexwire
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:carmen@hexwire.example
+TEL;type=CELL:+1 (201) 555-0145
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260106T010000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Maddox;Aria;;;
+FN:Aria Maddox
+ORG:Hexwire
+TITLE:Solutions Engineer
+EMAIL;type=INTERNET;type=WORK:aria.maddox@hexwire.example
+TEL;type=CELL:+1 (201) 555-0146
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260106T020000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Saavedra;Darius;;;
+FN:Darius Saavedra
+ORG:Orbital Robotics
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:darius.saavedra@orbitalrobotics.example
+TEL;type=CELL:+1 (201) 555-0147
+ADR;type=WORK:;;;Tokyo;;;Japan
+REV:20260106T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Thackeray;Aiko;;;
+FN:Aiko Thackeray
+ORG:Brightpath Learning
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:aiko.thackeray@brightpath.example
+TEL;type=CELL:+1 (201) 555-0148
+ADR;type=WORK:;;;Sydney;NSW;;Australia
+REV:20260106T040000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Sandoval;Gideon;;;
+FN:Gideon Sandoval
+ORG:Arclight Media
+TITLE:Engineering Manager
+EMAIL;type=INTERNET;type=WORK:gideon.sandoval@arclightmedia.example
+TEL;type=CELL:+1 (201) 555-0149
+ADR;type=WORK:;;;Los Angeles;CA;;USA
+REV:20260106T080000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Ekwueme;Talia;;;
+FN:Talia Ekwueme
+ORG:Ridgeway
+TITLE:Finance Lead
+EMAIL;type=INTERNET;type=WORK:talia@ridgeway.example
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260106T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Nkemelu;Nikhil;;;
+FN:Nikhil Nkemelu
+ORG:Hexwire
+TITLE:Account Executive
+EMAIL;type=INTERNET;type=WORK:nikhil.nkemelu@hexwire.example
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260106T150000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Arkwright;Farah;;;
+FN:Farah Arkwright
+ORG:Patchwork Labs
+TITLE:Software Engineer
+EMAIL;type=INTERNET;type=WORK:farah@patchworklabs.example
+TEL;type=CELL:+1 (201) 555-0150
+ADR;type=WORK:;;;Toronto;ON;;Canada
+REV:20260106T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Falkenberg;Bastian;;;
+FN:Bastian Falkenberg
+ORG:Greenloop
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:bastian@greenloop.example
+TEL;type=CELL:+1 (201) 555-0151
+ADR;type=WORK:;;;Amsterdam;;;Netherlands
+REV:20260106T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Wainwright;Colette;;;
+FN:Colette Wainwright
+ORG:Hexwire
+TITLE:Technical Writer
+EMAIL;type=INTERNET;type=WORK:colette@hexwire.example
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260107T010000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Varga;Ezra;;;
+FN:Ezra Varga
+ORG:Hexwire
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:evarga@hexwire.example
+TEL;type=CELL:+1 (201) 555-0152
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260107T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Yamamoto;Selin;;;
+FN:Selin Yamamoto
+ORG:Coinwell
+TITLE:Customer Success Lead
+EMAIL;type=INTERNET;type=WORK:selin@coinwell.example
+TEL;type=CELL:+1 (201) 555-0153
+ADR;type=WORK:;;;Lisbon;;;Portugal
+REV:20260107T040000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Vasquez;Chiara;;;
+FN:Chiara Vasquez
+ORG:Hexwire
+TITLE:Technical Writer
+EMAIL;type=INTERNET;type=WORK:chiara.vasquez@hexwire.example
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260107T060000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Kowalczyk;Diego;;;
+FN:Diego Kowalczyk
+ORG:Quillstack
+TITLE:Solutions Engineer
+EMAIL;type=INTERNET;type=WORK:dkowalczyk@quillstack.example
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260107T080000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Falkenberg;Aiko;;;
+FN:Aiko Falkenberg
+ORG:Halden & Rowe
+TITLE:Paralegal
+EMAIL;type=INTERNET;type=WORK:aiko.falkenberg@haldenrowe.example
+TEL;type=CELL:+1 (201) 555-0154
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260107T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Radcliffe;Astrid;;;
+FN:Astrid Radcliffe
+ORG:Stackforge
+TITLE:Software Engineer
+EMAIL;type=INTERNET;type=WORK:astrid.radcliffe@stackforge.example
+TEL;type=CELL:+1 (201) 555-0155
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260107T120000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Radcliffe;Mira;;;
+FN:Mira Radcliffe
+ORG:Pixelmoor
+TITLE:Chief of Staff
+EMAIL;type=INTERNET;type=WORK:mira.radcliffe@pixelmoor.example
+ADR;type=WORK:;;;Tokyo;;;Japan
+REV:20260107T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Castellano;Bilal;;;
+FN:Bilal Castellano
+ORG:Marigold Goods
+TITLE:Technical Recruiter
+EMAIL;type=INTERNET;type=WORK:bilal@marigoldgoods.example
+TEL;type=CELL:+1 (201) 555-0156
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260107T140000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Whitlock;Ivan;;;
+FN:Ivan Whitlock
+ORG:Carebridge
+TITLE:Software Engineer
+EMAIL;type=INTERNET;type=WORK:iwhitlock@carebridge.example
+TEL;type=CELL:+1 (201) 555-0157
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260107T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Montague;Lorenzo;;;
+FN:Lorenzo Montague
+ORG:Hexwire
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:lorenzo@hexwire.example
+TEL;type=CELL:+1 (201) 555-0158
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260107T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Delacroix;Carmen;;;
+FN:Carmen Delacroix
+ORG:Juniper Health
+TITLE:Chief of Staff
+EMAIL;type=INTERNET;type=WORK:carmen.delacroix@juniperhealth.example
+TEL;type=CELL:+1 (201) 555-0159
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260107T180000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Barrientos;Ulla;;;
+FN:Ulla Barrientos
+ORG:Patchwork Labs
+TITLE:Developer Advocate
+TEL;type=CELL:+1 (201) 555-0160
+ADR;type=WORK:;;;Toronto;ON;;Canada
+REV:20260107T190000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Nakashima;Lina;;;
+FN:Lina Nakashima
+ORG:Vellum Desk
+TITLE:Finance Lead
+EMAIL;type=INTERNET;type=WORK:lina@vellumdesk.example
+TEL;type=CELL:+1 (201) 555-0161
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260108T000000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Mbeki;Felix;;;
+FN:Felix Mbeki
+ORG:Fernpay
+TITLE:Customer Success Lead
+EMAIL;type=INTERNET;type=WORK:fmbeki@fernpay.example
+TEL;type=CELL:+1 (201) 555-0162
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260108T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Pacheco;Jasper;;;
+FN:Jasper Pacheco
+ORG:Solstice Grid
+TITLE:Chief of Staff
+TEL;type=CELL:+1 (201) 555-0163
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260108T090000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Prescott;Kaveh;;;
+FN:Kaveh Prescott
+ORG:Keystone Shield
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:kaveh.prescott@keystoneshield.example
+TEL;type=CELL:+1 (201) 555-0164
+ADR;type=WORK:;;;Tel Aviv;;;Israel
+REV:20260108T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Oduya;Paloma;;;
+FN:Paloma Oduya
+ORG:Juniper Health
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:poduya@juniperhealth.example
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260108T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Saavedra;Ruben;;;
+FN:Ruben Saavedra
+ORG:Vellum Desk
+TITLE:Customer Success Lead
+EMAIL;type=INTERNET;type=WORK:rsaavedra@vellumdesk.example
+TEL;type=CELL:+1 (201) 555-0165
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260108T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Valdivia;Ravi;;;
+FN:Ravi Valdivia
+ORG:Driftless
+TITLE:Senior Software Engineer
+EMAIL;type=INTERNET;type=WORK:ravi@driftless.example
+TEL;type=CELL:+1 (201) 555-0166
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260108T190000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Sorensen;Ivan;;;
+FN:Ivan Sorensen
+ORG:Vellum Desk
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:ivan.sorensen@vellumdesk.example
+TEL;type=CELL:+1 (201) 555-0167
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260109T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Iversen;Keira;;;
+FN:Keira Iversen
+ORG:Brightpath Learning
+TITLE:Customer Success Lead
+TEL;type=CELL:+1 (201) 555-0168
+ADR;type=WORK:;;;Sydney;NSW;;Australia
+REV:20260109T070000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Drummond;Diego;;;
+FN:Diego Drummond
+ORG:Sentry Pine
+TITLE:Partnerships Manager
+EMAIL;type=INTERNET;type=WORK:ddrummond@sentrypine.example
+TEL;type=CELL:+1 (201) 555-0169
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260109T080000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Alvarado;Beatrice;;;
+FN:Beatrice Alvarado
+ORG:Halden & Rowe
+TITLE:Paralegal
+EMAIL;type=INTERNET;type=WORK:beatrice@haldenrowe.example
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260109T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Rautio;Nikhil;;;
+FN:Nikhil Rautio
+ORG:Harbor Lane Capital
+TITLE:Associate
+EMAIL;type=INTERNET;type=WORK:nrautio@harborlane.example
+ADR;type=WORK:;;;London;;;UK
+REV:20260109T190000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Amundsen;Yusuf;;;
+FN:Yusuf Amundsen
+ORG:Meridian Ventures
+TITLE:Platform Lead
+EMAIL;type=INTERNET;type=WORK:yusuf.amundsen@meridianvc.example
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260109T200000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Vasquez;Idris;;;
+FN:Idris Vasquez
+ORG:Carebridge
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:idris@carebridge.example
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260110T040000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Barrientos;Jun;;;
+FN:Jun Barrientos
+ORG:Quaystone
+TITLE:Marketing Lead
+EMAIL;type=INTERNET;type=WORK:jbarrientos@quaystone.example
+ADR;type=WORK:;;;Toronto;ON;;Canada
+REV:20260110T070000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Thackeray;Vera;;;
+FN:Vera Thackeray
+ORG:Openfield Labs
+TITLE:Co-founder
+EMAIL;type=INTERNET;type=WORK:vera.thackeray@openfieldlabs.example
+TEL;type=CELL:+1 (201) 555-0170
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260110T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Iversen;Ruben;;;
+FN:Ruben Iversen
+ORG:Ledgerline
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:ruben.iversen@ledgerline.example
+TEL;type=CELL:+1 (201) 555-0171
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260110T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Rautio;Greta;;;
+FN:Greta Rautio
+ORG:Granite Logistics
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:greta@granitelogistics.example
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260110T190000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Cormack;Soraya;;;
+FN:Soraya Cormack
+ORG:Wayfarer Travel
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:soraya.cormack@wayfarer.example
+TEL;type=CELL:+1 (201) 555-0172
+ADR;type=WORK:;;;Barcelona;;;Spain
+REV:20260110T220000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Arkwright;Silas;;;
+FN:Silas Arkwright
+ORG:Bluefin Bio
+TITLE:Chief of Staff
+EMAIL;type=INTERNET;type=WORK:silas.arkwright@bluefinbio.example
+TEL;type=CELL:+1 (201) 555-0173
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260111T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Yilmaz;Daria;;;
+FN:Daria Yilmaz
+ORG:Corvid Analytics
+TITLE:Customer Success Lead
+EMAIL;type=INTERNET;type=WORK:daria@corvidanalytics.example
+ADR;type=WORK:;;;London;;;UK
+REV:20260111T100000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Okonjo;Talia;;;
+FN:Talia Okonjo
+ORG:Carebridge
+TITLE:Senior Software Engineer
+EMAIL;type=INTERNET;type=WORK:tokonjo@carebridge.example
+TEL;type=CELL:+1 (201) 555-0174
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260111T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Amundsen;Diego;;;
+FN:Diego Amundsen
+ORG:Kitebox
+TITLE:Account Executive
+EMAIL;type=INTERNET;type=WORK:diego.amundsen@kitebox.example
+TEL;type=CELL:+1 (201) 555-0175
+ADR;type=WORK:;;;Los Angeles;CA;;USA
+REV:20260111T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Balogun;Ruben;;;
+FN:Ruben Balogun
+ORG:Quillstack
+TITLE:Software Engineer
+EMAIL;type=INTERNET;type=WORK:rbalogun@quillstack.example
+TEL;type=CELL:+1 (201) 555-0176
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260111T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Sorensen;Elena;;;
+FN:Elena Sorensen
+ORG:Juniper Health
+TITLE:Technical Recruiter
+EMAIL;type=INTERNET;type=WORK:elena@juniperhealth.example
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260111T220000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Rautio;Harriet;;;
+FN:Harriet Rautio
+ORG:Solstice Grid
+TITLE:Finance Lead
+EMAIL;type=INTERNET;type=WORK:harriet@solsticegrid.example
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260111T230000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Drummond;Eamon;;;
+FN:Eamon Drummond
+ORG:Hexwire
+TITLE:Engineering Manager
+EMAIL;type=INTERNET;type=WORK:eamon@hexwire.example
+TEL;type=CELL:+1 (201) 555-0177
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260112T020000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Halvorsen;Ruben;;;
+FN:Ruben Halvorsen
+ORG:Quillstack
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:ruben@quillstack.example
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260112T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Nakashima;Beatrice;;;
+FN:Beatrice Nakashima
+ORG:Wayfarer Travel
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:bnakashima@wayfarer.example
+TEL;type=CELL:+1 (201) 555-0178
+ADR;type=WORK:;;;Barcelona;;;Spain
+REV:20260112T040000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Arkwright;Delia;;;
+FN:Delia Arkwright
+ORG:Openfield Labs
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:delia.arkwright@openfieldlabs.example
+TEL;type=CELL:+1 (201) 555-0179
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260112T050000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Yilmaz;Viktor;;;
+FN:Viktor Yilmaz
+ORG:Quillstack
+TITLE:Software Engineer
+EMAIL;type=INTERNET;type=WORK:vyilmaz@quillstack.example
+TEL;type=CELL:+1 (201) 555-0180
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260112T060000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Montague;Greta;;;
+FN:Greta Montague
+ORG:Stackforge
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:greta@stackforge.example
+TEL;type=CELL:+1 (201) 555-0181
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260112T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Zielinski;Keira;;;
+FN:Keira Zielinski
+ORG:Granite Logistics
+TITLE:Engineering Manager
+EMAIL;type=INTERNET;type=WORK:keira.zielinski@granitelogistics.example
+TEL;type=CELL:+1 (201) 555-0182
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260112T120000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Hartigan;Alana;;;
+FN:Alana Hartigan
+ORG:Wayfarer Travel
+TITLE:Senior Software Engineer
+EMAIL;type=INTERNET;type=WORK:alana.hartigan@wayfarer.example
+TEL;type=CELL:+1 (201) 555-0183
+ADR;type=WORK:;;;Barcelona;;;Spain
+REV:20260112T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Zubiri;Mateo;;;
+FN:Mateo Zubiri
+ORG:Stackforge
+TITLE:Developer Advocate
+EMAIL;type=INTERNET;type=WORK:mateo@stackforge.example
+TEL;type=CELL:+1 (201) 555-0184
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260112T200000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Zubiri;Anika;;;
+FN:Anika Zubiri
+ORG:Vellum Desk
+TITLE:Partnerships Manager
+EMAIL;type=INTERNET;type=WORK:anika@vellumdesk.example
+TEL;type=CELL:+1 (201) 555-0185
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260112T210000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Yilmaz;Yusuf;;;
+FN:Yusuf Yilmaz
+ORG:Hexwire
+TITLE:Account Executive
+EMAIL;type=INTERNET;type=WORK:yusuf@hexwire.example
+TEL;type=CELL:+1 (201) 555-0186
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260112T220000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Sorensen;Farah;;;
+FN:Farah Sorensen
+ORG:Granite Logistics
+TITLE:Product Manager
+TEL;type=CELL:+1 (201) 555-0187
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260113T010000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Castellano;Harriet;;;
+FN:Harriet Castellano
+ORG:Hexwire
+TITLE:Solutions Engineer
+EMAIL;type=INTERNET;type=WORK:harriet.castellano@hexwire.example
+TEL;type=CELL:+1 (201) 555-0188
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260113T040000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Rautio;Soraya;;;
+FN:Soraya Rautio
+ORG:Greenloop
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:soraya.rautio@greenloop.example
+TEL;type=CELL:+1 (201) 555-0189
+ADR;type=WORK:;;;Amsterdam;;;Netherlands
+REV:20260113T090000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Demir;Bilal;;;
+FN:Bilal Demir
+ORG:Solstice Grid
+TITLE:Chief of Staff
+EMAIL;type=INTERNET;type=WORK:bilal@solsticegrid.example
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260113T120000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Zubiri;Ravi;;;
+FN:Ravi Zubiri
+ORG:Hexwire
+TITLE:Technical Writer
+EMAIL;type=INTERNET;type=WORK:ravi.zubiri@hexwire.example
+TEL;type=CELL:+1 (201) 555-0190
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260113T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Laurent;Wen;;;
+FN:Wen Laurent
+ORG:Ledgerline
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:wen.laurent@ledgerline.example
+TEL;type=CELL:+1 (201) 555-0191
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260113T220000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Demir;Selin;;;
+FN:Selin Demir
+ORG:Kitebox
+TITLE:Partnerships Manager
+TEL;type=CELL:+1 (201) 555-0192
+ADR;type=WORK:;;;Los Angeles;CA;;USA
+REV:20260113T230000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Kuznetsova;Mateo;;;
+FN:Mateo Kuznetsova
+ORG:Granite Logistics
+TITLE:Account Executive
+EMAIL;type=INTERNET;type=WORK:mateo@granitelogistics.example
+TEL;type=CELL:+1 (201) 555-0193
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260114T040000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Arkwright;Dmitri;;;
+FN:Dmitri Arkwright
+ORG:Ridgeway
+TITLE:Chief of Staff
+EMAIL;type=INTERNET;type=WORK:dmitri.arkwright@ridgeway.example
+TEL;type=CELL:+1 (201) 555-0194
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260114T070000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Prescott;Zoltan;;;
+FN:Zoltan Prescott
+ORG:Fernpay
+TITLE:Partnerships Manager
+TEL;type=CELL:+1 (201) 555-0195
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260114T090000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Takahashi;Amir;;;
+FN:Amir Takahashi
+ORG:Hexwire
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:amir@hexwire.example
+TEL;type=CELL:+1 (201) 555-0196
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260114T100000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Lindahl;Astrid;;;
+FN:Astrid Lindahl
+ORG:Quillstack
+TITLE:Solutions Engineer
+EMAIL;type=INTERNET;type=WORK:alindahl@quillstack.example
+TEL;type=CELL:+1 (201) 555-0197
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260114T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Oduya;Delia;;;
+FN:Delia Oduya
+ORG:Keystone Shield
+TITLE:Software Engineer
+EMAIL;type=INTERNET;type=WORK:doduya@keystoneshield.example
+TEL;type=CELL:+1 (201) 555-0198
+ADR;type=WORK:;;;Tel Aviv;;;Israel
+REV:20260114T150000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Chakraborty;Anton;;;
+FN:Anton Chakraborty
+ORG:Patchwork Labs
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:anton@patchworklabs.example
+ADR;type=WORK:;;;Toronto;ON;;Canada
+REV:20260114T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Okonjo;Harriet;;;
+FN:Harriet Okonjo
+ORG:Solstice Grid
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:harriet.okonjo@solsticegrid.example
+TEL;type=CELL:+1 (201) 555-0199
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260114T180000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Zielinski;Emeka;;;
+FN:Emeka Zielinski
+ORG:Ridgeway
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:emeka.zielinski@ridgeway.example
+TEL;type=CELL:+1 (202) 555-0100
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260115T000000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Mbeki;Lina;;;
+FN:Lina Mbeki
+ORG:Hexwire
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:lina.mbeki@hexwire.example
+TEL;type=CELL:+1 (202) 555-0101
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260115T010000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Ekwueme;Abena;;;
+FN:Abena Ekwueme
+ORG:Greenloop
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:abena@greenloop.example
+TEL;type=CELL:+1 (202) 555-0102
+ADR;type=WORK:;;;Amsterdam;;;Netherlands
+REV:20260115T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Kowalczyk;Quentin;;;
+FN:Quentin Kowalczyk
+ORG:Brightpath Learning
+TITLE:Staff Engineer
+TEL;type=CELL:+1 (202) 555-0103
+ADR;type=WORK:;;;Sydney;NSW;;Australia
+REV:20260115T070000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Cormack;Cedric;;;
+FN:Cedric Cormack
+ORG:Stackforge
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:cedric@stackforge.example
+TEL;type=CELL:+1 (202) 555-0104
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260115T100000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Castellano;Leon;;;
+FN:Leon Castellano
+ORG:Bluefin Bio
+TITLE:Account Executive
+EMAIL;type=INTERNET;type=WORK:leon.castellano@bluefinbio.example
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260115T190000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Beaumont;Delia;;;
+FN:Delia Beaumont
+ORG:Kitebox
+TITLE:Software Engineer
+EMAIL;type=INTERNET;type=WORK:delia.beaumont@kitebox.example
+TEL;type=CELL:+1 (202) 555-0105
+ADR;type=WORK:;;;Los Angeles;CA;;USA
+REV:20260115T210000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Gutierrez;Cedric;;;
+FN:Cedric Gutierrez
+ORG:Mosaic Studio
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:cedric.gutierrez@mosaicstudio.example
+TEL;type=CELL:+1 (202) 555-0106
+ADR;type=WORK:;;;Paris;;;France
+REV:20260116T010000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Laurent;Abena;;;
+FN:Abena Laurent
+ORG:Vellum Desk
+TITLE:Sales Director
+EMAIL;type=INTERNET;type=WORK:alaurent@vellumdesk.example
+TEL;type=CELL:+1 (202) 555-0107
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260116T040000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Cormack;Chiara;;;
+FN:Chiara Cormack
+ORG:Patchwork Labs
+TITLE:Developer Advocate
+TEL;type=CELL:+1 (202) 555-0108
+ADR;type=WORK:;;;Toronto;ON;;Canada
+REV:20260116T050000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Cormack;Anton;;;
+FN:Anton Cormack
+ORG:Tinkerworks
+TITLE:Marketing Lead
+EMAIL;type=INTERNET;type=WORK:acormack@tinkerworks.example
+TEL;type=CELL:+1 (202) 555-0109
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260116T080000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Gutierrez;Keira;;;
+FN:Keira Gutierrez
+ORG:Brightvault
+TITLE:Engineering Manager
+TEL;type=CELL:+1 (202) 555-0110
+ADR;type=WORK:;;;Singapore;;;Singapore
+REV:20260116T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Arkwright;Anton;;;
+FN:Anton Arkwright
+ORG:Hexwire
+TITLE:Account Executive
+EMAIL;type=INTERNET;type=WORK:anton@hexwire.example
+TEL;type=CELL:+1 (202) 555-0111
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260116T140000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Varga;Nikhil;;;
+FN:Nikhil Varga
+ORG:Harbor Lane Capital
+TITLE:Analyst
+EMAIL;type=INTERNET;type=WORK:nvarga@harborlane.example
+TEL;type=CELL:+1 (202) 555-0112
+ADR;type=WORK:;;;London;;;UK
+REV:20260116T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Kuznetsova;Ulla;;;
+FN:Ulla Kuznetsova
+ORG:Kitebox
+TITLE:Finance Lead
+EMAIL;type=INTERNET;type=WORK:ulla.kuznetsova@kitebox.example
+TEL;type=CELL:+1 (202) 555-0113
+ADR;type=WORK:;;;Los Angeles;CA;;USA
+REV:20260116T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Arkwright;Kenji;;;
+FN:Kenji Arkwright
+ORG:Mosaic Studio
+TITLE:Brand Designer
+EMAIL;type=INTERNET;type=WORK:kenji.arkwright@mosaicstudio.example
+TEL;type=CELL:+1 (202) 555-0114
+ADR;type=WORK:;;;Paris;;;France
+REV:20260116T210000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Ishikawa;Dmitri;;;
+FN:Dmitri Ishikawa
+ORG:Stackforge
+TITLE:Senior Software Engineer
+EMAIL;type=INTERNET;type=WORK:dmitri@stackforge.example
+TEL;type=CELL:+1 (202) 555-0115
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260117T020000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Zielinski;Freya;;;
+FN:Freya Zielinski
+ORG:Stackforge
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:fzielinski@stackforge.example
+TEL;type=CELL:+1 (202) 555-0116
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260117T050000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Prescott;Malik;;;
+FN:Malik Prescott
+ORG:Vellum Desk
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:mprescott@vellumdesk.example
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260117T080000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Mbeki;Kenji;;;
+FN:Kenji Mbeki
+ORG:Brightpath Learning
+TITLE:Account Executive
+EMAIL;type=INTERNET;type=WORK:kenji@brightpath.example
+TEL;type=CELL:+1 (202) 555-0117
+ADR;type=WORK:;;;Sydney;NSW;;Australia
+REV:20260117T120000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Vasquez;Malik;;;
+FN:Malik Vasquez
+ORG:Vellum Desk
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:malik.vasquez@vellumdesk.example
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260117T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Maddox;Eamon;;;
+FN:Eamon Maddox
+ORG:Openfield Labs
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:eamon.maddox@openfieldlabs.example
+TEL;type=CELL:+1 (202) 555-0118
+ADR;type=WORK:;;;San Francisco;CA;;USA
+REV:20260117T140000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Takahashi;Kenji;;;
+FN:Kenji Takahashi
+ORG:Bluefin Bio
+TITLE:Chief of Staff
+EMAIL;type=INTERNET;type=WORK:kenji@bluefinbio.example
+TEL;type=CELL:+1 (202) 555-0119
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260117T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Iversen;Jun;;;
+FN:Jun Iversen
+ORG:Mosaic Studio
+TITLE:Design Director
+EMAIL;type=INTERNET;type=WORK:jun.iversen@mosaicstudio.example
+ADR;type=WORK:;;;Paris;;;France
+REV:20260117T190000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Falkenberg;Greta;;;
+FN:Greta Falkenberg
+ORG:Coinwell
+TITLE:Sales Director
+EMAIL;type=INTERNET;type=WORK:greta.falkenberg@coinwell.example
+TEL;type=CELL:+1 (202) 555-0120
+ADR;type=WORK:;;;Lisbon;;;Portugal
+REV:20260118T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Mbeki;Soraya;;;
+FN:Soraya Mbeki
+ORG:Marigold Goods
+TITLE:Sales Director
+EMAIL;type=INTERNET;type=WORK:smbeki@marigoldgoods.example
+TEL;type=CELL:+1 (202) 555-0121
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260118T050000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Okonjo;Keira;;;
+FN:Keira Okonjo
+ORG:Juniper Health
+TITLE:Engineering Manager
+EMAIL;type=INTERNET;type=WORK:kokonjo@juniperhealth.example
+TEL;type=CELL:+1 (202) 555-0122
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260118T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Pacheco;Zoltan;;;
+FN:Zoltan Pacheco
+ORG:Brightvault
+TITLE:Software Engineer
+EMAIL;type=INTERNET;type=WORK:zoltan@brightvault.example
+ADR;type=WORK:;;;Singapore;;;Singapore
+REV:20260118T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Halvorsen;Malik;;;
+FN:Malik Halvorsen
+ORG:Tessellate
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:malik@tessellate.example
+ADR;type=WORK:;;;Paris;;;France
+REV:20260118T180000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Chakraborty;Imani;;;
+FN:Imani Chakraborty
+ORG:Marigold Goods
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:imani@marigoldgoods.example
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260118T190000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Prescott;Felix;;;
+FN:Felix Prescott
+ORG:Brightpath Learning
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:felix@brightpath.example
+TEL;type=CELL:+1 (202) 555-0123
+ADR;type=WORK:;;;Sydney;NSW;;Australia
+REV:20260118T200000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Sandoval;Bastian;;;
+FN:Bastian Sandoval
+ORG:Wayfarer Travel
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:bastian.sandoval@wayfarer.example
+TEL;type=CELL:+1 (202) 555-0124
+ADR;type=WORK:;;;Barcelona;;;Spain
+REV:20260119T010000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Oduya;Chiara;;;
+FN:Chiara Oduya
+ORG:Harbor Lane Capital
+TITLE:Venture Partner
+EMAIL;type=INTERNET;type=WORK:chiara.oduya@harborlane.example
+ADR;type=WORK:;;;London;;;UK
+REV:20260119T020000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Cormack;Keira;;;
+FN:Keira Cormack
+ORG:Harbor Lane Capital
+TITLE:Platform Lead
+EMAIL;type=INTERNET;type=WORK:keira.cormack@harborlane.example
+TEL;type=CELL:+1 (202) 555-0125
+ADR;type=WORK:;;;London;;;UK
+REV:20260119T060000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Takahashi;Colette;;;
+FN:Colette Takahashi
+ORG:Northstar Seed
+TITLE:Venture Partner
+EMAIL;type=INTERNET;type=WORK:ctakahashi@northstarseed.example
+TEL;type=CELL:+1 (202) 555-0126
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260119T070000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Abara;Soraya;;;
+FN:Soraya Abara
+ORG:Ridgeway
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:soraya.abara@ridgeway.example
+TEL;type=CELL:+1 (202) 555-0127
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260119T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Kuznetsova;Nikhil;;;
+FN:Nikhil Kuznetsova
+ORG:Sentry Pine
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:nikhil.kuznetsova@sentrypine.example
+TEL;type=CELL:+1 (202) 555-0128
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260119T140000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Gutierrez;Felix;;;
+FN:Felix Gutierrez
+ORG:Wayfarer Travel
+TITLE:Software Engineer
+EMAIL;type=INTERNET;type=WORK:felix.gutierrez@wayfarer.example
+TEL;type=CELL:+1 (202) 555-0129
+ADR;type=WORK:;;;Barcelona;;;Spain
+REV:20260119T150000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Yamamoto;Farah;;;
+FN:Farah Yamamoto
+ORG:Keystone Shield
+TITLE:Technical Recruiter
+EMAIL;type=INTERNET;type=WORK:farah@keystoneshield.example
+TEL;type=CELL:+1 (202) 555-0130
+ADR;type=WORK:;;;Tel Aviv;;;Israel
+REV:20260119T180000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Prescott;Oskar;;;
+FN:Oskar Prescott
+ORG:Driftless
+TITLE:Account Executive
+TEL;type=CELL:+1 (202) 555-0131
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260119T190000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Jablonski;Jun;;;
+FN:Jun Jablonski
+ORG:Corvid Analytics
+TITLE:Software Engineer
+EMAIL;type=INTERNET;type=WORK:jun@corvidanalytics.example
+TEL;type=CELL:+1 (202) 555-0132
+ADR;type=WORK:;;;London;;;UK
+REV:20260119T200000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Takahashi;Emeka;;;
+FN:Emeka Takahashi
+ORG:Greenloop
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:etakahashi@greenloop.example
+TEL;type=CELL:+1 (202) 555-0133
+ADR;type=WORK:;;;Amsterdam;;;Netherlands
+REV:20260119T210000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Lindahl;Amir;;;
+FN:Amir Lindahl
+ORG:Tessellate
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:amir.lindahl@tessellate.example
+TEL;type=CELL:+1 (202) 555-0134
+ADR;type=WORK:;;;Paris;;;France
+REV:20260120T000000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Thackeray;Silas;;;
+FN:Silas Thackeray
+ORG:Sentry Pine
+TITLE:Partnerships Manager
+EMAIL;type=INTERNET;type=WORK:silas@sentrypine.example
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260120T040000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Yamamoto;Kenji;;;
+FN:Kenji Yamamoto
+ORG:Solstice Grid
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:kenji@solsticegrid.example
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260120T050000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Saavedra;Aiko;;;
+FN:Aiko Saavedra
+ORG:Corvid Analytics
+TITLE:Senior Software Engineer
+TEL;type=CELL:+1 (202) 555-0135
+ADR;type=WORK:;;;London;;;UK
+REV:20260120T070000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Jablonski;Hamza;;;
+FN:Hamza Jablonski
+ORG:Tessellate
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:hamza.jablonski@tessellate.example
+ADR;type=WORK:;;;Paris;;;France
+REV:20260120T090000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Barrientos;Anton;;;
+FN:Anton Barrientos
+ORG:Pixelmoor
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:abarrientos@pixelmoor.example
+TEL;type=CELL:+1 (202) 555-0136
+ADR;type=WORK:;;;Tokyo;;;Japan
+REV:20260120T100000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Vasquez;Kaveh;;;
+FN:Kaveh Vasquez
+ORG:Tinkerworks
+TITLE:Senior Software Engineer
+EMAIL;type=INTERNET;type=WORK:kvasquez@tinkerworks.example
+TEL;type=CELL:+1 (202) 555-0137
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260120T120000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Chakraborty;Lorenzo;;;
+FN:Lorenzo Chakraborty
+ORG:Orbital Robotics
+TITLE:Sales Director
+TEL;type=CELL:+1 (202) 555-0138
+ADR;type=WORK:;;;Tokyo;;;Japan
+REV:20260120T150000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Drummond;Vera;;;
+FN:Vera Drummond
+ORG:Bluefin Bio
+TITLE:Finance Lead
+EMAIL;type=INTERNET;type=WORK:vdrummond@bluefinbio.example
+TEL;type=CELL:+1 (202) 555-0139
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260120T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Valdivia;Idris;;;
+FN:Idris Valdivia
+ORG:Corvid Analytics
+TITLE:Technical Recruiter
+EMAIL;type=INTERNET;type=WORK:idris.valdivia@corvidanalytics.example
+TEL;type=CELL:+1 (202) 555-0140
+ADR;type=WORK:;;;London;;;UK
+REV:20260120T180000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Hartigan;Camila;;;
+FN:Camila Hartigan
+ORG:Quillstack
+TITLE:Account Executive
+EMAIL;type=INTERNET;type=WORK:camila.hartigan@quillstack.example
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260120T190000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Schreiber;Daria;;;
+FN:Daria Schreiber
+ORG:Vellum Desk
+TITLE:Sales Director
+EMAIL;type=INTERNET;type=WORK:daria@vellumdesk.example
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260120T220000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Halvorsen;Hiro;;;
+FN:Hiro Halvorsen
+ORG:Harbor Lane Capital
+TITLE:Analyst
+EMAIL;type=INTERNET;type=WORK:hiro.halvorsen@harborlane.example
+TEL;type=CELL:+1 (202) 555-0141
+ADR;type=WORK:;;;London;;;UK
+REV:20260120T230000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Quintero;Ruben;;;
+FN:Ruben Quintero
+ORG:Tinkerworks
+TITLE:Finance Lead
+EMAIL;type=INTERNET;type=WORK:ruben.quintero@tinkerworks.example
+TEL;type=CELL:+1 (202) 555-0142
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260121T020000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Gutierrez;Malik;;;
+FN:Malik Gutierrez
+ORG:Harbor Lane Capital
+TITLE:Associate
+EMAIL;type=INTERNET;type=WORK:malik.gutierrez@harborlane.example
+ADR;type=WORK:;;;London;;;UK
+REV:20260121T050000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Kowalczyk;Selin;;;
+FN:Selin Kowalczyk
+ORG:Vellum Desk
+TITLE:Partnerships Manager
+EMAIL;type=INTERNET;type=WORK:selin.kowalczyk@vellumdesk.example
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260121T060000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Falkenberg;Paloma;;;
+FN:Paloma Falkenberg
+ORG:Tessellate
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:paloma.falkenberg@tessellate.example
+TEL;type=CELL:+1 (202) 555-0143
+ADR;type=WORK:;;;Paris;;;France
+REV:20260121T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Cormack;Felix;;;
+FN:Felix Cormack
+ORG:Carebridge
+TITLE:Engineering Manager
+EMAIL;type=INTERNET;type=WORK:fcormack@carebridge.example
+TEL;type=CELL:+1 (202) 555-0144
+ADR;type=WORK:;;;Chicago;IL;;USA
+REV:20260121T140000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Barrientos;Yusuf;;;
+FN:Yusuf Barrientos
+ORG:Vellum Desk
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:ybarrientos@vellumdesk.example
+TEL;type=CELL:+1 (202) 555-0145
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260121T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Thackeray;Mabel;;;
+FN:Mabel Thackeray
+ORG:Ledgerline
+TITLE:Senior Product Manager
+EMAIL;type=INTERNET;type=WORK:mthackeray@ledgerline.example
+TEL;type=CELL:+1 (202) 555-0146
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260121T200000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Varga;Chiara;;;
+FN:Chiara Varga
+ORG:Juniper Health
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:chiara.varga@juniperhealth.example
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260122T030000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Schreiber;Diego;;;
+FN:Diego Schreiber
+ORG:Wayfarer Travel
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:diego@wayfarer.example
+TEL;type=CELL:+1 (202) 555-0147
+ADR;type=WORK:;;;Barcelona;;;Spain
+REV:20260122T110000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Sandoval;Ravi;;;
+FN:Ravi Sandoval
+ORG:Juniper Health
+TITLE:Chief of Staff
+EMAIL;type=INTERNET;type=WORK:ravi.sandoval@juniperhealth.example
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260122T140000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Alvarado;Viktor;;;
+FN:Viktor Alvarado
+ORG:Patchwork Labs
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:viktor.alvarado@patchworklabs.example
+TEL;type=CELL:+1 (202) 555-0148
+ADR;type=WORK:;;;Toronto;ON;;Canada
+REV:20260122T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Dalgaard;Imani;;;
+FN:Imani Dalgaard
+ORG:Quillstack
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:idalgaard@quillstack.example
+TEL;type=CELL:+1 (202) 555-0149
+ADR;type=WORK:;;;Berlin;;;Germany
+REV:20260123T000000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Amundsen;Astrid;;;
+FN:Astrid Amundsen
+ORG:Vellum Desk
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:aamundsen@vellumdesk.example
+TEL;type=CELL:+1 (202) 555-0150
+ADR;type=WORK:;;;Dublin;;;Ireland
+REV:20260123T020000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Zielinski;Anton;;;
+FN:Anton Zielinski
+ORG:Driftless
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:anton@driftless.example
+TEL;type=CELL:+1 (202) 555-0151
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260123T050000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Thackeray;Esther;;;
+FN:Esther Thackeray
+ORG:Marigold Goods
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:ethackeray@marigoldgoods.example
+TEL;type=CELL:+1 (202) 555-0152
+ADR;type=WORK:;;;New York;NY;;USA
+REV:20260123T060000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Vasquez;Astrid;;;
+FN:Astrid Vasquez
+ORG:Bluefin Bio
+TITLE:Chief of Staff
+EMAIL;type=INTERNET;type=WORK:astrid@bluefinbio.example
+TEL;type=CELL:+1 (202) 555-0153
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260123T080000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Okonjo;Wen;;;
+FN:Wen Okonjo
+ORG:Kitebox
+TITLE:Operations Manager
+EMAIL;type=INTERNET;type=WORK:wen@kitebox.example
+ADR;type=WORK:;;;Los Angeles;CA;;USA
+REV:20260123T120000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Sorensen;Oskar;;;
+FN:Oskar Sorensen
+ORG:Driftless
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:oskar@driftless.example
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260123T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Laurent;Tariq;;;
+FN:Tariq Laurent
+ORG:Solstice Grid
+TITLE:Senior Software Engineer
+EMAIL;type=INTERNET;type=WORK:tariq@solsticegrid.example
+ADR;type=WORK:;;;Austin;TX;;USA
+REV:20260123T230000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Drummond;Bilal;;;
+FN:Bilal Drummond
+ORG:Mosaic Studio
+TITLE:Studio Manager
+EMAIL;type=INTERNET;type=WORK:bilal.drummond@mosaicstudio.example
+TEL;type=CELL:+1 (202) 555-0154
+ADR;type=WORK:;;;Paris;;;France
+REV:20260124T000000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Maddox;Esther;;;
+FN:Esther Maddox
+ORG:Wayfarer Travel
+TITLE:Senior Software Engineer
+EMAIL;type=INTERNET;type=WORK:emaddox@wayfarer.example
+TEL;type=CELL:+1 (202) 555-0155
+ADR;type=WORK:;;;Barcelona;;;Spain
+REV:20260124T040000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Easterbrook;Malik;;;
+FN:Malik Easterbrook
+ORG:Kitebox
+TITLE:Engineering Manager
+EMAIL;type=INTERNET;type=WORK:malik.easterbrook@kitebox.example
+ADR;type=WORK:;;;Los Angeles;CA;;USA
+REV:20260124T080000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Rautio;Dmitri;;;
+FN:Dmitri Rautio
+ORG:Brightpath Learning
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:drautio@brightpath.example
+TEL;type=CELL:+1 (202) 555-0156
+ADR;type=WORK:;;;Sydney;NSW;;Australia
+REV:20260124T120000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Hartigan;Darius;;;
+FN:Darius Hartigan
+ORG:Tessellate
+TITLE:Customer Success Lead
+EMAIL;type=INTERNET;type=WORK:dhartigan@tessellate.example
+TEL;type=CELL:+1 (202) 555-0157
+ADR;type=WORK:;;;Paris;;;France
+REV:20260124T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Schreiber;Harriet;;;
+FN:Harriet Schreiber
+ORG:Patchwork Labs
+TITLE:Engineering Manager
+EMAIL;type=INTERNET;type=WORK:harriet@patchworklabs.example
+TEL;type=CELL:+1 (202) 555-0158
+ADR;type=WORK:;;;Toronto;ON;;Canada
+REV:20260124T140000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Fitzroy;Stellan;;;
+FN:Stellan Fitzroy
+ORG:Bluefin Bio
+TITLE:Product Designer
+EMAIL;type=INTERNET;type=WORK:stellan.fitzroy@bluefinbio.example
+TEL;type=CELL:+1 (202) 555-0159
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260124T180000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Easterbrook;Yusuf;;;
+FN:Yusuf Easterbrook
+ORG:Greenloop
+TITLE:Product Manager
+EMAIL;type=INTERNET;type=WORK:yeasterbrook@greenloop.example
+ADR;type=WORK:;;;Amsterdam;;;Netherlands
+REV:20260124T210000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Yilmaz;Rhea;;;
+FN:Rhea Yilmaz
+ORG:Kitebox
+TITLE:Account Executive
+TEL;type=CELL:+1 (202) 555-0160
+ADR;type=WORK:;;;Los Angeles;CA;;USA
+REV:20260125T010000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Jablonski;Viktor;;;
+FN:Viktor Jablonski
+ORG:Sentry Pine
+TITLE:Chief of Staff
+EMAIL;type=INTERNET;type=WORK:vjablonski@sentrypine.example
+TEL;type=CELL:+1 (202) 555-0161
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260125T070000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Yilmaz;Quentin;;;
+FN:Quentin Yilmaz
+ORG:Patchwork Labs
+TITLE:Account Executive
+EMAIL;type=INTERNET;type=WORK:qyilmaz@patchworklabs.example
+ADR;type=WORK:;;;Toronto;ON;;Canada
+REV:20260125T120000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Gutierrez;Bilal;;;
+FN:Bilal Gutierrez
+ORG:Sentry Pine
+TITLE:Account Executive
+EMAIL;type=INTERNET;type=WORK:bgutierrez@sentrypine.example
+TEL;type=CELL:+1 (202) 555-0162
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260125T130000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Ekwueme;Bilal;;;
+FN:Bilal Ekwueme
+ORG:Juniper Health
+TITLE:Staff Engineer
+EMAIL;type=INTERNET;type=WORK:bekwueme@juniperhealth.example
+TEL;type=CELL:+1 (202) 555-0163
+ADR;type=WORK:;;;Boston;MA;;USA
+REV:20260125T160000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Castellano;Zoltan;;;
+FN:Zoltan Castellano
+ORG:Arclight Media
+TITLE:Software Engineer
+TEL;type=CELL:+1 (202) 555-0164
+ADR;type=WORK:;;;Los Angeles;CA;;USA
+REV:20260125T170000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Bergqvist;Viktor;;;
+FN:Viktor Bergqvist
+ORG:Tallyfin
+TITLE:Data Scientist
+EMAIL;type=INTERNET;type=WORK:viktor.bergqvist@tallyfin.example
+TEL;type=CELL:+1 (202) 555-0165
+ADR;type=WORK:;;;London;;;UK
+REV:20260125T200000Z
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//openstance demo//contacts//EN
+N:Beaumont;Kaveh;;;
+FN:Kaveh Beaumont
+ORG:Hexwire
+TITLE:Engineering Manager
+EMAIL;type=INTERNET;type=WORK:kaveh@hexwire.example
+TEL;type=CELL:+1 (202) 555-0166
+ADR;type=WORK:;;;Seattle;WA;;USA
+REV:20260126T030000Z
+END:VCARD

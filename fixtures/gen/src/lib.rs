@@ -14,6 +14,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::path::Path;
 
+pub mod demo;
 pub mod graph;
 
 /// Planted in every body / note / DM content: must never reach the database.
