@@ -469,7 +469,7 @@ Remote connectors (claude.ai, ChatGPT) need a publicly reachable HTTPS URL. `127
 | `POST /edits` | P4 | edit, merge, split, review | `{ "ops": [Edit...] }` (section 3.2) | `{ "v": 1, "applied": n, "people": PersonRef[] }` |
 | `GET /review` | P4 | `review --list` | `?min_confidence=` | `{ "v": 1, "flagged": [...], "suggestions": [...], "info": [...] }` (same as `review --list --json`) |
 | `GET /views` | P4 | `list_views` | `?direction=` | `{ "views": ViewSummary[] }` |
-| `POST /views` | P4 | `view create` | `{ "name", "query": "text" \| Query, "ttl": "30d", "to": [pubkeys, aliases or "self"], "yes": false }` (`yes` replaces an existing view and allows `ttl: "never"`, like `--yes`) | `ViewSummary` (with `"v": 1`) |
+| `POST /views` | P4 | `view create` | `{ "name", "query": "text" \| Query \| search input, "ttl": "30d", "to": [pubkeys, aliases or "self"], "yes": false }` (`yes`, alias `replace`, replaces an existing view and allows `ttl: "never"`, like `--yes`; a `POST /search`-style object has its text parsed and its filters laid over it like the CLI's flags, while the full echoed `Query` shape is stored as is) | `ViewSummary` (with `"v": 1`) |
 | `GET /views/{name}/search` | P4 | `search_view` | `?q=&company=&title=&limit=` | `{ "v": 1, "results": [...] }` |
 | `POST /views/{name}/export` | P4 | `view export` | `?armor=true` | `.ost` bytes (`application/octet-stream`) |
 | `POST /views/import` | P4 | `view import` | multipart `file` | `{ "v": 1, "status": "imported" \| "replaced" \| "kept_newer", "view": ViewSummary, "path": "..." }` (same as `view import --json`) |

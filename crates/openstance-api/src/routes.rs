@@ -491,26 +491,64 @@ struct CreateViewBody {
     #[serde(default)]
     to: Vec<String>,
     /// Replace an existing view and allow `ttl: "never"` (CLI `--yes`).
-    #[serde(default)]
+    #[serde(default, alias = "replace")]
     yes: bool,
 }
 
-/// `"text"` (parsed like `search`), `"{...}"` or an object (a full Query).
+/// The view's query: `"text"` (parsed like `view create --query`), a full
+/// `Query` as `GET /views` and search responses echo it (or `"{...}"`
+/// text), or a `POST /search` input object (text parsed, filters laid over
+/// it like the CLI's flags).
 fn view_query(g: &Graph, q: &Value) -> Result<CoreQuery, ApiError> {
     let bad =
         |e: serde_json::Error| ApiError::bad_request(format!("query is not a valid Query: {e}"));
+    let tz = search::timezone(g.config());
+    let parse_text = |t: &str| -> Result<CoreQuery, ApiError> {
+        let parser = RuleParser::new(Lexicon::load(g.conn())?, tz);
+        Ok(parser
+            .parse_detailed(t, search::today_start(g.now(), tz))
+            .query)
+    };
     match q {
         Value::Null => Ok(CoreQuery::default()),
-        Value::Object(_) => serde_json::from_value(q.clone()).map_err(bad),
+        Value::Object(m) => {
+            // The full echoed shape (every array plus include_bulk) is a
+            // core Query, used as is; anything else is search input.
+            let echoed = [
+                "company",
+                "title",
+                "location",
+                "industry",
+                "tags",
+                "include_bulk",
+            ]
+            .iter()
+            .all(|k| m.contains_key(*k));
+            if echoed {
+                return serde_json::from_value(q.clone()).map_err(bad);
+            }
+            if let Ok(args) = serde_json::from_value::<SearchPeopleArgs>(q.clone()) {
+                let req = args.to_request(g.config(), g.now())?;
+                let mut query = match req.text.as_deref().map(str::trim) {
+                    Some(t) if !t.is_empty() && !req.no_parse => parse_text(t)?,
+                    Some(t) => CoreQuery {
+                        text: Some(t.to_string()).filter(|t| !t.is_empty()),
+                        ..CoreQuery::default()
+                    },
+                    None => CoreQuery::default(),
+                };
+                let mut patch = req.filters;
+                if args.limit.is_none() {
+                    patch.limit = None;
+                }
+                patch.apply(&mut query);
+                return Ok(query);
+            }
+            serde_json::from_value(q.clone()).map_err(bad)
+        }
         Value::String(t) if t.trim().starts_with('{') => serde_json::from_str(t).map_err(bad),
         Value::String(t) if t.trim().is_empty() => Ok(CoreQuery::default()),
-        Value::String(t) => {
-            let tz = search::timezone(g.config());
-            let parser = RuleParser::new(Lexicon::load(g.conn())?, tz);
-            Ok(parser
-                .parse_detailed(t, search::today_start(g.now(), tz))
-                .query)
-        }
+        Value::String(t) => parse_text(t),
         _ => Err(ApiError::bad_request(
             "query must be text or a Query object",
         )),

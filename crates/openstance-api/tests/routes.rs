@@ -522,3 +522,33 @@ async fn intros_round_trip() {
     let (status, _) = h.call(Method::DELETE, &format!("/intros/{id}"), None).await;
     assert_eq!(status, StatusCode::NOT_FOUND);
 }
+
+#[tokio::test]
+async fn views_create_accepts_a_search_request_query_and_replace() {
+    let h = harness();
+    let body = json!({ "name": "nw2", "ttl": "30d", "to": ["self"], "replace": true,
+        "query": { "text": "northwind", "met_in_person": true, "since": "2025" } });
+    let (status, v) = h.call(Method::POST, "/views", Some(body.clone())).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    assert_eq!(v["query"]["met_in_person"], true);
+    assert_eq!(v["query"]["since"], 1_735_689_600);
+    assert_eq!(
+        v["query"]["company"],
+        json!(["northwind"]),
+        "text parsed like the CLI"
+    );
+    // `replace` (alias of `yes`) lets the same name be saved again.
+    let (status, v) = h.call(Method::POST, "/views", Some(body)).await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    // A core Query (as GET /views returns it) works too.
+    let q = v["query"].clone();
+    let (status, v) = h
+        .call(
+            Method::POST,
+            "/views",
+            Some(json!({ "name": "nw3", "query": q, "to": ["self"] })),
+        )
+        .await;
+    assert_eq!(status, StatusCode::OK, "{v}");
+    assert_eq!(v["query"]["since"], 1_735_689_600);
+}
