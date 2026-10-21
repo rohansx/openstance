@@ -115,3 +115,24 @@ describe('Search page (P4-UI-02)', () => {
     expect(first.parse).toBe(false);
   });
 });
+
+describe('Save view from a search', () => {
+  it('posts the parsed query (without search-only flags) as a view', async () => {
+    const { api } = renderApp('#/discover', {
+      'POST /views': { v: 1, id: null, name: 'dinner-people', direction: 'own', owner: { pubkey: 'age1me', label: null }, created_at: '2026-10-21T00:00:00Z', expires_at: '2026-11-20T00:00:00Z', rows: 2, query: {} },
+    });
+    await search('devtools dinner');
+    await screen.findByRole('group', { name: /parsed filters/i });
+    await userEvent.click(screen.getByRole('button', { name: /save view/i }));
+    const dialog = screen.getByRole('dialog');
+    await userEvent.type(within(dialog).getByRole('textbox', { name: /view name/i }), 'dinner-people');
+    await userEvent.click(within(dialog).getByRole('button', { name: /save view/i }));
+    await waitFor(() => expect(api.callsTo('POST /views')).toHaveLength(1));
+    expect(api.callsTo('POST /views')[0]!.body).toEqual({
+      name: 'dinner-people',
+      query: { text: 'devtools dinner', met_in_person: true, include_bulk: false, limit: 30 },
+      ttl: '30d',
+      to: ['self'],
+    });
+  });
+});

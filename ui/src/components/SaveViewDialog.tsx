@@ -24,9 +24,11 @@ export function SaveViewDialog({ query, onClose, onSaved }: { query: Query; onCl
           setBusy(true);
           setError(null);
           try {
+            // A view stores the Query itself; `parse`/`explain` only steer a search.
+            const { parse: _parse, explain: _explain, ...viewQuery } = queryToRequest(query);
             const v = await api.createView({
               name: name.trim(),
-              query: queryToRequest(query),
+              query: viewQuery,
               ttl,
               to: to
                 .split(/[\s,]+/)
