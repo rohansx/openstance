@@ -1,5 +1,5 @@
 /* openstance UI additions on top of the ported prototype styles.
-   Same palette and type: Georgia display headings, system sans body,
+   Same palette; type: Inter Tight display headings, Inter body (self-hosted),
    SFMono/Consolas for data. No web fonts are loaded (strict CSP, loopback). */
 
 :root {
@@ -262,10 +262,10 @@ code {
   margin: 26px 0 18px;
 }
 .person-title h1 {
-  font-family: Georgia, serif;
+  font-family: "Inter Tight Variable","Inter Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   font-size: 33px;
-  font-weight: 400;
-  letter-spacing: -1px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
 }
 .person-title .avatar {
   width: 52px;
@@ -598,7 +598,8 @@ code {
   margin-bottom: 8px;
 }
 .quote-box .total {
-  font: 28px Georgia, serif;
+  font: 600 28px "Inter Tight Variable","Inter Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing: -0.025em;
   color: #6d5530;
 }
 .quote-box p {
@@ -695,7 +696,8 @@ progress {
 }
 .import-stats b {
   display: block;
-  font: 24px Georgia, serif;
+  font: 600 24px "Inter Tight Variable","Inter Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing: -0.025em;
   font-weight: 400;
 }
 .import-stats span {
@@ -722,7 +724,8 @@ progress {
 }
 .totals strong {
   display: block;
-  font: 24px Georgia, serif;
+  font: 600 24px "Inter Tight Variable","Inter Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing: -0.025em;
   font-weight: 400;
 }
 .totals span {
@@ -806,7 +809,8 @@ td code {
   padding: 32px;
 }
 .connect-card h1 {
-  font: 400 34px/1.15 Georgia, serif;
+  font: 600 34px/1.15 "Inter Tight Variable","Inter Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing: -0.025em;
   letter-spacing: -1px;
   margin: 26px 0 12px;
 }

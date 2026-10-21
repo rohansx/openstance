@@ -10,7 +10,8 @@
   margin: 25px 0 18px
 }
 .integration-hero h2,.integration-contract h2 {
-  font: 400 36px/1.13 Georgia,serif;
+  font: 600 36px/1.13 "Inter Tight Variable","Inter Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing: -0.025em;
   letter-spacing: -1px;
   margin: 18px 0
 }
@@ -128,7 +129,8 @@
   display: inline-grid;
   place-items: center;
   border-radius: 12px;
-  font: bold 27px Georgia,serif;
+  font: 700 27px "Inter Tight Variable","Inter Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing: -0.025em;
   flex-shrink: 0
 }
 .provider-mark.boardy {
@@ -167,7 +169,8 @@
   color: #8b9385
 }
 .provider-card h2 {
-  font: 400 24px Georgia,serif;
+  font: 600 24px "Inter Tight Variable","Inter Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing: -0.025em;
   margin: 9px 0 13px
 }
 .provider-card p {
