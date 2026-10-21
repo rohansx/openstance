@@ -1,0 +1,56 @@
+# cargo-deny policy (docs/engineering/conventions.md, crates-and-dependencies.md section 6).
+
+[graph]
+all-features = true
+
+[advisories]
+version = 2
+yanked = "deny"
+# Each ignore names an advisory with no fixed release reachable from our
+# dependency graph. All three are "unmaintained" notices, not known
+# vulnerabilities; drop the entry as soon as the parent crate moves off it.
+ignore = [
+    # atomic-polyfill via heapless 0.7 <- postcard <- phonenumber (build
+    # dependency of its metadata tables). phonenumber 0.3.10 is the latest
+    # release; on our targets heapless uses native atomics, not the polyfill.
+    { id = "RUSTSEC-2023-0089", reason = "transitive via phonenumber -> postcard -> heapless 0.7; no upgrade available" },
+    # basic-toml via i18n-config <- i18n-embed <- age 0.12.1 (latest). Only
+    # parses age's bundled i18n.toml at compile time.
+    { id = "RUSTSEC-2026-0374", reason = "transitive via age -> i18n-embed -> i18n-config; no upgrade available" },
+    # paste (proc macro) via tokenizers <- fastembed 7.1.4, which is pinned
+    # exactly. Compile-time only.
+    { id = "RUSTSEC-2024-0436", reason = "transitive proc macro via fastembed -> tokenizers; no upgrade available" },
+]
+
+[licenses]
+version = 2
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-3.0",
+    "MPL-2.0",
+    "CC0-1.0",
+    # quoted_printable (mbox importer); public-domain-equivalent BSD.
+    "0BSD",
+    # webpki-roots (Mozilla CA bundle, via ureq for model downloads and
+    # enrichment); a permissive data licence.
+    "CDLA-Permissive-2.0",
+]
+confidence-threshold = 0.9
+
+[bans]
+multiple-versions = "allow"
+wildcards = "allow"
+deny = [
+    { name = "openssl-sys" },
+    { name = "openssl" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

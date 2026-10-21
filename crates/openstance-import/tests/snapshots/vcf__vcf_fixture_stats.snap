@@ -1,0 +1,15 @@
+---
+source: crates/openstance-import/tests/vcf.rs
+expression: stats
+---
+{
+  "records_read": 11,
+  "interactions_new": 0,
+  "interactions_dup": 0,
+  "identities_new": 0,
+  "identities_seen": 0,
+  "skipped": {},
+  "bytes": 2661,
+  "elapsed_ms": 0,
+  "self_candidates": []
+}

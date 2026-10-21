@@ -6,3 +6,14 @@
 *.db
 *.db-wal
 *.db-shm
+
+# never commit real exports, graphs, keys or user config (conventions.md)
+*.mbox
+*.ost
+graph.db*
+age.key
+api.token
+.openstance/
+config.toml
+!fixtures/**
+!crates/openstance-core/data/**

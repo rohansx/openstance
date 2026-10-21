@@ -1,0 +1,17 @@
+{
+  "request": { "kind": "profile", "name": "Priya Raman", "company": "Stripe", "linkedin": null },
+  "provider": "mockdata",
+  "cost_micro_usd": 10000,
+  "data": {
+    "type": "profile",
+    "display_name": "Priya Raman",
+    "title": "Staff Engineer",
+    "company": "Stripe",
+    "company_domain": "stripe.com",
+    "location": "San Francisco, CA",
+    "linkedin": "priya-raman-example",
+    "past_companies": ["Northwind Traders", "Contoso"],
+    "schools": ["University of Waterloo"],
+    "headline": "Staff Engineer at Stripe. Payments infrastructure."
+  }
+}

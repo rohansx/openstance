@@ -1,0 +1,210 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Google Inc//Google Calendar 70.9054//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:owner@example.com
+X-WR-TIMEZONE:America/New_York
+BEGIN:VTIMEZONE
+TZID:America/New_York
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0400
+TZNAME:EDT
+DTSTART:19700308T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0500
+TZNAME:EST
+DTSTART:19701101T020000
+RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260803T100000
+DTEND;TZID=America/New_York:20260803T110000
+UID:northwind-sync-0803@openstance.test
+ORGANIZER;CN=Owen Ryder:mailto:owner@example.com
+ATTENDEE;CN=Owen Ryder;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:owner@example.com
+ATTENDEE;CN=Priya Raman;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:priya@northwind.example
+ATTENDEE;CN=Marcus Lee;PARTSTAT=ACCEPTED:mailto:marcus@contoso.example
+ATTENDEE;CUTYPE=RESOURCE;CN=NW Room 4;PARTSTAT=ACCEPTED:mailto:nw-room-4@resource.calendar.example
+SUMMARY:Northwind sync
+DESCRIPTION:Agenda SENTINEL-BODY-7f3a\nJoin: https://meet.example/abc
+LOCATION:SENTINEL-BODY-7f3a Room 4
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260601T093000
+DTEND;TZID=America/New_York:20260601T100000
+RRULE:FREQ=WEEKLY;COUNT=12;BYDAY=MO
+EXDATE;TZID=America/New_York:20260615T093000
+UID:priya-1on1@openstance.test
+ORGANIZER;CN=Priya Raman:mailto:priya@northwind.example
+ATTENDEE;CN=Priya Raman;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:priya@northwind.example
+ATTENDEE;CN=Owen Ryder;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:owner@example.com
+SUMMARY:Priya / Owen 1:1
+DESCRIPTION:Agenda SENTINEL-BODY-7f3a\nJoin: https://meet.example/abc
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260623T110000
+DTEND;TZID=America/New_York:20260623T113000
+RECURRENCE-ID;TZID=America/New_York:20260622T093000
+UID:priya-1on1@openstance.test
+ORGANIZER;CN=Priya Raman:mailto:priya@northwind.example
+ATTENDEE;CN=Priya Raman;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:priya@northwind.example
+ATTENDEE;CN=Owen Ryder;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:owner@example.com
+SUMMARY:Priya / Owen 1:1 (moved)
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260629T093000
+RECURRENCE-ID;TZID=America/New_York:20260629T093000
+UID:priya-1on1@openstance.test
+ORGANIZER;CN=Priya Raman:mailto:priya@northwind.example
+ATTENDEE;CN=Priya Raman;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:priya@northwind.example
+ATTENDEE;CN=Owen Ryder;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:owner@example.com
+SUMMARY:Priya / Owen 1:1
+STATUS:CANCELLED
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20230102T090000
+DTEND;TZID=America/New_York:20230102T091500
+RRULE:FREQ=WEEKLY;BYDAY=MO
+UID:contoso-standup@openstance.test
+ORGANIZER;CN=Marcus Lee:mailto:marcus@contoso.example
+ATTENDEE;CN=Marcus Lee;PARTSTAT=ACCEPTED:mailto:marcus@contoso.example
+ATTENDEE;CN=Owen Ryder;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:owner@example.com
+ATTENDEE;CN=Kofi Mensah;PARTSTAT=TENTATIVE:mailto:kofi@tailspin.example
+SUMMARY:Contoso standup
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:SENTINEL-BODY-7f3a
+TRIGGER:-PT10M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20300107T150000Z
+RRULE:FREQ=MONTHLY;COUNT=6
+UID:future-board@openstance.test
+ORGANIZER;CN=Owen Ryder:mailto:owner@example.com
+ATTENDEE;CN=Priya Raman;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:priya@northwind.example
+SUMMARY:Board prep
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260812T170000Z
+UID:nora-lunch@openstance.test
+ORGANIZER;CN=Nora Lindqvist:mailto:nora@fabrikam.example
+ATTENDEE;CN=Nora Lindqvist;PARTSTAT=ACCEPTED:mailto:nora@fabrikam.example
+ATTENDEE;CN=Owen Ryder;PARTSTAT=DECLINED;ROLE=REQ-PARTICIPANT:mailto:owner@example.com
+SUMMARY:Lunch?
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260820T150000Z
+UID:offsite-planning@openstance.test
+ORGANIZER;CN=Owen Ryder:mailto:owner@example.com
+ATTENDEE;CN=Priya Raman;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:priya@northwind.example
+ATTENDEE;CN=Marcus Lee;PARTSTAT=ACCEPTED:mailto:marcus@contoso.example
+SUMMARY:Offsite planning
+STATUS:CANCELLED
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260904T160000Z
+UID:northwind-allhands@openstance.test
+ORGANIZER;CN=Northwind People Team:mailto:people@northwind.example
+SUMMARY:Northwind all hands
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-01@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-02@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-03@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-04@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-05@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-06@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-07@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-08@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-09@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-10@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-11@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-12@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-13@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-14@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-15@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-16@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-17@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-18@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-19@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-20@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-21@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-22@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-23@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-24@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-25@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-26@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-27@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-28@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-29@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-30@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-31@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-32@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-33@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-34@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-35@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-36@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-37@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-38@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-39@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-40@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-41@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-42@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-43@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-44@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-45@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-46@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-47@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-48@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-49@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-50@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-51@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-52@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-53@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-54@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-55@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-56@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-57@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-58@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-59@northwind.example
+ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:allhands-60@northwind.example
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260806T130000Z
+UID:focus@openstance.test
+ORGANIZER;CN=Owen Ryder:mailto:owner@example.com
+SUMMARY:Focus time
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260807T130000Z
+UID:dentist@openstance.test
+ORGANIZER;CN=Owen Ryder:mailto:owner@example.com
+ATTENDEE;CN=Owen Ryder;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:owner@example.com
+SUMMARY:Dentist
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260910T150000Z
+DTEND:20260910T153000Z
+UID:elena-coffee@openstance.test
+ORGANIZER;CN="Voss, Elena":mailto:elena@tailspin.example
+ATTENDEE;CN="Voss, Elena";PARTSTAT=ACCEPTED:mailto:elena@tailspin.example
+ATTENDEE;CN=Owen Ryder;PARTSTAT=ACCEPTED;ROLE=REQ-PARTICIPANT:mailto:owner@example.com
+ATTENDEE;CN=Ravi Iyer;PARTSTAT=DECLINED:mailto:ravi@contoso.example
+SUMMARY:Coffee \, catch-up
+DESCRIPTION:Agenda SENTINEL-BODY-7f3a\nJoin: https://meet.example/abc
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260915
+DTEND;VALUE=DATE:20260916
+UID:design-review-day@openstance.test
+ORGANIZER;CN=Owen Ryder:mailto:owner@example.com
+ATTENDEE;CN=Lena Park;PARTSTAT=ACCEPTED:mailto:lena.park@mail.test
+SUMMARY:Design review day
+END:VEVENT
+END:VCALENDAR

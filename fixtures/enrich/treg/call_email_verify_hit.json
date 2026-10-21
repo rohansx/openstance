@@ -1,0 +1,5 @@
+{
+  "output": { "valid": true, "status": "valid", "score": 0.99 },
+  "raw": null,
+  "_treg": { "served_by": "alpha.people.email.verify", "provider": "alpha", "tier": "platform", "outcome": "hit", "tried": [], "charged_micro": 0 }
+}

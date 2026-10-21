@@ -1,0 +1,6 @@
+[toolchain]
+# Pinned to the stable channel; MSRV is declared as `rust-version` in Cargo.toml
+# and checked separately in CI.
+channel = "stable"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

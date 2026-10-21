@@ -1,0 +1,9 @@
+{
+  "endpoint": { "id": "treg.web.search", "kind": "routed", "cost": { "type": "per_call", "usd": 0.005 } },
+  "routing": {
+    "plan": [
+      { "endpoint_id": "alpha.web.search", "accepts": [["q"]], "usd": 0.005 },
+      { "endpoint_id": "beta.web.search", "accepts": [["q"]], "usd": 0.16 }
+    ]
+  }
+}

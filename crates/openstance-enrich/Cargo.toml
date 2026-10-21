@@ -1,0 +1,42 @@
+[package]
+name = "openstance-enrich"
+description = "Enricher trait, request/quote/result types, and the NullEnricher"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+# TregEnricher: blocking HTTP (ureq) to a treg router.
+treg = ["dep:ureq"]
+# OwnKeysEnricher: a reserved stub; every call returns Unsupported.
+ownkeys = []
+# MockEnricher, canned from fixtures/enrich/*.json.
+mock = []
+# Helpers for tests in other crates (includes the MockEnricher).
+test-util = ["mock"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+ureq = { version = "3.4", optional = true }
+
+[dev-dependencies]
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[[test]]
+name = "mock"
+required-features = ["mock"]
+
+[[test]]
+name = "treg"
+required-features = ["treg"]
+
+[lints]
+workspace = true

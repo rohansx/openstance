@@ -1,0 +1,15 @@
+{
+  "output": {
+    "name": "Stripe",
+    "domain": "stripe.com",
+    "website": "https://stripe.com",
+    "description": "Payments infrastructure for the internet.",
+    "industry": "Financial Services",
+    "employees": 8000,
+    "founded": 2010,
+    "location": "San Francisco, CA",
+    "linkedin_url": "https://www.linkedin.com/company/stripe-example"
+  },
+  "raw": null,
+  "_treg": { "served_by": "alpha.companies.enrich", "provider": "alpha", "tier": "platform", "outcome": "hit", "tried": [], "charged_micro": 50000 }
+}

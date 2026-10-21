@@ -1,0 +1,70 @@
+[package]
+name = "openstance-core"
+description = "Schema, migrations, resolution, scoring and search for openstance"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+# Helpers for integration tests in other crates (TestGraph and friends).
+test-util = []
+
+[dependencies]
+# trait crates, traits and types only
+openstance-import.workspace = true
+openstance-enrich.workspace = true
+openstance-model.workspace = true
+
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+unicode-normalization.workspace = true
+strsim.workspace = true
+regex.workspace = true
+idna.workspace = true
+url.workspace = true
+psl.workspace = true
+phonenumber.workspace = true
+blake3.workspace = true
+time.workspace = true
+chrono.workspace = true
+chrono-tz.workspace = true
+csv.workspace = true
+lru.workspace = true
+sqlite-vec.workspace = true
+age.workspace = true
+ulid.workspace = true
+tempfile.workspace = true
+
+[dev-dependencies]
+# Integration tests import the real fixture files, so they enable the
+# Phase 1 importers. This is a dev-dependency only: `cargo tree -e normal`
+# for openstance-core stays free of concrete importers.
+openstance-import = { workspace = true, features = ["mbox", "linkedin", "vcf"] }
+# P3: playbook and egress-gate tests use the recording MockEnricher.
+openstance-enrich = { workspace = true, features = ["mock"] }
+tempfile.workspace = true
+proptest.workspace = true
+insta.workspace = true
+criterion.workspace = true
+
+# P2-CORE-07 latency gate (criterion + p50 gate, see the file header).
+[[bench]]
+name = "search"
+harness = false
+
+# The workspace forbids unsafe code. Core denies it instead so that the one
+# sqlite-vec registration call in db/vec.rs can carry an explicit
+# `#[allow(unsafe_code)]` with a SAFETY comment (conventions.md rule 11).
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+dbg_macro = "warn"

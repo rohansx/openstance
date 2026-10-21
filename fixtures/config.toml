@@ -1,0 +1,7 @@
+# Config for the synthetic fixtures. Load with OPENSTANCE_CONFIG=fixtures/config.toml.
+[me]
+identities = ["email:owner@example.com", "linkedin_url:owen-ryder-example"]
+
+[resolution]
+gmail_domains = ["gmail.test", "googlemail.test"]
+freemail_extra = ["gmail.test", "googlemail.test", "mail.test"]

@@ -34,63 +34,69 @@ Out of scope: enrichment and treg, `path`, `brief`, views, HTTP, MCP over HTTP, 
 
 ### `openstance-model`
 
-- [ ] **P2-MODEL-01 fastembed Embedder.** `FastEmbedder` wraps `fastembed` with `BGESmallENV15Q` (or the quantized variant available at implementation time), loads the model from `~/.openstance/models/`, and downloads it on first use (about 33 MB) with a progress bar. Add an `embedder` config key such as `fastembed:bge-small-en-v1.5`.
+- [x] **P2-MODEL-01 fastembed Embedder.** `FastEmbedder` wraps `fastembed` with `BGESmallENV15Q` (or the quantized variant available at implementation time), loads the model from `~/.openstance/models/`, and downloads it on first use (about 33 MB) with a progress bar. Add an `embedder` config key such as `fastembed:bge-small-en-v1.5`.
   - *Acceptance:* `dims() == 384`. Embedding the same text twice gives identical vectors. If the model is missing and the network is unavailable, the error says "run once with network or set `model.embedder = \"none\"`", and search falls back to FTS only instead of failing.
-- [ ] **P2-MODEL-02 Embedder selection from config.** A factory maps the config string to `Box<dyn Embedder>`, and `none` maps to `NullEmbedder`. The active embedder id and dims are stored in a `meta` key (or config) so that a change can be detected.
+- [x] **P2-MODEL-02 Embedder selection from config.** A factory maps the config string to `Box<dyn Embedder>`, and `none` maps to `NullEmbedder`. The active embedder id and dims are stored in a `meta` key (or config) so that a change can be detected.
   - *Acceptance:* changing `model.embedder` and running any command prints "embedder changed, run `openstance rebuild --embeddings`". Search uses FTS only until that has been done.
 - [ ] **P2-MODEL-03 Throughput.** Batch embedding (batch size tuned, default 64) uses all cores through the fastembed thread pool.
   - *Acceptance:* the first-run embedding of 20k people finishes in under 90 s on an M2 CPU (perf job, macOS runner or manual sign-off).
+  - *Status (open):* measured on an M1 Pro (10 cores), not an M2: the 20k-person perf graph embeds in 206 s with texts sent shortest first (275 s before). The fp32 model is slower still (about 11 texts/s vs 60). Needs an M2 run or a smaller embedding text before it can close.
 
 ### `openstance-core`
 
-- [ ] **P2-CORE-01 sqlite-vec integration + migration `0002_person_vec.sql`.** Statically link and register sqlite-vec on every connection. Create `person_vec USING vec0(person_id INTEGER PRIMARY KEY, embedding float[384])`.
+- [x] **P2-CORE-01 sqlite-vec integration + migration `0002_person_vec.sql`.** Statically link and register sqlite-vec on every connection. Create `person_vec USING vec0(person_id INTEGER PRIMARY KEY, embedding float[384])`.
   - *Acceptance:* the migration applies to a v0.2.0 database without data loss. A smoke test runs `vec_distance_cosine`. Using an embedder with different dims recreates the table only through `rebuild --embeddings`.
-- [ ] **P2-CORE-02 Embedding text and incremental index.** Embedding input = `display_name + title + company + bio + top subjects` (capped at 512 tokens). Store an input hash per person (a column or side table added in the same migration) and re-embed only people whose hash changed after import, edit, merge, or rebuild.
+- [x] **P2-CORE-02 Embedding text and incremental index.** Embedding input = `display_name + title + company + bio + top subjects` (capped at 512 tokens). Store an input hash per person (a column or side table added in the same migration) and re-embed only people whose hash changed after import, edit, merge, or rebuild.
   - *Acceptance:* editing one title re-embeds exactly one person. `rebuild` with no source changes re-embeds no one.
-- [ ] **P2-CORE-03 Fusion.** Candidates = union of the top 200 FTS (bm25) hits and the top 200 vector (cosine) hits, then filtered by the structured fields of `Query`, with bulk and merged people excluded. bm25 and cosine are each min-max normalised over the candidate set. `text_score = 0.5 x bm25_n + 0.5 x cos_n` (a missing signal counts as 0). `final = text_score x (0.5 + 0.5 x person.score)`. See [search](../tech-spec/search.md).
+- [x] **P2-CORE-03 Fusion.** Candidates = union of the top 200 FTS (bm25) hits and the top 200 vector (cosine) hits, then filtered by the structured fields of `Query`, with bulk and merged people excluded. bm25 and cosine are each min-max normalised over the candidate set. `text_score = 0.5 x bm25_n + 0.5 x cos_n` (a missing signal counts as 0). `final = text_score x (0.5 + 0.5 x person.score)`. See [search](../tech-spec/search.md).
   - *Acceptance:* unit tests on hand-built candidate sets check that the normalisation handles a single candidate (no division by zero) and that a strong relationship lifts a weaker text match as intended. Results expose `fts_rank`, `vec_sim`, and `final` in the JSON.
-- [ ] **P2-CORE-04 `who`.** `get_person(id|email|name)` returns the full record (fields with their provenance: derived source vs override), identities with confidence, all five score components and the weights used, the last 10 interactions, and the top 5 mutuals by tie weight.
+- [x] **P2-CORE-04 `who`.** `get_person(id|email|name)` returns the full record (fields with their provenance: derived source vs override), identities with confidence, all five score components and the weights used, the last 10 interactions, and the top 5 mutuals by tie weight.
   - *Acceptance:* finishes in under 20 ms on the perf fixture. A person with `do_not_share` is returned locally (that flag only affects sharing), and the flag is shown.
-- [ ] **P2-CORE-05 `how_connected`.** Given a target in the graph, consider each mutual `m` with ties to the target: `strength = my_score(m) x tie_weight(m, target)`. Return the top 3 paths. Each path carries its evidence: the most recent shared interactions between `m` and the target (joined through `interaction_person`, never stored), plus my own last interaction with `m`. If I have a direct relationship with the target, return it as path 0.
+- [x] **P2-CORE-05 `how_connected`.** Given a target in the graph, consider each mutual `m` with ties to the target: `strength = my_score(m) x tie_weight(m, target)`. Return the top 3 paths. Each path carries its evidence: the most recent shared interactions between `m` and the target (joined through `interaction_person`, never stored), plus my own last interaction with `m`. If I have a direct relationship with the target, return it as path 0.
   - *Acceptance:* finishes in under 20 ms on the perf fixture. The fixture test gives the expected top mutual. If the target is not in the graph, the result is `{ "found": false, "hint": "path_to (Phase 3) can look outside your graph" }` and no egress happens.
-- [ ] **P2-CORE-06 Search eval tier 1 to 50 queries.** Extend `evals/search.toml` to 50 queries that mix structured, free-text, and semantic phrasing ("people who build developer tools" should match "devtools", "SDK", and "API platform" titles).
+- [x] **P2-CORE-06 Search eval tier 1 to 50 queries.** Extend `evals/search.toml` to 50 queries that mix structured, free-text, and semantic phrasing ("people who build developer tools" should match "devtools", "SDK", and "API platform" titles).
   - *Acceptance:* CI runs it with `parser = rules`, `reranker = none`, and the fastembed embedder (the model is cached between CI runs). Recall@5 is reported and gated. A second tier that runs Ollama is documented for local use only (see [testing strategy](../engineering/testing-strategy.md)).
-- [ ] **P2-CORE-07 Latency gate.** Add a criterion bench for text search with the embedder.
+- [x] **P2-CORE-07 Latency gate.** Add a criterion bench for text search with the embedder.
   - *Acceptance:* p50 under 300 ms end to end (including query embedding) and structured search under 50 ms, on the perf fixture. Both are tracked in CI as benchmarks, and a regression of more than 20 % fails.
 
 ### `openstance-mcp`
 
 - [ ] **P2-MCP-01 rmcp stdio server.** The `openstance-mcp` crate depends on tokio and rmcp. `openstance mcp` starts it on stdio and opens the database read-mostly (WAL, so the CLI can import at the same time).
   - *Acceptance:* `npx @modelcontextprotocol/inspector openstance mcp` lists the tools and calls each one successfully against the fixtures.
-- [ ] **P2-MCP-02 Tool `search_people`.** Input: `{ text?, company?[], title?[], location?[], industry?[], tags?[], since?, until?, last_contact_before?, met_in_person?, replied?, min_score?, lost_touch?, include_bulk?, limit?, parse?, explain? }` (exact schema in [interfaces](../tech-spec/interfaces.md#22-input-schemas)). Output: the same JSON as `openstance search --json`, as MCP structured content plus a short text summary. It also returns the parsed `Query`, so the agent can show the filters and rerun them. Company filtering plus `how_connected` covers the overview's "who knows someone at X". There is no separate tool for it.
+  - *Status (open):* a raw stdio JSON-RPC session (initialize, tools/list, each tool called) succeeds offline against fixtures/demo, and the stdio tests cover the same. The Inspector session still has to be run by hand.
+- [x] **P2-MCP-02 Tool `search_people`.** Input: `{ text?, company?[], title?[], location?[], industry?[], tags?[], since?, until?, last_contact_before?, met_in_person?, replied?, min_score?, lost_touch?, include_bulk?, limit?, parse?, explain? }` (exact schema in [interfaces](../tech-spec/interfaces.md#22-input-schemas)). Output: the same JSON as `openstance search --json`, as MCP structured content plus a short text summary. It also returns the parsed `Query`, so the agent can show the filters and rerun them. Company filtering plus `how_connected` covers the overview's "who knows someone at X". There is no separate tool for it.
   - *Acceptance:* a JSON schema snapshot test. The output for a fixed query is byte-identical to the CLI `--json`.
-- [ ] **P2-MCP-03 Tool `get_person`.** Input: `{ person, interactions?, mutuals? }`, where `person` is an id, email, LinkedIn URL/slug, `@x_handle` or name. Output: the `who` JSON (`PersonDetail`).
+- [x] **P2-MCP-03 Tool `get_person`.** Input: `{ person, interactions?, mutuals? }`, where `person` is an id, email, LinkedIn URL/slug, `@x_handle` or name. Output: the `who` JSON (`PersonDetail`).
   - *Acceptance:* an ambiguous name returns the `ambiguous` error with `candidates` ([interfaces](../tech-spec/interfaces.md#111-error)) rather than a guess.
-- [ ] **P2-MCP-04 Tool `how_connected`.** Input: `{ target, limit? }` (id, email, LinkedIn, or name). Output: the top 3 paths with evidence.
+- [x] **P2-MCP-04 Tool `how_connected`.** Input: `{ target, limit? }` (id, email, LinkedIn, or name). Output: the top 3 paths with evidence.
   - *Acceptance:* the same snapshot rule as P2-MCP-02.
 - [ ] **P2-MCP-05 Agent skill `playbooks/openstance-search.md`.** Written in our own words. It says when to call `search_people` vs `get_person` vs `how_connected`, how to show the evidence lines to the user instead of paraphrasing them, and that the tools cost nothing and send nothing anywhere. It contains no third-party promotion.
   - *Acceptance:* reviewed by a second person. In Claude Code, the demo questions trigger the right tools without extra prompting.
+  - *Status (open):* the playbook is written; the second-person review and the Claude Code check need a person.
 - [ ] **P2-MCP-06 Client setup docs.** Snippets for Claude Code (`claude mcp add openstance -- openstance mcp`), Cursor (`mcp.json`), and Claude Desktop config.
   - *Acceptance:* each snippet is tested by hand once and recorded in the PR.
+  - *Status (open):* the snippets are written; the hand test of each client is not recorded yet.
 
 ### `openstance` (CLI)
 
-- [ ] **P2-CLI-01 `who <name|email|id>`.** A human view (the score as a bar per component with the weights, then identities, the last interactions, and mutuals), plus `--json`.
+- [x] **P2-CLI-01 `who <name|email|id>`.** A human view (the score as a bar per component with the weights, then identities, the last interactions, and mutuals), plus `--json`.
   - *Acceptance:* the output answers "why 0.81" with no other command needed.
-- [ ] **P2-CLI-02 `how "<target>"`** (alias `how-connected`). Prints the top 3 paths: `you -> Mutual (score 0.74) -> Target (tie 0.62)`, followed by evidence lines (`2026-03-12 email "devtools dinner follow-up" (cc'd together)`).
+- [x] **P2-CLI-02 `how "<target>"`** (alias `how-connected`). Prints the top 3 paths: `you -> Mutual (score 0.74) -> Target (tie 0.62)`, followed by evidence lines (`2026-03-12 email "devtools dinner follow-up" (cc'd together)`).
   - *Acceptance:* `--json` is identical to the MCP output. The command name matches [interfaces](../tech-spec/interfaces.md).
-- [ ] **P2-CLI-03 `rebuild --embeddings`** and showing embedding progress during `import`.
-- [ ] **P2-CLI-04 `mcp`.** Starts the stdio server and logs to stderr only (stdout is the protocol).
+- [x] **P2-CLI-03 `rebuild --embeddings`** and showing embedding progress during `import`.
+- [x] **P2-CLI-04 `mcp`.** Starts the stdio server and logs to stderr only (stdout is the protocol).
   - *Acceptance:* a test checks that nothing but JSON-RPC appears on stdout.
 
 ### Demo, docs, launch (`docs`)
 
-- [ ] **P2-DOC-01 Demo dataset `fixtures/demo/`.** A synthetic but realistic network (about 600 people, 3 exports: `takeout.mbox`, `Connections.csv`, `contacts.vcf`) built so that the demo queries give clean, believable answers. All people and companies are fictional and labelled that way in the README.
+- [x] **P2-DOC-01 Demo dataset `fixtures/demo/`.** A synthetic but realistic network (about 600 people, 3 exports: `takeout.mbox`, `Connections.csv`, `contacts.vcf`) built so that the demo queries give clean, believable answers. All people and companies are fictional and labelled that way in the README.
 - [ ] **P2-DOC-02 Record the 60-second demo** (script below) as an asciinema cast plus a GIF/MP4 for the README.
   - *Acceptance:* it can be reproduced from a clean machine with network access blocked after the model download.
-- [ ] **P2-DOC-03 README for launch.** Meets every requirement in [launch.md](launch.md#readme-requirements).
-- [ ] **P2-DOC-04 Show HN post and first comment drafted**, following [launch.md](launch.md#channels).
+  - *Status (open):* `scripts/demo.sh --fast` runs every step offline with the release build (import 4.5 s, embedding 605 people in 3.8 s). The recording needs a person.
+- [x] **P2-DOC-03 README for launch.** Meets every requirement in [launch.md](launch.md#readme-requirements).
+- [x] **P2-DOC-04 Show HN post and first comment drafted**, following [launch.md](launch.md#channels).
 - [ ] **P2-CI-01 Tagged `v0.3.0` source release** with `cargo install --git` instructions. Prebuilt binaries can be added early if cargo-dist is quick to set up. Otherwise they arrive in Phase 4.
+  - *Status (open):* not tagged.
 
 ### Parallelisation
 

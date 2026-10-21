@@ -1,0 +1,14 @@
+[
+  {
+    "request": { "kind": "verify_email", "email": "priya@stripe.com" },
+    "provider": "mockdata",
+    "cost_micro_usd": 5000,
+    "data": { "type": "verification", "email": "priya@stripe.com", "status": "deliverable" }
+  },
+  {
+    "request": { "kind": "verify_email", "email": "bounce@acme.example" },
+    "provider": "mockdata",
+    "cost_micro_usd": 5000,
+    "data": { "type": "verification", "email": "bounce@acme.example", "status": "undeliverable" }
+  }
+]

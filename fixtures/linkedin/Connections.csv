@@ -1,0 +1,16 @@
+﻿Notes:
+"When exporting your connection data, you may notice that some of the email addresses are missing. You will only see email addresses for connections who have allowed their connections to see or download their email address."
+
+First Name,Last Name,URL,Email Address,Company,Position,Connected On
+Priya,Raman,https://www.linkedin.com/in/priya-raman-nw,priya@northwind.example,Northwind,VP Engineering,12 Mar 2024
+Marcus,Lee,https://www.linkedin.com/in/marcus-lee-contoso,marcus@contoso.example,Contoso,Staff Engineer,02 Nov 2023
+Sam,Ito,https://www.linkedin.com/in/sam-ito-nw,,Northwind,Product Manager,19 May 2025
+Lena,Park,https://www.linkedin.com/in/lena-park-design,,Contoso,Design Lead,07 Aug 2024
+Alex,Kim,https://www.linkedin.com/in/alex-kim-northwind,,Northwind,Software Engineer,14 Feb 2025
+Ines,Quillfeather,https://www.linkedin.com/in/ines-quillfeather,,Halcyon,Founder,30 Jan 2024
+John,Quillby,https://www.linkedin.com/in/john-quillby,,Brightwater,CTO,07 Jul 2025
+Chidi,Okafor,https://www.linkedin.com/in/chidi-okafor,,Fabrikam,Technical Recruiter,09 Sep 2025
+Sofia,Marchetti,https://www.linkedin.com/in/sofia-marchetti,,Tailspin,"Partner, Seed Fund",15 Oct 2024
+Kenji,Watanabe,https://www.linkedin.com/in/kenji-watanabe-nw,,Northwind,Co-founder,01 Jun 2023
+Amara,Nwosu,https://www.linkedin.com/in/amara-nwosu,,Contoso,Head of Sales,01 Dec 2025
+Jose,Garcia,https://www.linkedin.com/in/jose-garcia-tailspin,,Tailspin,Data Scientist,22 Apr 2025

@@ -1,0 +1,22 @@
+{
+  "request": { "kind": "web_search", "query": "\"Priya Raman\" \"Stripe\"" },
+  "provider": "mockdata",
+  "cost_micro_usd": 5000,
+  "data": {
+    "type": "web_hits",
+    "hits": [
+      {
+        "title": "Scaling payment retries - Priya Raman",
+        "url": "https://blog.example.com/priya-raman/payment-retries",
+        "snippet": "Notes from a talk on idempotent retries at scale.",
+        "published": "2026-09-30"
+      },
+      {
+        "title": "Priya Raman on the Infra Podcast",
+        "url": "https://podcast.example.com/episodes/42",
+        "snippet": null,
+        "published": null
+      }
+    ]
+  }
+}

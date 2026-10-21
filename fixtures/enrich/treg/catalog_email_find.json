@@ -1,0 +1,9 @@
+{
+  "endpoint": { "id": "treg.people.email.find", "kind": "routed", "cost": { "type": "per_call", "usd": 0.01 } },
+  "routing": {
+    "plan": [
+      { "endpoint_id": "alpha.people.email.find", "accepts": [["full_name", "domain"]], "usd": 0.01 },
+      { "endpoint_id": "beta.people.email.find", "accepts": [["full_name", "domain"]], "usd": 0.15 }
+    ]
+  }
+}

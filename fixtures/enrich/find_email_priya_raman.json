@@ -1,0 +1,6 @@
+{
+  "request": { "kind": "find_email", "name": "Priya Raman", "domain": "stripe.com" },
+  "provider": "mockdata",
+  "cost_micro_usd": 10000,
+  "data": { "type": "email", "email": "priya@stripe.com", "confidence": 0.92 }
+}

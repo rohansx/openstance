@@ -72,7 +72,7 @@ Ownership of shared topics: the schema belongs to [data-model.md](tech-spec/data
 
 | Doc | Description |
 |---|---|
-| [engineering/dev-setup.md](engineering/dev-setup.md) | Toolchain (MSRV 1.85), repo layout, running against a throwaway `OPENSTANCE_HOME`, UI dev loop, env vars |
+| [engineering/dev-setup.md](engineering/dev-setup.md) | Toolchain (MSRV 1.92), repo layout, running against a throwaway `OPENSTANCE_HOME`, UI dev loop, env vars |
 | [engineering/conventions.md](engineering/conventions.md) | Errors, logging without contact data, SQL and migration rules, feature flags, commit style |
 | [engineering/testing-strategy.md](engineering/testing-strategy.md) | Synthetic fixtures, unit/integration/golden/property/fuzz tests, search eval gates, interface contract tests |
 | [engineering/ci-and-release.md](engineering/ci-and-release.md) | CI pipeline, dependency rules enforced in CI, cargo-dist release targets and installers, versioning |

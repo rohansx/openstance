@@ -1,0 +1,9 @@
+{
+  "endpoint": { "id": "treg.companies.enrich", "kind": "routed", "cost": { "type": "per_call", "usd": 0.05 } },
+  "routing": {
+    "plan": [
+      { "endpoint_id": "alpha.companies.enrich", "accepts": [["domain"], ["name"]], "usd": 0.05 },
+      { "endpoint_id": "beta.companies.enrich", "accepts": [["domain"]], "usd": 0.38 }
+    ]
+  }
+}

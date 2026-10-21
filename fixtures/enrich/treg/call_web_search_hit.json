@@ -1,0 +1,12 @@
+{
+  "output": {
+    "results": [
+      { "title": "Scaling payment retries - Priya Raman", "url": "https://blog.example.com/priya-raman/payment-retries", "snippet": "Notes from a talk on idempotent retries.", "published_date": "2026-09-30" },
+      { "name": "Priya Raman on the Infra Podcast", "link": "https://podcast.example.com/episodes/42", "description": "Episode 42" },
+      { "title": "no url here" }
+    ],
+    "count": 3
+  },
+  "raw": null,
+  "_treg": { "served_by": "alpha.web.search", "provider": "alpha", "tier": "platform", "outcome": "hit", "tried": [], "charged_micro": 5000 }
+}

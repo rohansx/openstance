@@ -275,7 +275,7 @@ identities
 Enrichment (Phase 3+) can return a LinkedIn URL or an email for a person. The egress gate inserts the handle as an `identity` with `source_id` = the `enrich:<backend>` source, and the response stays in `enrich_log.response_json` ([enrichment.md](enrichment.md)). In step 12, for each `enrich_log` row with `status = 'ok'` in id order:
 
 - Target = the cluster containing identity `enrich_log.person_id` (an anchor id).
-- If the returned handle's cluster is a singleton with no observations except enrichment: union it into the target with rule `enrich`, confidence `min(result confidence, 0.9)`.
+- If the returned handle's cluster is a singleton with no observations except enrichment: union it into the target with rule `enrich`, confidence `min(result confidence, 0.9)` (a profile's LinkedIn URL counts as 0.95, so 0.9). A `split_from` cannot-link, or any override naming the handle, keeps it out.
 - Otherwise (the handle already belongs to another person): **no union**. It becomes a suggestion in `review`: "enrich:treg says jane@acme.example belongs to Jane Doe #4021, but it belongs to J. Doe #8810".
 - Enrichment never merges two existing people, and never overrides a `split_from`.
 

@@ -9,7 +9,7 @@ Related: [conventions.md](conventions.md), [testing-strategy.md](testing-strateg
 | Tool | Version | Why |
 |---|---|---|
 | Rust via `rustup` | stable (see `rust-toolchain.toml`) | everything |
-| MSRV | **1.85** (edition 2024) | declared as `rust-version` in the workspace `Cargo.toml`; CI checks it |
+| MSRV | **1.92** (edition 2024) | declared as `rust-version` in the workspace `Cargo.toml`; CI checks it |
 | C compiler | Xcode CLT (macOS), `build-essential` (Linux), MSVC Build Tools (Windows) | bundled SQLite and sqlite-vec are compiled from C via `cc` |
 | `just` | >= 1.25 | task runner (`cargo install just` or `brew install just`) |
 | `cargo-nextest` | latest | faster test runner |
@@ -26,7 +26,7 @@ channel = "stable"
 components = ["rustfmt", "clippy", "llvm-tools-preview"]
 ```
 
-The MSRV is a floor, not the dev toolchain: day-to-day you build on latest stable; CI runs one job on `1.85` with `cargo check --workspace --all-features`. Raising the MSRV is a minor-version change and goes in the changelog.
+The MSRV is a floor, not the dev toolchain: day-to-day you build on latest stable; CI runs one job on `1.92` with `cargo check --workspace --all-features`. Raising the MSRV is a minor-version change and goes in the changelog.
 
 One-shot install of the helper tools:
 

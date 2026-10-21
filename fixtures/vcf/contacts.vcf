@@ -1,0 +1,102 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//Apple Inc.//macOS 15.0//EN
+N:Raman;Priya;;;
+FN:Priya Raman
+ORG:Northwind;Platform
+TITLE:VP Engineering
+EMAIL;type=INTERNET;type=WORK;type=pref:priya@northwind.example
+TEL;type=CELL;type=VOICE;type=pref:+1 (201) 555-0142
+ADR;type=WORK:;;1 Example Road;Bengaluru;KA;560001;India
+NOTE:Met at a conference. SENTINEL-BODY-7f3a
+REV:20260301T120000Z
+UID:8F1A0C44-0000-4000-8000-000000000001
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+N:Park;Lena;;;
+FN:Lena Park
+ORG:Contoso
+TITLE:Designer
+EMAIL;type=INTERNET;type=HOME:lena.park@mail.test
+UID:8F1A0C44-0000-4000-8000-000000000002
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+N:Quillfeather;Ines;;;
+FN:Ines Quillfeather
+EMAIL;type=INTERNET:ines.q@mail.test
+UID:8F1A0C44-0000-4000-8000-000000000003
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+N:Quillby;Jon;;;
+FN:Jon Quillby
+ORG:Brightwater
+EMAIL;type=INTERNET;type=WORK:jon.quillby@brightwater.example
+UID:8F1A0C44-0000-4000-8000-000000000004
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+N:Pennyworth;Rufus;;;
+FN:Rufus Pennyworth
+TEL;type=CELL:+1 201-555-0177
+UID:8F1A0C44-0000-4000-8000-000000000005
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Mira Castellanos
+N:Castellanos;Mira;;;
+ORG:Tailspin
+TITLE:Head of Marketing
+EMAIL;TYPE=work:mira@tailspin.example
+EMAIL;TYPE=home:mira.c@mail.test
+TEL;VALUE=uri;TYPE=cell:tel:+1-201-555-0188
+ADR;TYPE=work:;;;Lisbon;;;Portugal
+REV:20251120T083000Z
+UID:urn:uuid:8f1a0c44-0000-4000-8000-000000000006
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+N:Mensah;Kofi;;;
+FN:Kofi Mensah
+ORG:Tailspin
+EMAIL;type=INTERNET:kofi@tailspin.example
+PHOTO;ENCODING=b;TYPE=JPEG:/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP////////////
+ ////////////////////////////////////////////////////////////wgALCAABAAEB
+UID:8F1A0C44-0000-4000-8000-000000000007
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+N:Okonkwo;Beatriz;;;
+FN:Beatriz Okonkwo
+EMAIL;type=INTERNET:beatriz@mail.test
+CATEGORIES:friends
+UID:8F1A0C44-0000-4000-8000-000000000008
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+N:Eriksen;Lars;;;
+FN:Lars Eriksen
+ORG:Tailspin
+item1.EMAIL;type=INTERNET:lars@tailspin.example
+item1.X-ABLabel:work
+UID:8F1A0C44-0000-4000-8000-000000000009
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+N;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:Garc=C3=ADa;Jos=C3=A9;;;
+FN;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:Jos=C3=A9 Garc=C3=ADa
+EMAIL;INTERNET:jose.garcia@tailspin.example
+UID:8F1A0C44-0000-4000-8000-000000000010
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+N:O'Neil;Hannah;;Dr.;
+FN:Dr. Hannah O'Neil
+ORG:Contoso
+TITLE:Research Lead
+EMAIL;type=INTERNET;type=WORK:
+ hannah@contoso.example
+UID:8F1A0C44-0000-4000-8000-000000000011
+END:VCARD

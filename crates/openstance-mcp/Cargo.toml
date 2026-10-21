@@ -1,0 +1,28 @@
+[package]
+name = "openstance-mcp"
+description = "MCP server: tool schemas mapped to openstance-core calls"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+openstance-core.workspace = true
+rmcp.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+
+[dev-dependencies]
+openstance-core = { workspace = true, features = ["test-util"] }
+openstance-enrich = { workspace = true, features = ["mock"] }
+rmcp = { workspace = true, features = ["client"] }
+tempfile.workspace = true
+insta.workspace = true
+
+[lints]
+workspace = true

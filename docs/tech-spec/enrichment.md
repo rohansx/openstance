@@ -157,16 +157,24 @@ pub trait Enricher: Send + Sync {
     /// prices, but only op names, never names/emails/domains.
     fn quote(&self, jobs: &[EnrichJob]) -> Result<Vec<QuoteLine>, EnrichError>;
 
+    /// Network-free check that `job` can be sent (credentials, enough input).
+    /// The gate calls it right before marking the row `sent`; an error means
+    /// nothing left the machine (row `blocked`, not counted). Default: Ok.
+    fn preflight(&self, _job: &EnrichJob) -> Result<(), EnrichError> { Ok(()) }
+
     /// Perform one job. Called only by EgressGate, never by playbooks directly.
     fn enrich(&self, job: &EnrichJob) -> Result<EnrichResult, EnrichError>;
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum EnrichError {
-    #[error("enrichment is disabled (backend = none)")] Disabled,
+    #[error("enrichment is off: set enrich.backend")] Disabled,
+    #[error("enrichment backend is not configured: {0}")] Config(String),
     #[error("operation not supported by backend: {0}")] Unsupported(String),
     #[error("authentication failed: {0}")] Auth(String),
     #[error("rate limited, retry after {0:?}s")] RateLimited(Option<u64>),
+    /// The backend refused to spend (no balance, or no provider under the cost ceiling). Nothing charged.
+    #[error("payment required: {0}")] Payment(String),
     #[error("upstream error: {0}")] Upstream(String),
     #[error("timeout")] Timeout,
 }
@@ -181,9 +189,9 @@ The tech spec PDF shows `quote(&self, req: &EnrichRequest) -> Result<Quote>` per
 | Backend | `enrich.backend` | Phase | Supports | Pricing basis |
 | --- | --- | --- | --- | --- |
 | `NullEnricher` | `none` (default) | 3 | nothing | `free`. `enrich` always returns `Disabled` |
-| `TregEnricher` | `treg` | 3 | profile, find_email, verify_email, company, web_search | `exact` when treg returns a per-call price, else `estimate` |
+| `TregEnricher` | `treg` | 3 | profile, find_email, verify_email, company, web_search | upper bound of treg's catalog price: `estimate` when the routing plan has a price range, else `exact` |
 | `OwnKeysEnricher` | `ownkeys` | stub in 3; full impl unscheduled (after 4) | depends on which provider keys are present | `estimate` from the user's configured price table |
-| `MockEnricher` | test only (`mock`, behind `cfg(test)` / `test-util` feature) | 3 | all | canned |
+| `MockEnricher` | test only (`mock`, behind the `mock` / `test-util` features) | 3 | all | configurable per op (default $0.01) |
 
 ### 3.1 NullEnricher
 
@@ -201,25 +209,34 @@ With `none`, planning marks every egress step `SkipReason::BackendNone` and play
 
 ### 3.2 TregEnricher
 
-treg is one implementation behind the trait. openstance does not depend on it, vendor its skill file, or promote it. The reason to support it: one token reaches several profile, email and search providers, and provider choice and fallback stay on treg's side.
+treg is one implementation behind the trait. openstance does not depend on it, vendor its code, catalog or skill file, or promote it; it talks to treg over HTTP only. The reason to support it: one token reaches several profile, email and search providers, and provider choice and fallback stay on treg's side. The wire facts below were checked against treg 0.27 (developer notes: `dev/treg/INTEGRATION.md`).
 
-- **Transport:** HTTPS to `enrich.treg.endpoint` (default `https://api.treg.to`, overridable for a self-hosted treg router). Bearer token from the env var named by `enrich.treg.token_env` (default `OPENSTANCE_TREG_TOKEN`). The token is never written to `config.toml` by openstance.
-- **Op mapping.** The routed tool names come from the tech spec where it lists them. The rest must be confirmed against treg's catalog when Phase 3 is implemented and kept in one table in `openstance-enrich/src/treg/map.rs`:
+- **Transport:** blocking HTTP (`ureq`, behind the `treg` cargo feature) to `enrich.treg.endpoint`. The default is `https://treg.to`; point it at a self-hosted router (for example `http://127.0.0.1:18790` in local development).
+- **Auth:** the header `X-Treg-Token: <token>` (not `Authorization: Bearer`, which treg accepts only on its MCP front door). Use a team token or a `treg_...` API key, which has the team baked in. The token comes from the env var named by `enrich.treg.token_env` (default `OPENSTANCE_TREG_TOKEN`). openstance never writes it to `config.toml`, never logs it, never puts it in an error and redacts it in `Debug`. Without a token, quoting still works and `enrich` fails with `Auth` before any call.
+- **Op mapping.** Every op is a routed tool, called as `POST {endpoint}/call/<id>` with a JSON body. The table lives in one place, `openstance-enrich/src/treg/map.rs`:
 
-| `EnrichRequest` | treg routed tool | Status |
-| --- | --- | --- |
-| `Profile` | `treg.linkedin_profile` | named in spec |
-| `FindEmail` | `treg.find_email` | named in spec |
-| `WebSearch` | `treg.web_search` | named in spec |
-| `VerifyEmail` | email verification tool | confirm name at implementation |
-| `Company` | company lookup tool | confirm name at implementation |
+| `EnrichRequest` | treg routed tool | Body sent | Output fields used (`*` = required; empty means miss) |
+| --- | --- | --- | --- |
+| `Profile` | `treg.people.enrich` | `{linkedin_url}` or `{linkedin_handle}` if known, else `{full_name, domain}` | full_name\*, title, company, company_domain, linkedin_url, location |
+| `FindEmail` | `treg.people.email.find` | `{full_name, domain}` | email\*, confidence |
+| `VerifyEmail` | `treg.people.email.verify` | `{email}` | valid\*, status |
+| `Company` | `treg.companies.enrich` | `{domain}` | name\*, domain, industry, employees, location |
+| `WebSearch` | `treg.web.search` | `{q, limit: 10}` | results\* (title, url, snippet, published, read leniently) |
 
-- **Quoting:** prices are fetched from treg's catalog by op name only. No contact data is sent while quoting. Prices are cached in memory for the life of the process. If the catalog gives a range, the quote uses the **upper** bound and `basis = estimate`.
-- **Actual cost:** read from the response metadata when present, else the quoted price.
-- **Retries:** at most 1 retry on `RateLimited`/`Timeout`, and only if the retry still fits the budget. Upstream "not found" maps to `EnrichData::NotFound` and is still logged, because it may still cost money.
-- **Timeouts:** `enrich.timeout_secs` (default 20) per request.
+  treg's profile tool takes a company **domain**, not a name. A `Profile` request that has only a company name (`"Stripe"`) is sent as two calls: `treg.companies.enrich {name}` to get the domain, then `treg.people.enrich {full_name, domain}`. It is quoted as the sum of both, and its cost is the sum of both. A `Profile` with neither a LinkedIn identity nor a company is quoted at `0` (`basis = free`) and `enrich` returns `Unsupported` without any network call. The contract output has no past employers or schools; `past_companies` and `schools` are filled only when treg's output carries them.
+
+- **Quoting:** `GET {endpoint}/catalog/endpoints/<id>`. The catalog is open, so no token and no contact data are sent, only the tool id. The price is the **upper** bound of `routing.plan[].usd` (`basis = estimate` when the plan holds different prices, `exact` when it holds one), or `endpoint.cost.usd` when there is no plan. Prices are cached in memory for the life of the process. A tool missing from the catalog (404) is `Unsupported`.
+- **Spend ceiling:** every call sends `X-Treg-Route-Max-Cost: <quoted price in USD>`, so treg itself refuses to spend more than the quote. If no provider fits, treg answers `402 route_max_cost` and charges nothing.
+- **Results:** a hit is `200 {"output": {...}, "raw": ..., "_treg": {"provider", "served_by", "outcome", "charged_micro", ...}}`. A miss is also `200`, with `_treg.outcome = "miss"` and null output fields; it maps to `EnrichData::NotFound` and is still logged, because misses are billed. `EnrichResult.provider` is `_treg.provider` (else the `X-Treg-Served-By` header).
+- **Actual cost:** the `X-Treg-Cost-Micro` response header (micro-USD), else `_treg.charged_micro`, else the quoted price.
+- **Errors:** `401`/`403` -> `Auth` (the gate stops the run); `402` (`insufficient_balance` or `route_max_cost`) -> `Payment`, nothing charged; `429` -> `RateLimited(Retry-After)`; `422 route_no_candidate`, `503 provider_capacity_unavailable`, other 5xx, a `202` with `_treg.outcome = "pending"`, and a body that is not JSON -> `Upstream`; a request or read that exceeds the timeout -> `Timeout`. Error bodies are `{"detail": ...}`, and a short form of `detail` goes into the error message.
+- **Retries:** the backend never retries on its own, because a timed-out call may already have been charged. Retrying is the gate's decision (at most once on `RateLimited`/`Timeout`, and only if the retry still fits the budget).
+- **Timeouts:** `enrich.timeout_secs` (default 20) per request, applied to the whole HTTP exchange.
+- **Tests:** CI never calls treg. `crates/openstance-enrich/tests/treg.rs` runs `TregEnricher` against an in-process mock server with hand-written, treg-shaped bodies in `fixtures/enrich/treg/`, covering each request kind, a miss, 401, 402, 429, 5xx, a timeout and an unreachable host, and greps the tracing output for the token. One manual live test per release is recorded in the release checklist.
 
 ### 3.3 OwnKeysEnricher (unscheduled, after Phase 4)
+
+In Phase 3 this is a stub behind the `ownkeys` feature: `supports` is false and `quote` and `enrich` return `Unsupported`, so `enrich.backend = "ownkeys"` is a reserved value that fails clearly. The planned design:
 
 For users who already pay a data provider. Keys come from the environment only:
 
@@ -234,14 +251,22 @@ Provider plans are usually subscriptions or credit packs, not per-call prices, s
 
 ### 3.4 MockEnricher (tests)
 
+Behind the `mock` feature (`test-util` implies it). It never touches the network.
+
 ```rust
-pub struct MockEnricher {
-    pub prices: HashMap<&'static str, MicroUsd>,          // op -> price
-    pub responses: HashMap<EnrichRequest, EnrichData>,   // canned; missing -> NotFound
-    pub calls: Mutex<Vec<EnrichJob>>,                    // every enrich() call, in order
-    pub fail_on: HashSet<EnrichRequest>,                 // force Upstream errors
-}
+let m = MockEnricher::from_fixtures()?            // fixtures/enrich/*.json; missing request -> NotFound
+    .with_price("profile", 10_000)                // per-op quote; default $0.01 for every op
+    .with_basis(QuoteBasis::Exact)
+    .without_op("verify_email")                   // supports() false, calls return Unsupported
+    .fail_on(req)                                 // Upstream error; fail_with(req, || EnrichError::Timeout)
+    .quote_fails_with(|| EnrichError::Auth("x".into()))
+    .with_fetched_at(1_760_918_400);              // deterministic results
+m.calls();   // every enrich() job, in order (failed calls included)
+m.quotes();  // every quote() batch, in order
+m.events();  // both, interleaved: MockEvent::Quote(..) / MockEvent::Enrich(..)
 ```
+
+A fixture file holds one entry or an array of `{"request": EnrichRequest, "data": EnrichData, "provider"?, "cost_micro_usd"?}`. A request with no entry returns `NotFound` at the quoted price, like a real miss.
 
 Playbook tests assert all of the following against `calls` and `enrich_log`: quotes come before calls, totals are right, budget aborts happen before the crossing call, `no_enrich` people never appear in `calls`, results land under `source.kind = 'enrich:mock'`, and overridden fields are unchanged. See [../engineering/testing-strategy.md](../engineering/testing-strategy.md).
 
@@ -310,7 +335,7 @@ sequenceDiagram
 2. Before each call: if `spent + line.micro_usd > budget`, stop. The remaining jobs are recorded in the receipt as `skipped: over_budget`, and the playbook returns partial results with `status: "partial"`.
 3. After each call: `spent += result.cost_micro_usd`. If a backend reports an actual cost above its quote, the gate logs a warning, keeps the actual cost, and the budget check on the next job uses the real `spent`. The overrun is shown on the receipt.
 4. `no_enrich` is checked again in `execute` by `person_id`, in case the flag changed between quote and run (for example in a long `watch`).
-5. Errors are logged (`status = 'error'`) and do not abort the run unless the error is `Auth` or `Disabled`.
+5. Errors are logged (`status = 'error'`) and do not abort the run unless the error is `Auth`, `Config`, `Disabled` or `Payment` (no balance: later calls would fail the same way). An error from `preflight` (before anything is sent) is logged `blocked` instead, does not count as a sent request, and follows the same abort rule.
 6. Approval semantics per surface:
    - **CLI:** print the quote, then prompt `Send N requests for $X.XX? [y/N]`. `--yes` approves. A non-TTY run without `--yes` prints the quote and exits with code `3` (see [interfaces.md](interfaces.md#14-exit-codes)).
    - **MCP / HTTP:** `allow_egress: true` in the same call approves whatever quote that call produces, if it fits in `max_usd`. An agent that wants to show the user the price first calls with `allow_egress: false`, shows the quote, then calls again with `true`.
@@ -349,7 +374,7 @@ CREATE TABLE enrich_log (
   request_json    TEXT    NOT NULL,              -- exactly the outbound fields, nothing else
   quoted_micro_usd INTEGER NOT NULL,
   cost_micro_usd  INTEGER,                       -- actual; NULL if the call never completed
-  status          TEXT    NOT NULL,              -- 'ok' | 'not_found' | 'error'
+  status          TEXT    NOT NULL,              -- 'quoted' | 'sent' | 'ok' | 'not_found' | 'error' | 'blocked'
   error           TEXT,
   source_id       INTEGER REFERENCES source(id), -- the enrich:<backend> source the result was stored under
   response_json   TEXT                           -- normalized EnrichData; replayed by rebuild
@@ -359,7 +384,7 @@ CREATE INDEX enrich_log_person ON enrich_log(person_id);
 CREATE INDEX enrich_log_at     ON enrich_log(at);
 ```
 
-- One row per request **sent**. Quotes that were never approved are not logged: nothing left the machine.
+- One row per priced job, written by `EgressGate::quote` with status `quoted` (nothing has left the machine yet), then moved to `sent` just before the request leaves and to `ok`, `not_found` or `error` when the backend answers. A job the gate refuses (no_enrich set after the quote, over budget, run stopped after an auth or payment error) ends `blocked`. So does a job the backend refuses in `Enricher::preflight`, the network-free check the gate runs right before it would mark the row `sent` (for `treg`: no token, or a `Profile` with neither a LinkedIn identity nor a company); the reason is in `error`, and an `Auth`/`Config`/`Disabled` refusal stops the run like rule 5 in section 4.1. Rows still `quoted` or `blocked` were never sent; `sent`, `ok`, `not_found` and `error` rows left the machine and are the only ones counted in `requests_sent` and the `enrich log` totals. A prompt-then-run in the CLI reuses the run's `quoted` rows (same run id), so each request has one row. Migration `0003_enrich_log_status` added these states (P3-CORE-01).
 - `request_json` records the outbound payload exactly as sent, so the user can audit precisely what left the machine. Auth headers are never stored.
 - `response_json` is the normalized `EnrichData`, not the raw provider body. It is the raw material that `openstance rebuild` replays (section 7). Like other source rows, it is kept until the user deletes it.
 - Users read it with `openstance enrich log [--run <id>] [--since 30d] [--json]` or `GET /enrich-log`. Totals per run and per month are shown at the bottom.
@@ -380,9 +405,9 @@ Results become source data, just as an import does:
 
 | `EnrichData` | Written as |
 | --- | --- |
-| `Profile` | `identity(kind='linkedin_url')` if present (confidence 0.95); field facts for `title`, `company`, `location`, `bio` (from `headline`, only if empty); `past_companies` and `schools` kept in `response_json` for `path` and `accounts` |
+| `Profile` | `identity(kind='linkedin_url')` if present (confidence 0.95, capped at 0.9 like every enrichment edge); field facts for `title`, `company`, `location`, `bio` (from `headline`, only if empty); `past_companies` and `schools` kept in `response_json` for `path` and `accounts` |
 | `Email` | `identity(kind='email', confidence = result confidence, capped at 0.9)` |
-| `Verification` | updates the verification status shown on that email identity (stored in `response_json`; surfaced in `get_person`) |
+| `Verification` | updates the verification status shown on that email identity (stored in `response_json`; `get_person` shows the newest committed verdict for that address as `identities[].verification`, `via` = the source kind) |
 | `Company` | company-name normalization map entry for that domain (used by resolution's company normalization) |
 | `WebHits` | not stored as person fields. Used only in the `brief` output, and kept in `enrich_log` |
 
@@ -393,6 +418,8 @@ Field precedence when (re)building a `person` row, from highest to lowest:
 3. Importer-derived values (LinkedIn CSV, signature parsing), newest first.
 
 An enrichment that would change an overridden field is still logged, and its value is kept in `response_json`, but it is not applied. `get_person` shows it as a suggestion (`"suggested": {"title": "VP Eng (enrich:treg, 2026-11-02)"}`), so the user can accept it with `openstance edit`.
+
+Handles are normalized exactly as importers normalize them (an email is lowercased, a LinkedIn URL becomes its slug) and inserted into `identity` with `source_id` = the run's `enrich:<backend>` source (an existing row keeps its first source). Only rows whose person is still allowed to be enriched at commit time are committed: a person flagged `no_enrich` (or `do_not_share` while it is respected) between the send and the commit gets nothing, and the uncommitted row is never replayed.
 
 Identities from enrichment go through normal entity resolution. Enrichment never merges people directly. An `enrich:` email that collides with another person's identity creates a flagged suggestion in `openstance review`, not an automatic merge.
 

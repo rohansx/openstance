@@ -1,0 +1,308 @@
+﻿Notes:
+"When exporting your connection data, you may notice that some of the email addresses are missing. You will only see email addresses for connections who have allowed their connections to see or download their email address."
+
+First Name,Last Name,URL,Email Address,Company,Position,Connected On
+Soraya,Iversen,https://www.linkedin.com/in/soraya-iversen-b69,,Hexwire,Product Designer,16 Jul 2026
+Zoltan,Varga,https://www.linkedin.com/in/zoltan-varga-f4e,,Vellum Desk,Senior Product Manager,16 Jul 2026
+Yusuf,Demir,https://www.linkedin.com/in/yusuf-demir-196,yusuf.demir@haldenrowe.example,Halden & Rowe,Associate,12 Jul 2026
+Delia,Cormack,https://www.linkedin.com/in/delia-cormack-d6e,delia.cormack@driftless.example,Driftless,Engineering Manager,11 Jul 2026
+Anton,Drummond,https://www.linkedin.com/in/anton-drummond-c31,anton@greenloop.example,Greenloop,Account Executive,08 Jul 2026
+Saanvi,Gallo,https://www.linkedin.com/in/saanvi-gallo-717,saanvi@quillstack.example,Quillstack,Account Executive,30 Jun 2026
+Aiko,Oduya,https://www.linkedin.com/in/aiko-oduya-aa9,,Kitebox,Senior Software Engineer,14 Jun 2026
+Bilal,Delacroix,https://www.linkedin.com/in/bilal-delacroix-bb9,,Orbital Robotics,Operations Manager,25 May 2026
+Keira,Balogun,https://www.linkedin.com/in/keira-balogun-c30,keira@hexwire.example,Hexwire,Senior Software Engineer,17 Apr 2026
+Nina,Okonjo,https://www.linkedin.com/in/nina-okonjo-9fe,,Openfield Labs,Operations Manager,02 Apr 2026
+Keira,Laurent,https://www.linkedin.com/in/keira-laurent-9c2,klaurent@tessellate.example,Tessellate,Software Engineer,26 Mar 2026
+Ravi,Demir,https://www.linkedin.com/in/ravi-demir-2dd,,Hexwire,Senior Software Engineer,22 Mar 2026
+Lina,Laurent,https://www.linkedin.com/in/lina-laurent-7d6,lina.laurent@harborlane.example,Harbor Lane Capital,Analyst,15 Feb 2026
+Bruno,Ostrowski,https://www.linkedin.com/in/bruno-ostrowski-19e,,Fernpay,Sales Director,12 Feb 2026
+Carmen,Delacroix,https://www.linkedin.com/in/carmen-delacroix-1d2,carmen.delacroix@juniperhealth.example,Juniper Health,Chief of Staff,27 Jan 2026
+Freya,Zielinski,https://www.linkedin.com/in/freya-zielinski-ffc,fzielinski@stackforge.example,Stackforge,Staff Engineer,03 Jan 2026
+Lina,Castellano,https://www.linkedin.com/in/lina-castellano-f,,Carebridge,Staff Engineer,22 Dec 2025
+Freya,Easterbrook,https://www.linkedin.com/in/freya-easterbrook-477,feasterbrook@quillstack.example,Quillstack,Staff Engineer,08 Dec 2025
+Colette,Kuznetsova,https://www.linkedin.com/in/colette-kuznetsova-737,,Ledgerline,Marketing Lead,30 Nov 2025
+Rhea,Whitlock,https://www.linkedin.com/in/rhea-whitlock-e22,,Brightpath Learning,Chief of Staff,07 Nov 2025
+Darius,Saavedra,https://www.linkedin.com/in/darius-saavedra-9d7,darius.saavedra@orbitalrobotics.example,Orbital Robotics,Operations Manager,04 Nov 2025
+Amir,Okonjo,https://www.linkedin.com/in/amir-okonjo-5d0,,Vellum Desk,Senior Software Engineer,26 Oct 2025
+Leon,Halvorsen,https://www.linkedin.com/in/leon-halvorsen-8f5,,Halden & Rowe,Associate,21 Sep 2025
+Ruben,Mbeki,https://www.linkedin.com/in/ruben-mbeki-71e,,Tessellate,Senior Product Manager,16 Sep 2025
+Lorenzo,Falkenberg,https://www.linkedin.com/in/lorenzo-falkenberg-db0,lorenzo.falkenberg@pixelmoor.example,Pixelmoor,Sales Director,07 Sep 2025
+Eamon,Varga,https://www.linkedin.com/in/eamon-varga-30,eamon@stackforge.example,Stackforge,Staff Engineer,30 Aug 2025
+Leon,Delacroix,https://www.linkedin.com/in/leon-delacroix-ca3,leon@tallyfin.example,Tallyfin,Staff Engineer,29 Aug 2025
+Idris,Ishikawa,https://www.linkedin.com/in/idris-ishikawa-9cd,idris@tessellate.example,Tessellate,Engineering Manager,10 Aug 2025
+Gideon,Varga,https://www.linkedin.com/in/gideon-varga-dfd,gideon.varga@granitelogistics.example,Granite Logistics,Technical Recruiter,08 Aug 2025
+Malik,Chakraborty,https://www.linkedin.com/in/malik-chakraborty-58,malik@carebridge.example,Carebridge,Data Scientist,02 Aug 2025
+Ulla,Fitzroy,https://www.linkedin.com/in/ulla-fitzroy-39c,,Brightpath Learning,Customer Success Lead,16 Jul 2025
+Anika,Abara,https://www.linkedin.com/in/anika-abara-f8e,anika@quillstack.example,Quillstack,Solutions Engineer,02 Jul 2025
+Ravi,Hartigan,https://www.linkedin.com/in/ravi-hartigan-9e9,ravi.hartigan@carebridge.example,Carebridge,Sales Director,19 Jun 2025
+Kaveh,Maddox,https://www.linkedin.com/in/kaveh-maddox-ad2,,Coinwell,Partnerships Manager,14 Jun 2025
+Hiro,Schreiber,https://www.linkedin.com/in/hiro-schreiber-b2c,hiro@harborlane.example,Harbor Lane Capital,Venture Partner,17 May 2025
+Ivan,Kuznetsova,https://www.linkedin.com/in/ivan-kuznetsova-d22,,Stackforge,Technical Writer,04 May 2025
+Astrid,Varga,https://www.linkedin.com/in/astrid-varga-f83,astrid@tessellate.example,Tessellate,Staff Engineer,01 May 2025
+Zara,Drummond,https://www.linkedin.com/in/zara-drummond-bce,,Vellum Desk,Technical Recruiter,18 Apr 2025
+Ezra,Ostrowski,https://www.linkedin.com/in/ezra-ostrowski-c70,,Tessellate,Operations Manager,12 Apr 2025
+Nina,Fitzroy,https://www.linkedin.com/in/nina-fitzroy-ad3,,Northstar Seed,Principal,08 Apr 2025
+Dmitri,Ishikawa,https://www.linkedin.com/in/dmitri-ishikawa-511,dmitri@stackforge.example,Stackforge,Senior Software Engineer,03 Apr 2025
+Imani,Demir,https://www.linkedin.com/in/imani-demir-df0,imani@wayfarer.example,Wayfarer Travel,Partnerships Manager,01 Apr 2025
+Hiro,Amundsen,https://www.linkedin.com/in/hiro-amundsen-c7e,,Tinkerworks,Finance Lead,28 Mar 2025
+Paloma,Falkenberg,https://www.linkedin.com/in/paloma-falkenberg-e51,paloma.falkenberg@tessellate.example,Tessellate,Product Manager,27 Mar 2025
+Ivan,Sorensen,https://www.linkedin.com/in/ivan-sorensen-aaa,ivan.sorensen@vellumdesk.example,Vellum Desk,Data Scientist,24 Mar 2025
+Ezra,Prescott,https://www.linkedin.com/in/ezra-prescott-475,eprescott@juniperhealth.example,Juniper Health,Technical Recruiter,19 Mar 2025
+Kwame,Asante,https://www.linkedin.com/in/kwame-asante-acc,kwame@lumenpay.example,Lumen Pay,Product Manager,03 Mar 2025
+Bastian,Kowalczyk,https://www.linkedin.com/in/bastian-kowalczyk-f9c,bastian.kowalczyk@hexwire.example,Hexwire,Developer Advocate,16 Feb 2025
+Elena,Takahashi,https://www.linkedin.com/in/elena-takahashi-cc5,etakahashi@mosaicstudio.example,Mosaic Studio,Studio Manager,25 Jan 2025
+Noah,Lindqvist,https://www.linkedin.com/in/noah-lindqvist-457,,Tallyfin,Head of Growth,20 Jan 2025
+Delia,Arkwright,https://www.linkedin.com/in/delia-arkwright-a55,delia.arkwright@openfieldlabs.example,Openfield Labs,Data Scientist,08 Jan 2025
+Dmitri,Cormack,https://www.linkedin.com/in/dmitri-cormack-b4b,,Kitebox,Senior Software Engineer,29 Dec 2024
+Anika,Drummond,https://www.linkedin.com/in/anika-drummond-d62,,Juniper Health,Finance Lead,10 Nov 2024
+Rhea,Yamamoto,https://www.linkedin.com/in/rhea-yamamoto-198,rhea@ridgeway.example,Ridgeway,Marketing Lead,04 Nov 2024
+Kaveh,Prescott,https://www.linkedin.com/in/kaveh-prescott-bfa,kaveh.prescott@keystoneshield.example,Keystone Shield,Operations Manager,28 Oct 2024
+Yusuf,Pacheco,https://www.linkedin.com/in/yusuf-pacheco-ea3,,Tinkerworks,Software Engineer,12 Oct 2024
+Selin,Radcliffe,https://www.linkedin.com/in/selin-radcliffe-ce7,,Patchwork Labs,Senior Software Engineer,12 Oct 2024
+Idris,Wainwright,https://www.linkedin.com/in/idris-wainwright-601,idris.wainwright@quillstack.example,Quillstack,Staff Engineer,10 Oct 2024
+Lucas,Moreau,https://www.linkedin.com/in/lucas-moreau-559,lucas@brightvault.example,Brightvault,Founder,08 Oct 2024
+Lars,Oduya,https://www.linkedin.com/in/lars-oduya-7,,Patchwork Labs,Staff Engineer,03 Oct 2024
+Mateo,Montague,https://www.linkedin.com/in/mateo-montague-b3d,mateo@brightpath.example,Brightpath Learning,Product Designer,29 Sep 2024
+Esther,Wainwright,https://www.linkedin.com/in/esther-wainwright-a6b,esther.wainwright@keystoneshield.example,Keystone Shield,Chief of Staff,04 Sep 2024
+Imani,Laurent,https://www.linkedin.com/in/imani-laurent-f59,,Hexwire,Product Designer,28 Aug 2024
+Felix,Prescott,https://www.linkedin.com/in/felix-prescott-1b2,felix@brightpath.example,Brightpath Learning,Data Scientist,15 Aug 2024
+Keira,Vasquez,https://www.linkedin.com/in/keira-vasquez-ab2,kvasquez@driftless.example,Driftless,Developer Advocate,15 Aug 2024
+Esther,Maddox,https://www.linkedin.com/in/esther-maddox-995,emaddox@wayfarer.example,Wayfarer Travel,Senior Software Engineer,06 Aug 2024
+Yusuf,Jablonski,https://www.linkedin.com/in/yusuf-jablonski-ee,,Patchwork Labs,Developer Advocate,19 Jul 2024
+Mabel,Thackeray,https://www.linkedin.com/in/mabel-thackeray-e11,mthackeray@ledgerline.example,Ledgerline,Senior Product Manager,30 Jun 2024
+Mabel,Okonjo,https://www.linkedin.com/in/mabel-okonjo-19,mokonjo@hexwire.example,Hexwire,Product Designer,28 Jun 2024
+Soraya,Takahashi,https://www.linkedin.com/in/soraya-takahashi-76b,,Brightpath Learning,Finance Lead,23 Jun 2024
+Rosa,Lindgren,https://www.linkedin.com/in/rosa-lindgren-b32,,Lumen Pay,VP Finance,21 Jun 2024
+Lars,Wainwright,https://www.linkedin.com/in/lars-wainwright-bf8,,Carebridge,Staff Engineer,19 Jun 2024
+Lorenzo,Achterberg,https://www.linkedin.com/in/lorenzo-achterberg-f44,,Greenloop,Product Manager,09 Jun 2024
+Hiro,Jablonski,https://www.linkedin.com/in/hiro-jablonski-da7,hiro.jablonski@kitebox.example,Kitebox,Product Manager,08 Jun 2024
+Zoltan,Whitlock,https://www.linkedin.com/in/zoltan-whitlock-483,zoltan.whitlock@haldenrowe.example,Halden & Rowe,Associate,05 May 2024
+Mateo,Gutierrez,https://www.linkedin.com/in/mateo-gutierrez-4b4,mateo.gutierrez@corvidanalytics.example,Corvid Analytics,Staff Engineer,28 Apr 2024
+Felix,Gutierrez,https://www.linkedin.com/in/felix-gutierrez-c6e,felix.gutierrez@wayfarer.example,Wayfarer Travel,Software Engineer,21 Apr 2024
+Rhea,Cormack,https://www.linkedin.com/in/rhea-cormack-d,,Mosaic Studio,Brand Designer,10 Apr 2024
+Keira,Kapoor,https://www.linkedin.com/in/keira-kapoor-3da,,Sentry Pine,Marketing Lead,07 Apr 2024
+Tomas,Rivera,https://www.linkedin.com/in/tomas-rivera-f2,tomas@juniperhealth.example,Juniper Health,Founder,04 Apr 2024
+Carmen,Yamamoto,https://www.linkedin.com/in/carmen-yamamoto-d3d,carmen.yamamoto@tessellate.example,Tessellate,Account Executive,26 Mar 2024
+Camila,Okonjo,https://www.linkedin.com/in/camila-okonjo-e04,,Wayfarer Travel,Senior Product Manager,23 Mar 2024
+Esther,Schreiber,https://www.linkedin.com/in/esther-schreiber-9be,esther.schreiber@carebridge.example,Carebridge,Senior Software Engineer,15 Mar 2024
+Lina,Maddox,https://www.linkedin.com/in/lina-maddox-f49,lmaddox@sentrypine.example,Sentry Pine,Software Engineer,10 Mar 2024
+Anton,Arkwright,https://www.linkedin.com/in/anton-arkwright-d99,anton@hexwire.example,Hexwire,Account Executive,29 Feb 2024
+Elif,Kaya,https://www.linkedin.com/in/elif-kaya-393,,Stackforge,Developer Advocate,26 Feb 2024
+Isla,Kapoor,https://www.linkedin.com/in/isla-kapoor-7b9,,Meridian Ventures,Venture Partner,18 Dec 2023
+Kenji,Falkenberg,https://www.linkedin.com/in/kenji-falkenberg-181,kenji.falkenberg@harborlane.example,Harbor Lane Capital,Venture Partner,14 Dec 2023
+Talia,Ishikawa,https://www.linkedin.com/in/talia-ishikawa-aee,,Tallyfin,Data Scientist,04 Dec 2023
+Imani,Cormack,https://www.linkedin.com/in/imani-cormack-67c,imani@haldenrowe.example,Halden & Rowe,Associate,23 Nov 2023
+Alana,Okonjo,https://www.linkedin.com/in/alana-okonjo-4b4,,Marigold Goods,Partnerships Manager,15 Nov 2023
+Jasper,Lindahl,https://www.linkedin.com/in/jasper-lindahl-47b,jasper@driftless.example,Driftless,Staff Engineer,11 Nov 2023
+Beatrice,Oduya,https://www.linkedin.com/in/beatrice-oduya-b16,beatrice@corvidanalytics.example,Corvid Analytics,Product Designer,31 Oct 2023
+Bastian,Iversen,https://www.linkedin.com/in/bastian-iversen-708,,Bluefin Bio,Software Engineer,25 Oct 2023
+Quentin,Radcliffe,https://www.linkedin.com/in/quentin-radcliffe-634,,Carebridge,Senior Product Manager,15 Oct 2023
+Leila,Haddad,https://www.linkedin.com/in/leila-haddad-831,leila@greenloop.example,Greenloop,Co-founder,10 Oct 2023
+Saanvi,Zielinski,https://www.linkedin.com/in/saanvi-zielinski-dd0,szielinski@juniperhealth.example,Juniper Health,Finance Lead,08 Oct 2023
+Selin,Vasquez,https://www.linkedin.com/in/selin-vasquez-1a0,,Harbor Lane Capital,Principal,17 Sep 2023
+Dana,Whitfield,https://www.linkedin.com/in/dana-whitfield-7e4,dana@lumenpay.example,Lumen Pay,CTO,04 Sep 2023
+Colette,Sorensen,https://www.linkedin.com/in/colette-sorensen-f2,,Harbor Lane Capital,Principal,27 Aug 2023
+Priya,Natarajan,https://www.linkedin.com/in/priya-natarajan-5b4,priya@hexwire.example,Hexwire,API Platform Lead,07 Jul 2023
+Kaveh,Ostrowski,https://www.linkedin.com/in/kaveh-ostrowski-742,kostrowski@meridianvc.example,Meridian Ventures,Venture Partner,23 Jun 2023
+Emeka,Jablonski,https://www.linkedin.com/in/emeka-jablonski-9f6,emeka@ridgeway.example,Ridgeway,Chief of Staff,31 May 2023
+Adrian,Sandoval,https://www.linkedin.com/in/adrian-sandoval-bf2,,Kitebox,Partnerships Manager,28 May 2023
+Adrian,Gallo,https://www.linkedin.com/in/adrian-gallo-2de,,Wayfarer Travel,Marketing Lead,19 May 2023
+Zara,Mbeki,https://www.linkedin.com/in/zara-mbeki-622,zara@driftless.example,Driftless,Engineering Manager,17 May 2023
+Mateo,Vasquez,https://www.linkedin.com/in/mateo-vasquez-c93,mateo.vasquez@stackforge.example,Stackforge,Developer Advocate,14 May 2023
+Ruben,Oduya,https://www.linkedin.com/in/ruben-oduya-745,,Coinwell,Senior Product Manager,11 May 2023
+Aisha,Bello,https://www.linkedin.com/in/aisha-bello-cd5,aisha@meridianvc.example,Meridian Ventures,Talent Partner,09 May 2023
+Carmen,Sorensen,https://www.linkedin.com/in/carmen-sorensen-e09,,Fernpay,Technical Recruiter,03 May 2023
+Felix,Mbeki,https://www.linkedin.com/in/felix-mbeki-a67,fmbeki@fernpay.example,Fernpay,Customer Success Lead,01 Apr 2023
+Emeka,Kapoor,https://www.linkedin.com/in/emeka-kapoor-149,,Solstice Grid,Chief of Staff,31 Mar 2023
+Chiara,Kuznetsova,https://www.linkedin.com/in/chiara-kuznetsova-f86,,Quillstack,Product Manager,21 Mar 2023
+Sofia,Brandt,https://www.linkedin.com/in/sofia-brandt-cb9,sofia@fernpay.example,Fernpay,Co-founder & CTO,14 Mar 2023
+Lars,Arkwright,https://www.linkedin.com/in/lars-arkwright-d4,larkwright@corvidanalytics.example,Corvid Analytics,Data Scientist,02 Mar 2023
+Delia,Quintero,https://www.linkedin.com/in/delia-quintero-3ff,dquintero@corvidanalytics.example,Corvid Analytics,Engineering Manager,26 Feb 2023
+Colette,Barrientos,https://www.linkedin.com/in/colette-barrientos-342,,Hexwire,Software Engineer,23 Feb 2023
+Anika,Castellano,https://www.linkedin.com/in/anika-castellano-6cd,anika.castellano@haldenrowe.example,Halden & Rowe,Paralegal,12 Feb 2023
+Laila,Vasquez,https://www.linkedin.com/in/laila-vasquez-afb,,Marigold Goods,Product Manager,15 Jan 2023
+Rhea,Rautio,https://www.linkedin.com/in/rhea-rautio-a26,,Marigold Goods,Finance Lead,30 Dec 2022
+Delia,Falkenberg,https://www.linkedin.com/in/delia-falkenberg-bcf,delia@sentrypine.example,Sentry Pine,Marketing Lead,10 Dec 2022
+Hana,Sato,https://www.linkedin.com/in/hana-sato-6,hana@coinwell.example,Coinwell,Co-founder,01 Dec 2022
+Alana,Hartigan,https://www.linkedin.com/in/alana-hartigan-9a8,alana.hartigan@wayfarer.example,Wayfarer Travel,Senior Software Engineer,18 Nov 2022
+Wen,Schreiber,https://www.linkedin.com/in/wen-schreiber-c86,wen.schreiber@northstarseed.example,Northstar Seed,Venture Partner,10 Nov 2022
+Malik,Achterberg,https://www.linkedin.com/in/malik-achterberg-22b,,Arclight Media,Engineering Manager,09 Nov 2022
+Isla,Yilmaz,https://www.linkedin.com/in/isla-yilmaz-3f3,isla@juniperhealth.example,Juniper Health,Product Designer,28 Oct 2022
+Diego,Laurent,https://www.linkedin.com/in/diego-laurent-6ca,diego.laurent@corvidanalytics.example,Corvid Analytics,Marketing Lead,05 Oct 2022
+Esther,Kowalczyk,https://www.linkedin.com/in/esther-kowalczyk-cd4,,Ledgerline,Senior Software Engineer,20 Sep 2022
+Viktor,Pacheco,https://www.linkedin.com/in/viktor-pacheco-180,viktor@marigoldgoods.example,Marigold Goods,Partnerships Manager,07 Sep 2022
+Leon,Castellano,https://www.linkedin.com/in/leon-castellano-656,leon.castellano@bluefinbio.example,Bluefin Bio,Account Executive,05 Sep 2022
+Gideon,Sandoval,https://www.linkedin.com/in/gideon-sandoval-514,gideon.sandoval@arclightmedia.example,Arclight Media,Engineering Manager,02 Sep 2022
+Arjun,Mehta,https://www.linkedin.com/in/arjun-mehta-3c0,arjun@tallyfin.example,Tallyfin,Founder & CEO,30 Aug 2022
+Jasper,Fitzroy,https://www.linkedin.com/in/jasper-fitzroy-2bb,,Fernpay,Partnerships Manager,18 Aug 2022
+Colette,Takahashi,https://www.linkedin.com/in/colette-takahashi-c81,ctakahashi@northstarseed.example,Northstar Seed,Venture Partner,07 Aug 2022
+Esther,Vasquez,https://www.linkedin.com/in/esther-vasquez-ade,,Orbital Robotics,Sales Director,07 Aug 2022
+Alana,Iversen,https://www.linkedin.com/in/alana-iversen-570,,Vellum Desk,Data Scientist,23 Jul 2022
+Ravi,Zubiri,https://www.linkedin.com/in/ravi-zubiri-8eb,ravi.zubiri@hexwire.example,Hexwire,Technical Writer,20 Jul 2022
+Dmitri,Arkwright,https://www.linkedin.com/in/dmitri-arkwright-5e3,dmitri.arkwright@ridgeway.example,Ridgeway,Chief of Staff,17 Jul 2022
+Greta,Falkenberg,https://www.linkedin.com/in/greta-falkenberg-ec,greta.falkenberg@coinwell.example,Coinwell,Sales Director,03 Jul 2022
+Daria,Pacheco,https://www.linkedin.com/in/daria-pacheco-7c4,,Bluefin Bio,Chief of Staff,29 Jun 2022
+Saanvi,Oduya,https://www.linkedin.com/in/saanvi-oduya-633,,Granite Logistics,Senior Software Engineer,03 Jun 2022
+Grace,Liu,https://www.linkedin.com/in/grace-liu-6a2,grace@driftless.example,Driftless,Head of Developer Relations,16 May 2022
+Abena,Halvorsen,https://www.linkedin.com/in/abena-halvorsen-d39,,Juniper Health,Software Engineer,15 May 2022
+Eamon,Radcliffe,https://www.linkedin.com/in/eamon-radcliffe-267,,Tallyfin,Staff Engineer,04 May 2022
+Carmen,Arkwright,https://www.linkedin.com/in/carmen-arkwright-b79,carmen.arkwright@driftless.example,Driftless,Developer Advocate,03 May 2022
+Tariq,Sandoval,https://www.linkedin.com/in/tariq-sandoval-12,tariq@patchworklabs.example,Patchwork Labs,Engineering Manager,09 Apr 2022
+Esther,Bergqvist,https://www.linkedin.com/in/esther-bergqvist-3ec,esther@greenloop.example,Greenloop,Software Engineer,31 Mar 2022
+Bastian,Gallo,https://www.linkedin.com/in/bastian-gallo-e6f,,Tessellate,Chief of Staff,12 Mar 2022
+Theo,Marsh,https://www.linkedin.com/in/theo-marsh-bbb,theo@lumenpay.example,Lumen Pay,Head of Partnerships,17 Feb 2022
+Amir,Chakraborty,https://www.linkedin.com/in/amir-chakraborty-dd5,,Driftless,Product Designer,02 Feb 2022
+Anika,Sorensen,https://www.linkedin.com/in/anika-sorensen-5a4,,Marigold Goods,Sales Director,30 Jan 2022
+Jun,Barrientos,https://www.linkedin.com/in/jun-barrientos-ac8,jbarrientos@quaystone.example,Quaystone,Marketing Lead,16 Jan 2022
+Ezra,Sorensen,https://www.linkedin.com/in/ezra-sorensen-69f,ezra.sorensen@brightpath.example,Brightpath Learning,Operations Manager,07 Jan 2022
+Camila,Schreiber,https://www.linkedin.com/in/camila-schreiber-38e,,Tallyfin,Software Engineer,28 Dec 2021
+Zoltan,Nakashima,https://www.linkedin.com/in/zoltan-nakashima-141,,Fernpay,Marketing Lead,18 Dec 2021
+Delia,Kuznetsova,https://www.linkedin.com/in/delia-kuznetsova-1d,dkuznetsova@mosaicstudio.example,Mosaic Studio,Brand Designer,06 Dec 2021
+Imani,Dalgaard,https://www.linkedin.com/in/imani-dalgaard-297,idalgaard@quillstack.example,Quillstack,Staff Engineer,29 Nov 2021
+Farah,Halvorsen,https://www.linkedin.com/in/farah-halvorsen-256,,Mosaic Studio,Brand Designer,25 Nov 2021
+Diego,Yamamoto,https://www.linkedin.com/in/diego-yamamoto-c0b,diego.yamamoto@wayfarer.example,Wayfarer Travel,Product Designer,24 Nov 2021
+Nikhil,Okonjo,https://www.linkedin.com/in/nikhil-okonjo-da9,,Bluefin Bio,Technical Recruiter,16 Nov 2021
+Amir,Castellano,https://www.linkedin.com/in/amir-castellano-661,,Tinkerworks,Finance Lead,09 Nov 2021
+Quentin,Gutierrez,https://www.linkedin.com/in/quentin-gutierrez-83,qgutierrez@carebridge.example,Carebridge,Technical Recruiter,26 Oct 2021
+Elena,Achterberg,https://www.linkedin.com/in/elena-achterberg-f89,,Patchwork Labs,Product Designer,16 Oct 2021
+Rhea,Maddox,https://www.linkedin.com/in/rhea-maddox-328,,Harbor Lane Capital,Venture Partner,15 Oct 2021
+Bruno,Takahashi,https://www.linkedin.com/in/bruno-takahashi-d37,btakahashi@tessellate.example,Tessellate,Software Engineer,10 Oct 2021
+Jun,Sorensen,https://www.linkedin.com/in/jun-sorensen-cb6,,Sentry Pine,Chief of Staff,03 Oct 2021
+Leon,Cormack,https://www.linkedin.com/in/leon-cormack-7e3,,Greenloop,Marketing Lead,18 Sep 2021
+Carmen,Saavedra,https://www.linkedin.com/in/carmen-saavedra-9d6,,Tessellate,Operations Manager,03 Sep 2021
+Zoltan,Vasquez,https://www.linkedin.com/in/zoltan-vasquez-402,,Tallyfin,Engineering Manager,23 Aug 2021
+Harriet,Vasquez,https://www.linkedin.com/in/harriet-vasquez-223,harriet.vasquez@haldenrowe.example,Halden & Rowe,Paralegal,22 Aug 2021
+Hamza,Balogun,https://www.linkedin.com/in/hamza-balogun-600,,Greenloop,Data Scientist,17 Aug 2021
+Emeka,Laurent,https://www.linkedin.com/in/emeka-laurent-cdf,,Greenloop,Operations Manager,13 Aug 2021
+Freya,Prescott,https://www.linkedin.com/in/freya-prescott-32d,,Solstice Grid,Product Designer,29 Jul 2021
+Leon,Rautio,https://www.linkedin.com/in/leon-rautio-b7d,leon.rautio@hexwire.example,Hexwire,Software Engineer,25 Jul 2021
+Owen,Gallagher,https://www.linkedin.com/in/owen-gallagher-58d,owen@stackforge.example,Stackforge,Founder & CEO,19 Jul 2021
+Hamza,Jablonski,https://www.linkedin.com/in/hamza-jablonski-3da,hamza.jablonski@tessellate.example,Tessellate,Product Designer,06 Jul 2021
+Malik,Whitlock,https://www.linkedin.com/in/malik-whitlock-3f5,malik@solsticegrid.example,Solstice Grid,Operations Manager,03 Jul 2021
+Astrid,Wainwright,https://www.linkedin.com/in/astrid-wainwright-2cc,,Pixelmoor,Senior Product Manager,17 Jun 2021
+Idris,Schreiber,https://www.linkedin.com/in/idris-schreiber-a5b,,Hexwire,Staff Engineer,18 May 2021
+Tariq,Dalgaard,https://www.linkedin.com/in/tariq-dalgaard-16c,tariq.dalgaard@granitelogistics.example,Granite Logistics,Customer Success Lead,09 May 2021
+Bruno,Prescott,https://www.linkedin.com/in/bruno-prescott-1f4,,Quillstack,Account Executive,08 May 2021
+Maya,Chen,https://www.linkedin.com/in/maya-chen-79e,maya@ledgerline.example,Ledgerline,Co-founder & CEO,12 Apr 2021
+Elena,Ishikawa,https://www.linkedin.com/in/elena-ishikawa-682,elena.ishikawa@patchworklabs.example,Patchwork Labs,Technical Writer,07 Apr 2021
+Anika,Zubiri,https://www.linkedin.com/in/anika-zubiri-edb,anika@vellumdesk.example,Vellum Desk,Partnerships Manager,25 Mar 2021
+Mateo,Dalgaard,https://www.linkedin.com/in/mateo-dalgaard-a75,mdalgaard@ridgeway.example,Ridgeway,Staff Engineer,25 Mar 2021
+Harriet,Valdivia,https://www.linkedin.com/in/harriet-valdivia-66,,Brightpath Learning,Product Manager,12 Mar 2021
+Quentin,Thackeray,https://www.linkedin.com/in/quentin-thackeray-177,quentin@tinkerworks.example,Tinkerworks,Senior Product Manager,25 Feb 2021
+Lorenzo,Castellano,https://www.linkedin.com/in/lorenzo-castellano-d40,lcastellano@corvidanalytics.example,Corvid Analytics,Product Designer,22 Feb 2021
+Emeka,Mbeki,https://www.linkedin.com/in/emeka-mbeki-a44,,Sentry Pine,Data Scientist,16 Feb 2021
+Selin,Chakraborty,https://www.linkedin.com/in/selin-chakraborty-1bd,,Vellum Desk,Customer Success Lead,11 Feb 2021
+Harriet,Schreiber,https://www.linkedin.com/in/harriet-schreiber-f36,harriet@patchworklabs.example,Patchwork Labs,Engineering Manager,24 Jan 2021
+Soraya,Kuznetsova,https://www.linkedin.com/in/soraya-kuznetsova-7d8,,Hexwire,Solutions Engineer,06 Jan 2021
+Camila,Abara,https://www.linkedin.com/in/camila-abara-8c2,cabara@stackforge.example,Stackforge,Staff Engineer,29 Dec 2020
+Malik,Dalgaard,https://www.linkedin.com/in/malik-dalgaard-fc2,malik.dalgaard@kitebox.example,Kitebox,Product Manager,25 Dec 2020
+Jun,Whitlock,https://www.linkedin.com/in/jun-whitlock-d5f,jun@greenloop.example,Greenloop,Finance Lead,02 Dec 2020
+Daria,Kapoor,https://www.linkedin.com/in/daria-kapoor-ccc,,Coinwell,Senior Software Engineer,22 Nov 2020
+Talia,Demir,https://www.linkedin.com/in/talia-demir-a6a,tdemir@orbitalrobotics.example,Orbital Robotics,Sales Director,02 Nov 2020
+Rafael,Ortiz,https://www.linkedin.com/in/rafael-ortiz-8a6,rafael@meridianvc.example,Meridian Ventures,Partner,02 Nov 2020
+Emeka,Arkwright,https://www.linkedin.com/in/emeka-arkwright-c6e,,Kitebox,Software Engineer,23 Oct 2020
+Ruben,Ishikawa,https://www.linkedin.com/in/ruben-ishikawa-61b,rishikawa@hexwire.example,Hexwire,Software Engineer,21 Oct 2020
+Alana,Oduya,https://www.linkedin.com/in/alana-oduya-538,,Arclight Media,Customer Success Lead,20 Sep 2020
+Malik,Vasquez,https://www.linkedin.com/in/malik-vasquez-bbd,malik.vasquez@vellumdesk.example,Vellum Desk,Data Scientist,06 Sep 2020
+Quentin,Bergqvist,https://www.linkedin.com/in/quentin-bergqvist-866,quentin@harborlane.example,Harbor Lane Capital,Analyst,10 Aug 2020
+Aiko,Falkenberg,https://www.linkedin.com/in/aiko-falkenberg-c53,aiko.falkenberg@haldenrowe.example,Halden & Rowe,Paralegal,06 Aug 2020
+Harriet,Castellano,https://www.linkedin.com/in/harriet-castellano-e72,harriet.castellano@hexwire.example,Hexwire,Solutions Engineer,23 Jul 2020
+Malik,Kuznetsova,https://www.linkedin.com/in/malik-kuznetsova-87,malik.kuznetsova@corvidanalytics.example,Corvid Analytics,Customer Success Lead,15 Jul 2020
+Harriet,Easterbrook,https://www.linkedin.com/in/harriet-easterbrook-859,harriet@driftless.example,Driftless,Staff Engineer,03 Jul 2020
+Hamza,Whitlock,https://www.linkedin.com/in/hamza-whitlock-203,,Meridian Ventures,Analyst,16 Jun 2020
+Nikhil,Castellano,https://www.linkedin.com/in/nikhil-castellano-d9,nikhil@patchworklabs.example,Patchwork Labs,Developer Advocate,13 Jun 2020
+Eamon,Castellano,https://www.linkedin.com/in/eamon-castellano-edf,,Greenloop,Technical Recruiter,10 Jun 2020
+Delia,Iversen,https://www.linkedin.com/in/delia-iversen-7a9,diversen@meridianvc.example,Meridian Ventures,Associate,09 Jun 2020
+Bastian,Falkenberg,https://www.linkedin.com/in/bastian-falkenberg-801,bastian@greenloop.example,Greenloop,Operations Manager,08 Jun 2020
+Abena,Laurent,https://www.linkedin.com/in/abena-laurent-bfa,alaurent@vellumdesk.example,Vellum Desk,Sales Director,01 Jun 2020
+Kaveh,Beaumont,https://www.linkedin.com/in/kaveh-beaumont-417,kaveh@hexwire.example,Hexwire,Engineering Manager,17 May 2020
+Aria,Saavedra,https://www.linkedin.com/in/aria-saavedra-a9a,,Quillstack,Product Manager,05 May 2020
+Nina,Radcliffe,https://www.linkedin.com/in/nina-radcliffe-fff,nradcliffe@corvidanalytics.example,Corvid Analytics,Sales Director,04 May 2020
+Lina,Prescott,https://www.linkedin.com/in/lina-prescott-d39,,Ridgeway,Software Engineer,13 Mar 2020
+Mabel,Gutierrez,https://www.linkedin.com/in/mabel-gutierrez-c1d,,Vellum Desk,Customer Success Lead,07 Mar 2020
+Cedric,Quintero,https://www.linkedin.com/in/cedric-quintero-918,cedric.quintero@haldenrowe.example,Halden & Rowe,Counsel,01 Mar 2020
+Astrid,Takahashi,https://www.linkedin.com/in/astrid-takahashi-64,atakahashi@tallyfin.example,Tallyfin,Sales Director,19 Feb 2020
+Nina,Zubiri,https://www.linkedin.com/in/nina-zubiri-27d,,Granite Logistics,Customer Success Lead,06 Feb 2020
+Lina,Mbeki,https://www.linkedin.com/in/lina-mbeki-553,lina.mbeki@hexwire.example,Hexwire,Product Manager,01 Feb 2020
+Ivan,Whitlock,https://www.linkedin.com/in/ivan-whitlock-8d7,iwhitlock@carebridge.example,Carebridge,Software Engineer,11 Jan 2020
+Laila,Fitzroy,https://www.linkedin.com/in/laila-fitzroy-9f7,lfitzroy@tinkerworks.example,Tinkerworks,Senior Software Engineer,10 Jan 2020
+Isla,Saavedra,https://www.linkedin.com/in/isla-saavedra-780,isla@mosaicstudio.example,Mosaic Studio,Design Director,08 Jan 2020
+Ruben,Balogun,https://www.linkedin.com/in/ruben-balogun-fb7,rbalogun@quillstack.example,Quillstack,Software Engineer,06 Jan 2020
+Hamza,Achterberg,https://www.linkedin.com/in/hamza-achterberg-831,,Carebridge,Software Engineer,27 Dec 2019
+Cedric,Yamamoto,https://www.linkedin.com/in/cedric-yamamoto-f52,cyamamoto@patchworklabs.example,Patchwork Labs,Developer Advocate,22 Dec 2019
+Imani,Prescott,https://www.linkedin.com/in/imani-prescott-e65,,Tessellate,Customer Success Lead,09 Dec 2019
+Soraya,Abara,https://www.linkedin.com/in/soraya-abara-874,soraya.abara@ridgeway.example,Ridgeway,Operations Manager,26 Nov 2019
+Abena,Lindahl,https://www.linkedin.com/in/abena-lindahl-469,abena.lindahl@brightvault.example,Brightvault,Senior Software Engineer,18 Nov 2019
+Abena,Ekwueme,https://www.linkedin.com/in/abena-ekwueme-a8e,abena@greenloop.example,Greenloop,Product Designer,15 Nov 2019
+Bilal,Zubiri,https://www.linkedin.com/in/bilal-zubiri-f40,bilal@meridianvc.example,Meridian Ventures,Associate,19 Oct 2019
+Astrid,Bergqvist,https://www.linkedin.com/in/astrid-bergqvist-c58,,Hexwire,Senior Software Engineer,16 Oct 2019
+Tariq,Nakashima,https://www.linkedin.com/in/tariq-nakashima-41f,,Mosaic Studio,Studio Manager,14 Oct 2019
+Yusuf,Nkemelu,https://www.linkedin.com/in/yusuf-nkemelu-712,ynkemelu@kitebox.example,Kitebox,Sales Director,18 Sep 2019
+Diego,Gallo,https://www.linkedin.com/in/diego-gallo-51b,diego.gallo@sentrypine.example,Sentry Pine,Staff Engineer,24 Aug 2019
+Eamon,Iversen,https://www.linkedin.com/in/eamon-iversen-ac8,eiversen@sentrypine.example,Sentry Pine,Data Scientist,17 Jul 2019
+Abena,Iversen,https://www.linkedin.com/in/abena-iversen-d4,,Patchwork Labs,Solutions Engineer,15 Jul 2019
+Diego,Mbeki,https://www.linkedin.com/in/diego-mbeki-b83,,Solstice Grid,Account Executive,27 Jun 2019
+Selin,Balogun,https://www.linkedin.com/in/selin-balogun-4a7,,Carebridge,Finance Lead,24 Jun 2019
+Harriet,Sandoval,https://www.linkedin.com/in/harriet-sandoval-2bb,harriet@hexwire.example,Hexwire,Account Executive,14 Jun 2019
+Colette,Demir,https://www.linkedin.com/in/colette-demir-f33,,Coinwell,Partnerships Manager,07 Jun 2019
+Hollis,Grant,https://www.linkedin.com/in/hollis-grant-dfa,hollis@ridgeway.example,Ridgeway,VP Engineering,03 Jun 2019
+Ulla,Falkenberg,https://www.linkedin.com/in/ulla-falkenberg-d90,,Hexwire,Account Executive,01 Jun 2019
+Rhea,Nkemelu,https://www.linkedin.com/in/rhea-nkemelu-de0,,Tallyfin,Engineering Manager,22 May 2019
+Soraya,Yamamoto,https://www.linkedin.com/in/soraya-yamamoto-e83,syamamoto@corvidanalytics.example,Corvid Analytics,Senior Software Engineer,11 May 2019
+Soraya,Gallo,https://www.linkedin.com/in/soraya-gallo-118,sgallo@arclightmedia.example,Arclight Media,Product Designer,24 Apr 2019
+Zara,Chakraborty,https://www.linkedin.com/in/zara-chakraborty-c2b,,Kitebox,Technical Recruiter,15 Apr 2019
+Vera,Achterberg,https://www.linkedin.com/in/vera-achterberg-88e,vachterberg@brightvault.example,Brightvault,Product Designer,02 Apr 2019
+Felix,Varga,https://www.linkedin.com/in/felix-varga-24d,,Arclight Media,Co-founder,07 Mar 2019
+Anton,Alvarado,https://www.linkedin.com/in/anton-alvarado-222,aalvarado@coinwell.example,Coinwell,Engineering Manager,03 Mar 2019
+Bilal,Chakraborty,https://www.linkedin.com/in/bilal-chakraborty-3f2,bilal.chakraborty@hexwire.example,Hexwire,Account Executive,26 Feb 2019
+Gideon,Radcliffe,https://www.linkedin.com/in/gideon-radcliffe-7f9,gradcliffe@hexwire.example,Hexwire,Account Executive,29 Jan 2019
+Laila,Gallo,https://www.linkedin.com/in/laila-gallo-3e9,,Mosaic Studio,Product Designer,13 Jan 2019
+Farah,Whitlock,https://www.linkedin.com/in/farah-whitlock-8d5,farah@hexwire.example,Hexwire,Solutions Engineer,04 Jan 2019
+Adrian,Iversen,https://www.linkedin.com/in/adrian-iversen-64,,Carebridge,Senior Product Manager,27 Dec 2018
+Mira,Falkenberg,https://www.linkedin.com/in/mira-falkenberg-352,mfalkenberg@corvidanalytics.example,Corvid Analytics,Software Engineer,24 Dec 2018
+Zoltan,Achterberg,https://www.linkedin.com/in/zoltan-achterberg-56,zachterberg@orbitalrobotics.example,Orbital Robotics,Software Engineer,16 Dec 2018
+Lorenzo,Alvarado,https://www.linkedin.com/in/lorenzo-alvarado-9d5,,Juniper Health,Technical Recruiter,07 Dec 2018
+Malik,Zielinski,https://www.linkedin.com/in/malik-zielinski-d61,,Northstar Seed,Platform Lead,28 Nov 2018
+Astrid,Ekwueme,https://www.linkedin.com/in/astrid-ekwueme-eea,,Patchwork Labs,Product Manager,22 Nov 2018
+Amir,Rautio,https://www.linkedin.com/in/amir-rautio-dea,,Tallyfin,Engineering Manager,18 Nov 2018
+Alana,Yilmaz,https://www.linkedin.com/in/alana-yilmaz-48b,,Ledgerline,Product Designer,22 Oct 2018
+Imani,Halvorsen,https://www.linkedin.com/in/imani-halvorsen-617,imani@patchworklabs.example,Patchwork Labs,Account Executive,18 Sep 2018
+Delia,Beaumont,https://www.linkedin.com/in/delia-beaumont-53e,delia.beaumont@kitebox.example,Kitebox,Software Engineer,01 Sep 2018
+Bruno,Zubiri,https://www.linkedin.com/in/bruno-zubiri-1c5,,Carebridge,Product Manager,27 Jul 2018
+Ravi,Ekwueme,https://www.linkedin.com/in/ravi-ekwueme-ecd,ravi@carebridge.example,Carebridge,Senior Product Manager,26 Jul 2018
+Greta,Sorensen,https://www.linkedin.com/in/greta-sorensen-48d,,Greenloop,Partnerships Manager,24 Jul 2018
+Vera,Barrientos,https://www.linkedin.com/in/vera-barrientos-eb2,,Tinkerworks,Sales Director,11 Jul 2018
+Carmen,Halvorsen,https://www.linkedin.com/in/carmen-halvorsen-582,,Hexwire,Product Manager,05 Jul 2018
+Imani,Nkemelu,https://www.linkedin.com/in/imani-nkemelu-264,imani@carebridge.example,Carebridge,Staff Engineer,02 Jun 2018
+Stellan,Gutierrez,https://www.linkedin.com/in/stellan-gutierrez-5bb,stellan.gutierrez@patchworklabs.example,Patchwork Labs,Staff Engineer,26 May 2018
+Abena,Kuznetsova,https://www.linkedin.com/in/abena-kuznetsova-c66,akuznetsova@carebridge.example,Carebridge,Engineering Manager,12 May 2018
+Freya,Quintero,https://www.linkedin.com/in/freya-quintero-bc5,,Orbital Robotics,Product Manager,08 May 2018
+Isla,Takahashi,https://www.linkedin.com/in/isla-takahashi-400,isla@orbitalrobotics.example,Orbital Robotics,Data Scientist,21 Apr 2018
+Laila,Montague,https://www.linkedin.com/in/laila-montague-a2c,,Corvid Analytics,Customer Success Lead,14 Apr 2018
+Zara,Ekwueme,https://www.linkedin.com/in/zara-ekwueme-b6f,zara.ekwueme@quillstack.example,Quillstack,Software Engineer,10 Apr 2018
+Esther,Takahashi,https://www.linkedin.com/in/esther-takahashi-a1d,,Patchwork Labs,Account Executive,05 Apr 2018
+Paloma,Abara,https://www.linkedin.com/in/paloma-abara-24f,,Halden & Rowe,Paralegal,04 Apr 2018
+Malik,Hartigan,https://www.linkedin.com/in/malik-hartigan-7e4,,Tallyfin,Staff Engineer,31 Mar 2018
+Hiro,Prescott,https://www.linkedin.com/in/hiro-prescott-37e,hprescott@northstarseed.example,Northstar Seed,Venture Partner,17 Mar 2018
+Greta,Zubiri,https://www.linkedin.com/in/greta-zubiri-19a,,Halden & Rowe,Counsel,13 Mar 2018
+Kaveh,Thackeray,https://www.linkedin.com/in/kaveh-thackeray-aff,,Driftless,Solutions Engineer,09 Feb 2018
+Harriet,Okonjo,https://www.linkedin.com/in/harriet-okonjo-8ca,harriet.okonjo@solsticegrid.example,Solstice Grid,Product Designer,25 Dec 2017
+Soraya,Cormack,https://www.linkedin.com/in/soraya-cormack-768,soraya.cormack@wayfarer.example,Wayfarer Travel,Data Scientist,14 Dec 2017
+Anton,Zielinski,https://www.linkedin.com/in/anton-zielinski-175,anton@driftless.example,Driftless,Product Manager,24 Oct 2017
+Amir,Takahashi,https://www.linkedin.com/in/amir-takahashi-87a,amir@hexwire.example,Hexwire,Staff Engineer,14 Sep 2017
+Diego,Prescott,https://www.linkedin.com/in/diego-prescott-79b,dprescott@orbitalrobotics.example,Orbital Robotics,Partnerships Manager,13 Sep 2017
+Beatrice,Achterberg,https://www.linkedin.com/in/beatrice-achterberg-6b3,beatrice.achterberg@tinkerworks.example,Tinkerworks,Staff Engineer,31 Aug 2017
+Viktor,Bergqvist,https://www.linkedin.com/in/viktor-bergqvist-5d9,viktor.bergqvist@tallyfin.example,Tallyfin,Data Scientist,27 Aug 2017
+Vera,Gutierrez,https://www.linkedin.com/in/vera-gutierrez-b,,Hexwire,Account Executive,28 Jul 2017
+Elena,Fitzroy,https://www.linkedin.com/in/elena-fitzroy-8f9,efitzroy@marigoldgoods.example,Marigold Goods,Customer Success Lead,28 Jul 2017
+Tariq,Montague,https://www.linkedin.com/in/tariq-montague-584,tariq@vellumdesk.example,Vellum Desk,Technical Recruiter,22 Jul 2017
+Cedric,Ekwueme,https://www.linkedin.com/in/cedric-ekwueme-8f6,,Orbital Robotics,Senior Software Engineer,13 Jul 2017
+Zoltan,Gutierrez,https://www.linkedin.com/in/zoltan-gutierrez-cca,zgutierrez@kitebox.example,Kitebox,Sales Director,04 Jun 2017
+Anton,Jablonski,https://www.linkedin.com/in/anton-jablonski-9e5,,Stackforge,Solutions Engineer,13 May 2017
+Lars,Maddox,https://www.linkedin.com/in/lars-maddox-fdd,lars.maddox@juniperhealth.example,Juniper Health,Senior Product Manager,09 Mar 2017
+Gideon,Zielinski,https://www.linkedin.com/in/gideon-zielinski-402,,Hexwire,Staff Engineer,08 Mar 2017
+Wen,Laurent,https://www.linkedin.com/in/wen-laurent-21a,wen.laurent@ledgerline.example,Ledgerline,Data Scientist,06 Mar 2017
+Colette,Chakraborty,https://www.linkedin.com/in/colette-chakraborty-c97,,Quillstack,Staff Engineer,13 Feb 2017
+Lorenzo,Ishikawa,https://www.linkedin.com/in/lorenzo-ishikawa-9d3,lorenzo.ishikawa@openfieldlabs.example,Openfield Labs,Software Engineer,30 Jan 2017
+Harriet,Amundsen,https://www.linkedin.com/in/harriet-amundsen-8ce,,Hexwire,Solutions Engineer,26 Jan 2017
+Oskar,Pacheco,https://www.linkedin.com/in/oskar-pacheco-99d,,Brightpath Learning,Technical Recruiter,01 Jan 2017

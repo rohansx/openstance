@@ -1,0 +1,37 @@
+[package]
+name = "openstance-fixtures"
+description = "Deterministic generator for the synthetic Phase 1 fixtures and the perf graph"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "gen-fixtures"
+path = "src/bin/gen_fixtures.rs"
+
+[[bin]]
+name = "gen-graph"
+path = "src/bin/gen_graph.rs"
+
+[[bin]]
+name = "gen-demo"
+path = "src/bin/gen_demo.rs"
+
+[dependencies]
+
+[dev-dependencies]
+tempfile.workspace = true
+# The demo acceptance test imports fixtures/demo/ through the real pipeline.
+openstance-core.workspace = true
+openstance-import = { workspace = true, features = ["mbox", "linkedin", "vcf", "ics", "x-archive"] }
+# The search eval's embedder tiers (tests/search_eval_tiers.rs): hash:64
+# offline, fastembed when OPENSTANCE_MODEL_DIR holds the model.
+openstance-model = { workspace = true, features = ["fastembed"] }
+serde.workspace = true
+toml.workspace = true
+time.workspace = true
+
+[lints]
+workspace = true

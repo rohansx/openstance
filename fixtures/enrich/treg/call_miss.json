@@ -1,0 +1,12 @@
+{
+  "output": { "email": null, "confidence": null, "first_name": null, "last_name": null, "verified": null },
+  "raw": null,
+  "_treg": {
+    "served_by": null,
+    "provider": null,
+    "tier": null,
+    "outcome": "miss",
+    "tried": [ { "endpoint_id": "alpha.people.email.find", "provider": "alpha", "outcome": "miss", "status": 200, "charged_micro": 10000 } ],
+    "charged_micro": 10000
+  }
+}

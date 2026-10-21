@@ -59,7 +59,7 @@ strategy:
     include:
       - { os: macos-14,        target: aarch64-apple-darwin }
       - { os: macos-13,        target: x86_64-apple-darwin }
-      - { os: ubuntu-22.04,    target: x86_64-unknown-linux-gnu }
+      - { os: ubuntu-24.04,    target: x86_64-unknown-linux-gnu }
       - { os: windows-2022,    target: x86_64-pc-windows-msvc }
 steps:
   - uses: actions/checkout@v4
@@ -75,13 +75,14 @@ steps:
 Notes:
 
 - Tests run with the hash embedder and no network; `OPENSTANCE_TEST_MODELS` is unset. Any test reaching the network fails (nextest profile `ci` sets `OPENSTANCE_DENY_NETWORK=1`, which makes the HTTP clients in our crates refuse to connect).
+- Linux runs on ubuntu-24.04, not 22.04: the prebuilt ONNX Runtime that `ort` (via fastembed) links is built against glibc 2.38 and GCC 13's libstdc++, so default-feature Linux builds need glibc >= 2.38 to link and run.
 - Linux aarch64 and musl targets are built at release time (cross-compiled via cargo-dist) and smoke-tested there; they are not in the per-PR matrix to keep CI under ~12 minutes.
 - Windows paths: tests use `Path`/`PathBuf` everywhere and `tempfile`; CRLF is set via `.gitattributes` (`fixtures/** -text` so fixture bytes are identical on all OSes).
 
 ### MSRV
 
 ```yaml
-- uses: dtolnay/rust-toolchain@1.85
+- uses: dtolnay/rust-toolchain@1.92
 - run: cargo check --workspace --all-features --locked
 ```
 
@@ -163,7 +164,7 @@ github-attestations = true            # SLSA provenance via GitHub artifact atte
 precise-builds = true
 
 [dist.github-custom-runners]
-aarch64-unknown-linux-gnu = "ubuntu-22.04-arm"
+aarch64-unknown-linux-gnu = "ubuntu-24.04-arm"   # glibc >= 2.38 for the prebuilt ONNX Runtime
 ```
 
 The `openstance` package declares the binary; the `ost` alias is produced as an extra binary target (`[[bin]] name = "ost"` with a tiny `main` that calls the same entry point) so every installer ships both. Embedded UI: the release workflow runs `pnpm -C ui build` before `cargo dist build` (a `[dist] build-local-artifacts` pre-step via `github-build-setup`).
