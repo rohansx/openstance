@@ -284,6 +284,10 @@ See [sharing-and-views.md](sharing-and-views.md#4-the-ost-file-format).
 | `db_busy` | 503 | 10 | the database is locked by another writer; retry |
 | `schema_too_new` | 503 | 10 | `graph.db` was written by a newer openstance; upgrade the binary (older databases are migrated automatically on open, after a backup) |
 | `internal` | 500 | 1 | bug; message is safe to show, details in the log |
+| `forbidden` | 403 | - | HTTP only: a cross-origin request from an origin not in `serve.cors_origins` |
+| `misdirected` | 421 | - | HTTP only: the `Host` header is not a loopback address with the server's port |
+| `payload_too_large` | 413 | - | HTTP only: the body is over 1 MB (uploads: `serve.max_upload_mb`) |
+| `method_not_allowed` | 405 | - | HTTP only: the route exists but not with this method |
 
 A quote is **not** an error. When `allow_egress` is false, the response is `200` with `status: "quote"`.
 
@@ -442,11 +446,13 @@ Remote connectors (claude.ai, ChatGPT) need a publicly reachable HTTPS URL. `127
 
 - **Bind:** `127.0.0.1:7411` by default (`serve.host`, `serve.port`). Binding a non-loopback address requires `--host 0.0.0.0 --i-understand-this-exposes-my-graph`.
 - **Auth:** `Authorization: Bearer <token>` on every route except `GET /health` and the static UI files. The token is 32 random bytes, base64url, generated at `openstance init` and stored in `~/.openstance/api.token` (mode 0600). `openstance serve --rotate-token` replaces it.
-- **Host check:** requests whose `Host` header is not `127.0.0.1:<port>` or `localhost:<port>` are rejected with 421. This defends against DNS rebinding.
-- **CORS:** off. No `Access-Control-*` headers are sent, except for origins listed in `serve.cors_origins` (empty by default; use `http://localhost:5173` for UI development with Vite). The embedded UI is same-origin and needs no CORS. No cookies are used.
+- **Host check:** requests whose `Host` header is not `127.0.0.1:<port>`, `localhost:<port>` or `[::1]:<port>` are rejected with 421 (`misdirected`). This defends against DNS rebinding. With `--i-understand-this-exposes-my-graph`, the bound address is accepted too.
+- **CORS:** off. No `Access-Control-*` headers are sent, except for origins listed in `serve.cors_origins` (empty by default; use `http://localhost:5173` for UI development with Vite), which get `Access-Control-Allow-Origin` (never `-Credentials`) and preflight answers. A request carrying any other cross-site `Origin` is refused with 403 (`forbidden`), preflights included. The embedded UI is same-origin and needs no CORS. No cookies are used.
+- **Headers:** every response carries `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY` and `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'` (inline style attributes and `data:` images are allowed for the UI; scripts never). API responses add `Cache-Control: no-store`. At most 64 requests are handled at once.
 - **UI token handoff:** `openstance serve` prints `http://127.0.0.1:7411/#token=<token>`. The UI reads the fragment, which browsers never send to a server, keeps the token in `sessionStorage`, and strips it from the address bar.
 - **Content type:** `application/json; charset=utf-8`, except for uploads (multipart) and view export (`application/octet-stream`).
-- **Limits:** request body 1 MB, except `POST /import` and `POST /views/import` (`serve.max_upload_mb`, default 2048).
+- **Limits:** request body 1 MB, except `POST /import` and `POST /views/import` (`serve.max_upload_mb`, default 2048). `POST /import` streams each file into a private temp directory (0700, files 0600) under its uploaded file name (directory parts stripped), runs the normal importer, records the file name (never the temp path) as `source.path`, and deletes the directory.
+- **Connections:** core is synchronous; every call runs on tokio's blocking pool. Writes (edits, imports, playbooks, quotes, the shortlist and introductions, MCP tool calls) share one writer connection; reads use a pool of 4 reader connections, so browsing keeps working during a long import.
 
 ### 3.1 Endpoint table
 
@@ -463,10 +469,10 @@ Remote connectors (claude.ai, ChatGPT) need a publicly reachable HTTPS URL. `127
 | `POST /edits` | P4 | edit, merge, split, review | `{ "ops": [Edit...] }` (section 3.2) | `{ "v": 1, "applied": n, "people": PersonRef[] }` |
 | `GET /review` | P4 | `review --list` | `?min_confidence=` | `{ "v": 1, "flagged": [...], "suggestions": [...], "info": [...] }` (same as `review --list --json`) |
 | `GET /views` | P4 | `list_views` | `?direction=` | `{ "views": ViewSummary[] }` |
-| `POST /views` | P4 | `view create` | `{ "name", "query": "text" \| Query, "ttl", "to": [pubkeys or aliases], "replace": false }` | `ViewSummary` (with `"v": 1`) |
+| `POST /views` | P4 | `view create` | `{ "name", "query": "text" \| Query, "ttl": "30d", "to": [pubkeys, aliases or "self"], "yes": false }` (`yes` replaces an existing view and allows `ttl: "never"`, like `--yes`) | `ViewSummary` (with `"v": 1`) |
 | `GET /views/{name}/search` | P4 | `search_view` | `?q=&company=&title=&limit=` | `{ "v": 1, "results": [...] }` |
 | `POST /views/{name}/export` | P4 | `view export` | `?armor=true` | `.ost` bytes (`application/octet-stream`) |
-| `POST /views/import` | P4 | `view import` | multipart `file` | `ViewSummary` |
+| `POST /views/import` | P4 | `view import` | multipart `file` | `{ "v": 1, "status": "imported" \| "replaced" \| "kept_newer", "view": ViewSummary, "path": "..." }` (same as `view import --json`) |
 | `POST /import` | P4 | `import` | multipart `file` (repeatable), `kind?`, `label?`, `bodies?` | `ImportStats` |
 | `GET /sources` | P4 | `source list` | - | `{ "v": 1, "sources": [Source...] }` (section 3.4) |
 | `GET /enrich-log` | P4 | `enrich log` | `?run=&since=&person=` | `{ "v": 1, "rows": [...], "totals": { "requests_sent", "spent_micro_usd", "quoted_only", "blocked" } }` (same as `enrich log --json`) |
@@ -887,6 +893,7 @@ This runs the MCP server on stdio. Logs go to stderr and the log file, never to 
 
 ```
 openstance serve [--port 7411] [--host 127.0.0.1] [--no-ui] [--mcp-only] [--rotate-token] [--print-token]
+                 [--i-understand-this-exposes-my-graph]
 ```
 
 ```console
@@ -895,6 +902,13 @@ openstance api  http://127.0.0.1:7411   (bearer token in ~/.openstance/api.token
 web ui          http://127.0.0.1:7411/#token=Zk3...   (open this link once)
 mcp             http://127.0.0.1:7411/mcp
 ```
+
+- `--port 0` picks a free port. `--host` (or `serve.host`) other than a loopback address is refused (exit 2) unless `--i-understand-this-exposes-my-graph` is also on the command line; it then prints a warning.
+- `--rotate-token` writes a new token before serving (the old one stops working at once). `--print-token` prints the token and exits without serving (with `--rotate-token`: the new one).
+- `--no-ui` turns the static UI off; `--mcp-only` serves only `/health` and `/mcp`.
+- `--json` prints one ready line instead: `{ "v": 1, "api": "http://127.0.0.1:7411", "ui": "http://127.0.0.1:7411/#token=...", "mcp": "http://127.0.0.1:7411/mcp", "token_file": "..." }` (`api` / `ui` are `null` when turned off).
+- The web UI is compiled in with the `ui` cargo feature (on by default) from `ui/dist`. A build without a built UI (no node in CI, say) still succeeds and `/` then shows a page telling you to run `npm run build` in `ui/`.
+- MCP over HTTP is for local clients that speak streamable HTTP. Hosted connectors (claude.ai, ChatGPT) cannot reach a loopback address, and no tunnel is shipped; see the hosted endpoint idea in [../product/pricing-and-cloud.md](../product/pricing-and-cloud.md). Over `/mcp`, `do_not_share` people are left out of every result (a call about one returns `not_found`), because results may leave the machine.
 
 ---
 

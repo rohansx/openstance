@@ -66,6 +66,10 @@ impl std::fmt::Debug for ServeOptions {
     }
 }
 
+/// Requests handled at once; more wait in line (a browser tab or local
+/// script cannot pile up unbounded work).
+pub const MAX_IN_FLIGHT: usize = 64;
+
 /// 1 MB.
 pub const DEFAULT_BODY_LIMIT: usize = 1024 * 1024;
 
@@ -150,6 +154,7 @@ pub fn app(pool: GraphPool, opts: ServeOptions) -> Router {
         check_host,
     ))
     .layer(middleware::from_fn(security_headers))
+    .layer(tower::limit::ConcurrencyLimitLayer::new(MAX_IN_FLIGHT))
     .with_state(state)
 }
 

@@ -116,14 +116,6 @@ fn set_mode(_path: &Path, _mode: u32) -> std::io::Result<()> {
     Ok(())
 }
 
-/// Expand a leading `~/` against `home`.
-pub fn expand(path: &str, home: Option<&Path>) -> PathBuf {
-    match (path.strip_prefix("~/"), home) {
-        (Some(rest), Some(h)) => h.join(rest),
-        _ => PathBuf::from(path),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -209,16 +201,5 @@ mod tests {
             let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
             assert_eq!(mode, 0o600);
         }
-    }
-
-    #[test]
-    fn expand_handles_tilde() {
-        let home = Path::new("/home/u");
-        assert_eq!(
-            expand("~/.openstance/api.token", Some(home)),
-            PathBuf::from("/home/u/.openstance/api.token")
-        );
-        assert_eq!(expand("/abs/t", Some(home)), PathBuf::from("/abs/t"));
-        assert_eq!(expand("rel/t", None), PathBuf::from("rel/t"));
     }
 }
