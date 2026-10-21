@@ -10,16 +10,24 @@ publish.workspace = true
 
 [features]
 default = []
-# Phase 3 and later. Empty in Phase 1.
-treg = []
+# TregEnricher: blocking HTTP (ureq) to a treg router.
+treg = ["dep:ureq"]
+# OwnKeysEnricher: a reserved stub; every call returns Unsupported.
 ownkeys = []
+# MockEnricher, canned from fixtures/enrich/*.json.
 mock = []
-test-util = []
+# Helpers for tests in other crates (includes the MockEnricher).
+test-util = ["mock"]
 
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
+ureq = { version = "3.4", optional = true }
+
+[[test]]
+name = "mock"
+required-features = ["mock"]
 
 [lints]
 workspace = true

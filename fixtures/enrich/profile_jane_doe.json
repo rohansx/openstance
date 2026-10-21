@@ -1,0 +1,17 @@
+{
+  "request": { "kind": "profile", "name": "Jane Doe", "company": "Acme", "linkedin": null },
+  "provider": "mockdata",
+  "cost_micro_usd": 10000,
+  "data": {
+    "type": "profile",
+    "display_name": "Jane Doe",
+    "title": "VP Engineering",
+    "company": "Acme",
+    "company_domain": "acme.example",
+    "location": "London, UK",
+    "linkedin": "jane-doe-example",
+    "past_companies": ["Fabrikam"],
+    "schools": ["Imperial College London"],
+    "headline": null
+  }
+}

@@ -11,6 +11,17 @@
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(any(test, feature = "mock"))]
+pub mod mock;
+
+/// Current unix time in seconds (0 if the clock is before 1970).
+pub fn unix_now() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
+}
+
 /// Integer micro-USD (`1 USD = 1_000_000`).
 pub type MicroUsd = u64;
 

@@ -1,0 +1,13 @@
+{
+  "request": { "kind": "company", "domain": "stripe.com" },
+  "provider": "mockdata",
+  "cost_micro_usd": 10000,
+  "data": {
+    "type": "company",
+    "name": "Stripe",
+    "domain": "stripe.com",
+    "industry": "Financial Services",
+    "size": "5001-10000",
+    "location": "San Francisco, CA"
+  }
+}
