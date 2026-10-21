@@ -245,7 +245,7 @@ function Runner({ spec, params }: { spec: PlaybookSpec; params: Record<string, s
     !stale &&
     outcome.status === 'quote' &&
     q.lines.length > 0 &&
-    q.total_micro_usd > 0 &&
+    // a $0 (free) quote still sends requests: it needs the same consent
     q.within_budget;
 
   // The only code path that allows egress (see the source-guard test).

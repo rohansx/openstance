@@ -84,7 +84,7 @@ describe('Playbook runner with quote gate (P4-UI-06)', () => {
     expect(within(runner).getByText(/input changed: get a new quote/i)).toBeInTheDocument();
   });
 
-  it('no Spend button for an over-budget quote or a zero quote', async () => {
+  it('no Spend button for an over-budget quote', async () => {
     const over = fx.quoteOutcome();
     over.plan.quote.within_budget = false;
     over.plan.quote.budget_micro_usd = 5000;
@@ -94,6 +94,31 @@ describe('Playbook runner with quote gate (P4-UI-06)', () => {
     await userEvent.click(within(runner).getByRole('button', { name: /get plan and quote/i }));
     expect(await within(runner).findByText(/over your budget/i)).toBeInTheDocument();
     expect(within(runner).queryByRole('button', { name: /^spend/i })).toBeNull();
+  });
+
+  it('a free quote that still sends requests needs the Spend button too (refresh with free lines)', async () => {
+    // engine shape: treg quotes a profile with no LinkedIn or company at $0 (basis free)
+    const free = (body: Body): Outcome => {
+      const o = fx.quoteOutcome();
+      const line = { ...o.plan.quote.lines[0]!, micro_usd: 0, basis: 'free' as const };
+      return {
+        ...o,
+        playbook: 'refresh',
+        status: body.allow_egress ? 'partial' : 'quote',
+        plan: { ...o.plan, playbook: 'refresh', quote: { ...o.plan.quote, lines: [line, line, line], total_micro_usd: 0, within_budget: true } },
+        result: { updated: [], unchanged: [], not_found: [], failed: [], skipped: [] },
+        receipt: { ...o.receipt, requests_sent: 0, spent_micro_usd: 0 },
+        notes: [],
+      };
+    };
+    const { api } = renderApp('#/playbooks/refresh', { 'POST /playbooks/refresh': (c: RecordedCall) => free(c.body as Body) });
+    const runner = await screen.findByRole('region', { name: /run refresh/i });
+    await userEvent.click(within(runner).getByRole('button', { name: /get plan and quote/i }));
+    const spend = await within(runner).findByRole('button', { name: 'Spend $0.00' });
+    expect(bodies(api.callsTo('POST /playbooks/refresh')).some((b) => b.allow_egress)).toBe(false);
+    await userEvent.click(spend);
+    await waitFor(() => expect(bodies(api.callsTo('POST /playbooks/refresh'))).toHaveLength(2));
+    expect(bodies(api.callsTo('POST /playbooks/refresh'))[1]).toMatchObject({ allow_egress: true, max_usd: 0 });
   });
 
   it('local playbooks run with allow_egress:false and never offer to spend', async () => {
