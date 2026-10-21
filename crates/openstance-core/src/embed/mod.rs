@@ -568,7 +568,7 @@ pub fn vector_candidates(
         return Ok(Vec::new());
     }
     let q = to_blob(qvec);
-    let mut hits: Vec<(PersonId, f64)> = match allowed {
+    let hits: Vec<(PersonId, f64)> = match allowed {
         None => {
             let k = i64::try_from(k.min(4096)).unwrap_or(4096);
             conn.prepare_cached(
@@ -580,23 +580,122 @@ pub fn vector_candidates(
             })?
             .collect::<rusqlite::Result<_>>()?
         }
-        Some(set) => {
-            let mut stmt = conn.prepare_cached(
-                "SELECT person_id, vec_distance_cosine(embedding, ?1) FROM person_vec",
-            )?;
-            let mut rows = stmt.query(params![q])?;
-            let mut out = Vec::new();
-            while let Some(r) = rows.next()? {
-                let id: PersonId = r.get(0)?;
-                if set.contains(&id) {
-                    out.push((id, 1.0 - r.get::<_, f64>(1)?));
-                }
-            }
-            out
-        }
+        Some(set) => restricted_candidates(conn, qvec, set, k, Strategy::DEFAULT)?,
     };
+    Ok(rank(hits, k))
+}
+
+/// Finite similarities, best first, ties by id, at most `k`.
+fn rank(mut hits: Vec<(PersonId, f64)>, k: usize) -> Vec<(PersonId, f64)> {
     hits.retain(|h| h.1.is_finite());
     hits.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
     hits.truncate(k);
-    Ok(hits)
+    hits
+}
+
+/// How [`restricted_candidates`] finds the best allowed vectors.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Strategy {
+    /// Up to this many allowed people: one primary-key lookup each.
+    pub point_max: usize,
+    /// Above it: the KNN index with this `k`, filtered; when fewer than
+    /// `k` allowed people survive, a full scan.
+    pub knn_k: usize,
+}
+
+impl Strategy {
+    const DEFAULT: Strategy = Strategy {
+        point_max: 4096,
+        knn_k: 4096,
+    };
+}
+
+/// Top `k` among `allowed` (non-empty), ranked like [`vector_candidates`]. A full scan of `person_vec` costs
+/// ~7 us per row (about 140 ms at 20k people) whatever is computed per
+/// row, so it is the last resort: small sets read their rows by key, large
+/// ones take the global KNN top `knn_k` and keep the allowed hits, which
+/// is exact whenever at least `k` survive and the k-th is strictly more
+/// similar than the worst KNN hit (nothing outside the KNN set can beat
+/// or tie it).
+pub(crate) fn restricted_candidates(
+    conn: &Connection,
+    qvec: &[f32],
+    allowed: &HashSet<PersonId>,
+    k: usize,
+    s: Strategy,
+) -> Result<Vec<(PersonId, f64)>> {
+    let qn = norm(qvec);
+    if allowed.len() <= s.point_max {
+        let mut out = Vec::new();
+        let mut stmt =
+            conn.prepare_cached("SELECT embedding FROM person_vec WHERE person_id = ?1")?;
+        for id in allowed {
+            let mut rows = stmt.query([id])?;
+            if let Some(r) = rows.next()? {
+                if let rusqlite::types::ValueRef::Blob(b) = r.get_ref(0)? {
+                    if let Some(sim) = cosine_blob(qvec, qn, b) {
+                        out.push((*id, sim));
+                    }
+                }
+            }
+        }
+        return Ok(rank(out, k));
+    }
+    let knn_k = i64::try_from(s.knn_k.clamp(1, 4096)).unwrap_or(4096);
+    let knn: Vec<(PersonId, f64)> = conn
+        .prepare_cached(
+            "SELECT person_id, vec_distance_cosine(embedding, ?1) FROM person_vec
+             WHERE embedding MATCH ?1 AND k = ?2",
+        )?
+        .query_map(params![to_blob(qvec), knn_k], |r| {
+            Ok((r.get::<_, PersonId>(0)?, 1.0 - r.get::<_, f64>(1)?))
+        })?
+        .collect::<rusqlite::Result<_>>()?;
+    // Everything outside the KNN set is at most as similar as its worst
+    // member; the prefilter is exact when the k-th allowed hit beats that.
+    let floor = knn.iter().map(|h| h.1).fold(f64::INFINITY, f64::min);
+    let hits = rank(
+        knn.into_iter().filter(|h| allowed.contains(&h.0)).collect(),
+        k,
+    );
+    if hits.len() >= k && hits.last().is_some_and(|h| h.1 > floor) {
+        return Ok(hits);
+    }
+    let mut out = Vec::new();
+    let mut stmt = conn.prepare_cached("SELECT person_id, embedding FROM person_vec")?;
+    let mut rows = stmt.query([])?;
+    while let Some(r) = rows.next()? {
+        let id: PersonId = r.get(0)?;
+        if !allowed.contains(&id) {
+            continue;
+        }
+        if let rusqlite::types::ValueRef::Blob(b) = r.get_ref(1)? {
+            if let Some(sim) = cosine_blob(qvec, qn, b) {
+                out.push((id, sim));
+            }
+        }
+    }
+    Ok(rank(out, k))
+}
+
+fn norm(v: &[f32]) -> f64 {
+    v.iter()
+        .map(|x| f64::from(*x) * f64::from(*x))
+        .sum::<f64>()
+        .sqrt()
+}
+
+/// Cosine similarity of `q` (norm `qn`) and a little-endian f32 blob of
+/// the same length; `None` on a length mismatch or a zero vector.
+fn cosine_blob(q: &[f32], qn: f64, blob: &[u8]) -> Option<f64> {
+    if blob.len() != q.len() * 4 || qn == 0.0 {
+        return None;
+    }
+    let (mut dot, mut bb) = (0.0f64, 0.0f64);
+    for (x, c) in q.iter().zip(blob.chunks_exact(4)) {
+        let y = f64::from(f32::from_le_bytes([c[0], c[1], c[2], c[3]]));
+        dot += f64::from(*x) * y;
+        bb += y * y;
+    }
+    (bb > 0.0).then(|| dot / (qn * bb.sqrt()))
 }

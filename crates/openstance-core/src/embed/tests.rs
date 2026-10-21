@@ -315,3 +315,52 @@ fn vector_candidates_rank_by_cosine_and_respect_the_allowed_set() {
         .unwrap()
         .is_empty());
 }
+
+#[test]
+fn restricted_vector_candidates_equal_unrestricted_ones_filtered() {
+    let mut c = graph();
+    let e = HashEmbedder::new(384);
+    idx(&mut c, &e);
+    for text in ["devtools dinner", "founder", "berlin engineer", "zzz"] {
+        let q = e.vector(text);
+        let all = vector_candidates(&c, &q, None, 200).unwrap();
+        for allowed in [vec![2, 3], vec![5, 6, 7], vec![2, 3, 5, 6, 7], vec![99]] {
+            let set: HashSet<i64> = allowed.iter().copied().collect();
+            let got = vector_candidates(&c, &q, Some(&set), 200).unwrap();
+            let want: Vec<(i64, f64)> =
+                all.iter().filter(|h| set.contains(&h.0)).copied().collect();
+            assert_eq!(got.len(), want.len(), "{text} {allowed:?}");
+            for (g, w) in got.iter().zip(&want) {
+                assert_eq!(g.0, w.0, "{text} {allowed:?}: {got:?} vs {want:?}");
+                assert!((g.1 - w.1).abs() < 1e-5, "{text}: {} vs {}", g.1, w.1);
+            }
+            let top1 = vector_candidates(&c, &q, Some(&set), 1).unwrap();
+            assert_eq!(top1.as_slice(), &got[..got.len().min(1)]);
+        }
+    }
+}
+
+#[test]
+fn every_restricted_strategy_gives_the_same_hits() {
+    let mut c = graph();
+    let e = HashEmbedder::new(384);
+    idx(&mut c, &e);
+    let set: HashSet<i64> = [2, 3, 5, 7].into_iter().collect();
+    for text in ["devtools dinner", "founder", "zzz"] {
+        let q = e.vector(text);
+        for k in [1, 2, 3, 200] {
+            let want = vector_candidates(&c, &q, Some(&set), k).unwrap();
+            // point lookups never; KNN prefilter wide enough / too narrow
+            // (falls back to the scan)
+            for (point_max, knn_k) in [(0, 4096), (0, 2), (0, 1), (100, 1)] {
+                let s = Strategy { point_max, knn_k };
+                let got = restricted_candidates(&c, &q, &set, k, s).unwrap();
+                assert_eq!(got.len(), want.len(), "{text} k={k} {s:?}");
+                for (g, w) in got.iter().zip(&want) {
+                    assert_eq!(g.0, w.0, "{text} k={k} {s:?}: {got:?} vs {want:?}");
+                    assert!((g.1 - w.1).abs() < 1e-5);
+                }
+            }
+        }
+    }
+}
