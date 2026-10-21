@@ -50,6 +50,10 @@ else
   echo "error: no ost binary; run \`cargo install --path crates/openstance\` or set OST" >&2
   exit 1
 fi
+# The demo cd's into its temp dir, so a relative OST must be made absolute.
+case "$bin" in
+  */*) bin="$(cd "$(dirname "$bin")" && pwd)/$(basename "$bin")" ;;
+esac
 
 now="${DEMO_NOW:-2026-10-15}"
 home="${DEMO_HOME:-$(mktemp -d "${TMPDIR:-/tmp}/openstance-demo.XXXXXX")}"

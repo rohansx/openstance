@@ -2,8 +2,8 @@
 Launch README draft (P2-DOC-03), written to docs/plan/launch.md "README requirements".
 Before the Show HN post goes live:
   - [ ] Record the demo (P2-DOC-02: scripts/demo.sh + asciinema) and replace the placeholder GIF and cast link.
-  - [ ] Re-run the Quickstart against the release build and paste the real output (the blocks below are from
-        the demo dataset with `--now 2026-10-15`; the `how-connected` block is the expected shape).
+  - [ ] Re-run the Quickstart against the release build and paste the real output (the blocks below are
+        trimmed debug-build output on the demo dataset with `--now 2026-10-15`).
   - [ ] Licence: launch.md says MIT, but Cargo.toml says Apache-2.0 and there is no LICENSE file yet. Decide, add
         LICENSE, and make the badge, crate metadata and the section at the bottom agree.
   - [ ] Point the CI badge at the real repository once it is public.
@@ -96,27 +96,36 @@ rerun:   openstance search --title founder --industry fintech --replied --limit 
 
 ```console
 $ ost who "Maya Chen"
-Maya Chen - Co-founder & CEO, Ledgerline - New York, NY    score 0.81 (preset default)
-  R 0.980  (5 days since last; half-life 180)  x 0.35
-  F 0.961  (65 interactions)  x 0.20
-  C 1.000  (22 replies / 34 sent)  x 0.25
-  M 0.000  (0 meetings)  x 0.15
-  B 0.500  (email, linkedin)  x 0.05
-identities  email:maya@ledgerline.example (mbox, 1.00)  linkedin_url:maya-chen-79e (linkedin_csv, 1.00)  ...
+Maya Chen - Co-founder & CEO, Ledgerline - New York, NY    score 0.81 (preset default, #69)
+  recency      0.980 x 0.35 = 0.343   5 days since last contact (half-life 180)
+  frequency    0.961 x 0.20 = 0.192   65 interactions
+  reciprocity  1.000 x 0.25 = 0.250   22 replies + 7 threads started (x2) / 34 sent
+  meetings     0.000 x 0.15 = 0.000   0 meetings
+  breadth      0.500 x 0.05 = 0.025   email, linkedin
+  sum                       = 0.810
+identities  email:maya@ledgerline.example (mbox, 1.00 anchor)  linkedin_url:maya-chen-79e (linkedin_csv, 1.00 exact)  ...
 recent      2026-10-09  email out  "Re: Fintech founders breakfast, November"  (mbox 2026-10-15)
-mutuals     Dana Whitfield (10 shared)  Theo Marsh (6 shared)
+            ...
+mutuals     Dana Whitfield (email, 10 shared, tie 0.83)  Theo Marsh (email, 6 shared, tie 0.58)
 ```
 
-And to find the warmest way in to someone you barely know:
+And to find the warmest way in to someone you barely know (`ost how` for short):
 
 ```console
 $ ost how-connected "Dana Whitfield"
-you -> Theo Marsh (score 0.77) -> Dana Whitfield
-     2026-09-18 email "Lumen Pay API changes for Q4" (cc'd together)
-you -> Maya Chen (score 0.81) -> Dana Whitfield
-     2026-07-02 email "Lumen Pay sandbox access for Ledgerline" (cc'd together)
-you -> Rafael Ortiz (score 0.63) -> Dana Whitfield
-     2026-06-12 email "Lumen Pay board prep" (cc'd together)
+direct: score 0.50, last contact 2026-09-19
+ 1  you -> Theo Marsh (score 0.77) -> Dana Whitfield (tie 0.90)   strength 0.691 = 0.77 x 0.90
+      18 shared email (tie 0.90), last 2026-09-19
+      2026-09-19  email out  "Re: Lumen Pay API changes for Q4"  (mbox 2026-10-15)
+      ...
+ 2  you -> Maya Chen (score 0.81) -> Dana Whitfield (tie 0.83)   strength 0.672 = 0.81 x 0.83
+      10 shared email (tie 0.83), last 2026-07-06
+      2026-07-06  email out  "Re: Lumen Pay sandbox access for Ledgerline"  (mbox 2026-10-15)
+      ...
+ 3  you -> Rafael Ortiz (score 0.63) -> Dana Whitfield (tie 0.67)   strength 0.419 = 0.63 x 0.67
+      7 shared email (tie 0.67), last 2026-06-14
+      2026-06-14  email in  "Re: Lumen Pay board prep"  (mbox 2026-10-15)
+      ...
 ```
 
 Search uses SQLite FTS5 plus local embeddings (bge-small-en-v1.5 on your CPU), so "people who build developer tools" also finds titles that say "SDK" or "API platform". With `model.embedder = "none"` it is keyword search only and needs no model at all. Other useful commands: `edit` (fix a title, add a tag or a note; edits survive re-import), `merge`, `split`, `rebuild`, `export --format csv|json`, `config`. `openstance --help` lists them all.
