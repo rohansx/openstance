@@ -1,6 +1,8 @@
 //! The enrichment seam: the [`Enricher`] trait, its request / quote / result
 //! types, and [`NullEnricher`]. This is the only crate allowed to send user
-//! data to a third party, and in Phase 1 it contains no backend at all.
+//! data to a third party. Concrete backends sit behind cargo features:
+//! `treg` (`TregEnricher`, blocking HTTP), `ownkeys` (a reserved stub) and
+//! `mock` / `test-util` (`MockEnricher`, for tests).
 //!
 //! Authoritative spec: `docs/tech-spec/enrichment.md` section 2. Budget,
 //! `no_enrich` and `enrich_log` enforcement live in core's `EgressGate`
@@ -134,6 +136,15 @@ pub struct QuoteLine {
     pub provider_hint: Option<String>,
 }
 
+impl QuoteLine {
+    /// Sum of the prices of `lines`, saturating.
+    pub fn total(lines: &[QuoteLine]) -> MicroUsd {
+        lines
+            .iter()
+            .fold(0, |acc: MicroUsd, l| acc.saturating_add(l.micro_usd))
+    }
+}
+
 /// Why a job was removed during planning.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -180,6 +191,13 @@ pub struct Quote {
     pub skipped: Vec<Skipped>,
     /// Unix seconds.
     pub quoted_at: i64,
+}
+
+impl Quote {
+    /// Number of calls this quote would make.
+    pub fn calls(&self) -> usize {
+        self.lines.len()
+    }
 }
 
 /// Deliverability verdict.
@@ -296,9 +314,12 @@ pub struct EnrichResult {
 /// Errors from an enrichment backend.
 #[derive(Debug, thiserror::Error)]
 pub enum EnrichError {
-    /// `enrich.backend = "none"`.
-    #[error("enrichment is disabled (backend = none)")]
+    /// `enrich.backend = "none"` (the plan calls this "EgressDisabled").
+    #[error("enrichment is off: set enrich.backend")]
     Disabled,
+    /// The backend is misconfigured (for example, no token in the environment).
+    #[error("enrichment backend is not configured: {0}")]
+    Config(String),
     /// Op not supported by this backend.
     #[error("operation not supported by backend: {0}")]
     Unsupported(String),
@@ -308,6 +329,10 @@ pub enum EnrichError {
     /// Retry later.
     #[error("rate limited, retry after {0:?}s")]
     RateLimited(Option<u64>),
+    /// The backend refused to spend: no balance, or no provider fits the
+    /// per-call cost ceiling. Nothing was charged.
+    #[error("payment required: {0}")]
+    Payment(String),
     /// Upstream failure.
     #[error("upstream error: {0}")]
     Upstream(String),
@@ -429,6 +454,90 @@ mod tests {
         assert!(!e.supports("profile"));
         assert!(e.quote(std::slice::from_ref(&job)).unwrap().is_empty());
         assert!(matches!(e.enrich(&job), Err(EnrichError::Disabled)));
+    }
+
+    #[test]
+    fn null_enricher_says_how_to_turn_it_on() {
+        let job = EnrichJob {
+            person_id: None,
+            request: EnrichRequest::WebSearch { query: "q".into() },
+        };
+        let err = NullEnricher.enrich(&job).unwrap_err();
+        assert_eq!(err.to_string(), "enrichment is off: set enrich.backend");
+    }
+
+    #[test]
+    fn trait_is_object_safe() {
+        let e: Box<dyn Enricher> = Box::new(NullEnricher);
+        assert_eq!(e.name(), "none");
+    }
+
+    #[test]
+    fn quote_helpers_count_calls_and_sum() {
+        let job = |q: &str| EnrichJob {
+            person_id: None,
+            request: EnrichRequest::WebSearch { query: q.into() },
+        };
+        let lines = vec![
+            QuoteLine {
+                job: job("a"),
+                micro_usd: 10_000,
+                basis: QuoteBasis::Exact,
+                provider_hint: None,
+            },
+            QuoteLine {
+                job: job("b"),
+                micro_usd: 25_000,
+                basis: QuoteBasis::Estimate,
+                provider_hint: None,
+            },
+        ];
+        assert_eq!(QuoteLine::total(&lines), 35_000);
+        let q = Quote {
+            backend: "mock".into(),
+            total_micro_usd: QuoteLine::total(&lines),
+            lines,
+            budget_micro_usd: 500_000,
+            within_budget: true,
+            skipped: vec![],
+            quoted_at: 0,
+        };
+        assert_eq!(q.calls(), 2);
+    }
+
+    #[test]
+    fn quote_serializes_to_documented_shape() {
+        // interfaces.md section 1.9 (quoted_at is converted to ISO 8601 at the surface).
+        let q = Quote {
+            backend: "treg".into(),
+            lines: vec![QuoteLine {
+                job: EnrichJob {
+                    person_id: None,
+                    request: EnrichRequest::Profile {
+                        name: "Priya Raman".into(),
+                        company: Some("Stripe".into()),
+                        linkedin: None,
+                    },
+                },
+                micro_usd: 10_000,
+                basis: QuoteBasis::Exact,
+                provider_hint: None,
+            }],
+            total_micro_usd: 10_000,
+            budget_micro_usd: 500_000,
+            within_budget: true,
+            skipped: vec![],
+            quoted_at: 0,
+        };
+        let v = serde_json::to_value(&q).unwrap();
+        assert_eq!(
+            v["lines"][0],
+            serde_json::json!({ "job": { "person_id": null, "request": { "kind": "profile", "name": "Priya Raman", "company": "Stripe", "linkedin": null } },
+                   "micro_usd": 10000, "basis": "exact", "provider_hint": null })
+        );
+        assert_eq!(v["total_micro_usd"], 10_000);
+        assert_eq!(v["within_budget"], true);
+        assert_eq!(v["skipped"], serde_json::json!([]));
     }
 
     #[test]
