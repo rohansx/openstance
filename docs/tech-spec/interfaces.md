@@ -452,25 +452,34 @@ Remote connectors (claude.ai, ChatGPT) need a publicly reachable HTTPS URL. `127
 
 | Method and path | Phase | Maps to | Body / query | Response |
 | --- | --- | --- | --- | --- |
-| `GET /health` | P4 | - | - | `{ "ok": true, "version": "0.4.0", "schema_version": 3 }` (no auth) |
+| `GET /health` | P4 | - | - | `{ "ok": true, "version": "0.4.0", "schema_version": 4 }` (no auth) |
 | `GET /people` | P4 | `search_people` | `?q=&company=&title=&location=&industry=&since=&until=&met=&replied=&min_score=&lost_touch=&include_bulk=&limit=&parse=` (repeat a key for arrays) | `SearchResponse` |
 | `POST /search` | P4 | `search_people` | `Query` JSON (same fields as the MCP input) | `SearchResponse` |
 | `GET /people/{id}` | P4 | `get_person` | `?interactions=10&mutuals=10` | `PersonDetail` |
-| `GET /people/{id}/ties/{other}` | P4 | tie evidence | - | `{ "tie": {...}, "interactions": Evidence[] }` |
+| `GET /people/{id}/ties/{other}` | P4 | tie evidence | `?limit=10` | `{ "v": 1, "person": PersonRef, "other": PersonRef, "tie": Tie \| null, "ties": Tie[], "interactions": Evidence[] }` (section 3.4) |
 | `GET /connections` | P4 | `how_connected` | `?target=<ref>&limit=3` | `HowConnected` |
 | `POST /playbooks/{name}` | P4 | any playbook | `{ "input": {...}, "allow_egress": false, "max_usd": null, "plan_only": false }` | `Outcome` |
 | `POST /quote` | P4 | `quote_enrich` | `{ "requests": [...] }` | `Quote` |
-| `POST /edits` | P4 | edit, merge, split, review | `{ "ops": [Edit...] }` | `{ "applied": n, "people": PersonRef[] }` |
-| `GET /review` | P4 | `review --list` | `?min_confidence=` | `{ "flagged": [...] }` |
+| `POST /edits` | P4 | edit, merge, split, review | `{ "ops": [Edit...] }` (section 3.2) | `{ "v": 1, "applied": n, "people": PersonRef[] }` |
+| `GET /review` | P4 | `review --list` | `?min_confidence=` | `{ "v": 1, "flagged": [...], "suggestions": [...], "info": [...] }` (same as `review --list --json`) |
 | `GET /views` | P4 | `list_views` | `?direction=` | `{ "views": ViewSummary[] }` |
-| `POST /views` | P4 | `view create` | `{ "name", "query", "ttl", "to": [pubkeys] }` | `ViewSummary` |
-| `GET /views/{name}/search` | P4 | `search_view` | `?q=&company=&limit=` | `{ "results": [...] }` |
-| `POST /views/{name}/export` | P4 | `view export` | - | `.ost` bytes |
+| `POST /views` | P4 | `view create` | `{ "name", "query": "text" \| Query, "ttl", "to": [pubkeys or aliases], "replace": false }` | `ViewSummary` (with `"v": 1`) |
+| `GET /views/{name}/search` | P4 | `search_view` | `?q=&company=&title=&limit=` | `{ "v": 1, "results": [...] }` |
+| `POST /views/{name}/export` | P4 | `view export` | `?armor=true` | `.ost` bytes (`application/octet-stream`) |
 | `POST /views/import` | P4 | `view import` | multipart `file` | `ViewSummary` |
 | `POST /import` | P4 | `import` | multipart `file` (repeatable), `kind?`, `label?`, `bodies?` | `ImportStats` |
-| `GET /sources` | P4 | `source list` | - | `{ "sources": [...] }` |
-| `GET /enrich-log` | P4 | `enrich log` | `?run=&since=&person=` | `{ "rows": [...], "total_micro_usd": n }` |
-| `GET /config` | P4 | `config` | - | effective config, secrets redacted |
+| `GET /sources` | P4 | `source list` | - | `{ "v": 1, "sources": [Source...] }` (section 3.4) |
+| `GET /enrich-log` | P4 | `enrich log` | `?run=&since=&person=` | `{ "v": 1, "rows": [...], "totals": { "requests_sent", "spent_micro_usd", "quoted_only", "blocked" } }` (same as `enrich log --json`) |
+| `GET /config` | P4 | `config` | - | `{ "v": 1, "config", "origins", "warnings", "config_file", "file_found" }` (same as `config --json`; the file holds env var names, never secret values) |
+| `GET /stats` | P4 | dashboard | - | `Stats` (section 3.4) |
+| `GET /shortlist` | P4 | shortlist | - | `{ "v": 1, "shortlist": ShortlistEntry[] }` newest first |
+| `POST /shortlist` | P4 | shortlist | `{ "person": <ref>, "note": null }` | `{ "v": 1, "entry": ShortlistEntry }` (idempotent) |
+| `PATCH /shortlist/{person}` | P4 | shortlist | `{ "note": "..." \| null }` | `{ "v": 1, "entry": ShortlistEntry }` |
+| `DELETE /shortlist/{person}` | P4 | shortlist | - | `{ "v": 1, "removed": true }` |
+| `GET /intros` | P4 | introductions | `?stage=` | `{ "v": 1, "intros": Intro[] }` in board order |
+| `POST /intros` | P4 | introductions | `{ "person": <ref>, "connector": <ref> \| null, "stage": "draft", "note": null, "follow_up": "YYYY-MM-DD" \| null }` | `{ "v": 1, "intro": Intro }` |
+| `PATCH /intros/{id}` | P4 | introductions | any of `stage`, `connector`, `note`, `follow_up` (`null` clears) | `{ "v": 1, "intro": Intro }` |
+| `DELETE /intros/{id}` | P4 | introductions | - | `{ "v": 1, "removed": true }` |
 | `POST /mcp`, `GET /mcp` | P4 | MCP streamable HTTP | MCP JSON-RPC | MCP |
 | `GET /`, `GET /assets/*` | P4 | embedded UI | - | static files (absent with `--no-ui`) |
 
@@ -488,9 +497,13 @@ There are no write endpoints for raw sources other than `POST /import`, and no e
   { "op": "flag",   "person": 42, "field": "do_not_share", "value": true },
   { "op": "merge",  "a": 42, "b": 97 },
   { "op": "split",  "person": 42, "identities": [5531] },
-  { "op": "unmerge","a": 42, "b": 97 }
+  { "op": "unmerge","a": 42, "b": 97 },
+  { "op": "confirm","person": 42 },
+  { "op": "reject", "a": 42, "b": 97 }
 ] }
 ```
+
+`person`, `a` and `b` take a person id or any person reference string (email, LinkedIn slug, `@handle`, name). `set` / `unset` fields: `display_name` (alias `name`), `title`, `company`, `location`, `bio`. `flag` fields: `do_not_share`, `no_enrich`, `is_bulk`. `confirm` accepts a flagged merge (`review --confirm`); `reject` keeps a suggested pair apart (`review --reject`); to split a flagged merge, send `split` with the `flagged_identities` ids from `GET /review`. A batch holds 1 to 500 ops.
 
 Each op becomes `override` rows exactly as described in [data-model.md](data-model.md):
 
@@ -498,7 +511,7 @@ Each op becomes `override` rows exactly as described in [data-model.md](data-mod
 - `tag`/`note` add a row. `untag` deletes the row.
 - `merge` writes `merged_into`. `split` writes `split_from`.
 
-The ops apply in one transaction, followed by an incremental re-resolve and re-score of the affected people.
+The ops apply in one transaction (all or nothing: a bad op returns `400` and nothing is written), each followed by the same incremental re-resolve and re-score the matching CLI command runs. The response lists every touched person after the change.
 
 ### 3.3 Examples
 
@@ -525,6 +538,45 @@ $ curl -s -X POST -H "Authorization: Bearer $TOKEN" -F file=@Connections.csv -F 
 $ curl -s http://127.0.0.1:7411/people
 { "v": 1, "error": { "code": "unauthorized", "message": "missing bearer token" } }
 ```
+
+### 3.4 Workspace, dashboard and source shapes (P4)
+
+The web UI's Shortlist and Introductions pages are backed by two user-authored tables ([data-model.md](data-model.md#411-shortlist-edit-schema-v4)). They are local bookkeeping only: openstance never sends a message, and these rows never appear in views, exports, enrichment requests or MCP results. `<ref>` is a person id or any person reference string; `{person}` in a path is a person id (a merged-away id still resolves). `stage` is one of `draft | asked | intro_made | met | closed`.
+
+```json
+{ "person_id": 812, "person": { "...": "PersonRef" }, "note": "ask about the seed round",
+  "added_at": "2026-10-20T12:00:00Z" }
+```
+`ShortlistEntry`. `person` is `null` only when the person no longer exists (for example after their source was removed).
+
+```json
+{ "id": 3, "person_id": 1203, "person": { "...": "PersonRef" },
+  "connector": { "id": 812, "display_name": "Tom Okafor", "title": "Engineering Manager", "company": "Stripe", "score": 0.78 },
+  "stage": "asked", "note": "warm: same YC batch", "follow_up": "2026-11-02",
+  "created_at": "2026-10-20T12:00:00Z", "updated_at": "2026-10-21T09:30:00Z" }
+```
+`Intro`. `connector` is `null` for a direct ask and must differ from the person. Notes are capped at 4000 characters; `follow_up` must be a `YYYY-MM-DD` date. Board order is stage, then follow-up date (earliest first, none last), then newest.
+
+```json
+{ "v": 1, "people": 1210, "bulk": 88, "sources": 5, "last_import": "2026-10-19T08:00:00Z",
+  "review": { "flagged": 4, "suggestions": 2 },
+  "enrich": { "requests_sent": 3, "spent_micro_usd": 30000 },
+  "shortlist": 6,
+  "intros": { "draft": 2, "asked": 1, "intro_made": 0, "met": 1, "closed": 0 },
+  "schema_version": 4 }
+```
+`Stats` (`GET /stats`). `people` excludes you and bulk senders. `review` counts the `GET /review` queue and `enrich` totals `enrich_log` (requests that left the machine and their actual cost).
+
+```json
+{ "id": 7, "kind": "linkedin_csv", "label": "linkedin 2026-10", "path": "Connections.csv",
+  "imported_at": "2026-10-19T08:00:00Z", "importer_version": 1, "stats": { "...": "ImportStats" } }
+```
+`Source` (`GET /sources`, oldest first). `stats` is `null` for enrichment sources.
+
+```json
+{ "tie_kind": "email", "n_shared": 9, "weight": 0.52, "last_at": "2026-06-02T08:00:00Z" }
+```
+`Tie` (inside `GET /people/{id}/ties/{other}`; `tie` is the strongest kind, `ties` all of them, `interactions` the shared interactions, newest first, `?limit` 1 to 50, default 10).
 
 ---
 

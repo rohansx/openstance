@@ -540,7 +540,7 @@ Maintenance: on any change to a person (import touching them, edit, merge, split
 
 ### 4.11 `shortlist` (edit, schema v4)
 
-People the user marked as worth a conversation (the web UI's Shortlist page; `GET/POST/PATCH/DELETE /shortlist`, [interfaces.md](interfaces.md#34-workspace-shortlist-introductions-dashboard)). One row per person: adding a person who is already there keeps `added_at` and replaces the note only when a new one is given. `person_id` is the anchor identity id the user picked; reads resolve it through `identity.person_id`, so after a merge two rows can resolve to the same person and the newest one wins. Notes are capped at 4000 characters, are never indexed for search, and never leave the machine (views, exports and enrichment do not read this table).
+People the user marked as worth a conversation (the web UI's Shortlist page; `GET/POST/PATCH/DELETE /shortlist`, [interfaces.md](interfaces.md#34-workspace-dashboard-and-source-shapes-p4)). One row per person: adding a person who is already there keeps `added_at` and replaces the note only when a new one is given. `person_id` is the anchor identity id the user picked; reads resolve it through `identity.person_id`, so after a merge two rows can resolve to the same person and the newest one wins. Notes are capped at 4000 characters, are never indexed for search, and never leave the machine (views, exports and enrichment do not read this table).
 
 ### 4.12 `intro` (edit, schema v4)
 
