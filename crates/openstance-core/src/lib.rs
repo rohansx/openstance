@@ -25,6 +25,7 @@ use rusqlite::{Connection, TransactionBehavior};
 pub mod clock;
 pub mod config;
 pub mod db;
+pub mod embed;
 pub mod error;
 pub mod export;
 pub mod ingest;
@@ -136,6 +137,7 @@ pub struct Graph {
     cfg: Config,
     providers: Providers,
     clock: Box<dyn Clock>,
+    embed: embed::Hook,
 }
 
 impl std::fmt::Debug for Graph {
@@ -234,6 +236,7 @@ impl Graph {
             cfg,
             providers,
             clock,
+            embed: embed::Hook::default(),
         })
     }
 
@@ -250,6 +253,7 @@ impl Graph {
             cfg,
             providers,
             clock,
+            embed: embed::Hook::default(),
         })
     }
 
@@ -295,6 +299,7 @@ impl Graph {
             cfg,
             providers,
             clock,
+            ..
         } = self;
         let importers = &providers.importers;
         let before = stats::summary(conn)?.people;
@@ -326,6 +331,9 @@ impl Graph {
         }
         let mut resolution = stats::summary(conn)?;
         resolution.people_created = resolution.people.saturating_sub(before);
+        if !req.no_resolve {
+            self.refresh_embeddings(None)?;
+        }
         Ok(ImportResponse {
             v: json::V,
             sources,
@@ -339,6 +347,7 @@ impl Graph {
         let now = self.now();
         let report = self.write(|tx, cfg| rebuild::rebuild(tx, cfg, now))?;
         checkpoint(&self.conn)?;
+        self.refresh_embeddings(None)?;
         Ok(report)
     }
 
@@ -350,41 +359,47 @@ impl Graph {
     /// Confirm a flagged merge, then re-resolve.
     pub fn review_confirm(&mut self, person: &PersonKey) -> Result<Vec<i64>> {
         let now = self.now();
-        self.write(|tx, cfg| {
+        let out = self.write(|tx, cfg| {
             let p = resolve_person(tx, person)?.person;
             let ids = resolve::review::confirm(tx, p, now)?;
             rebuild::incremental(tx, cfg, &touched_people(&[p]), now)?;
             Ok(ids)
-        })
+        })?;
+        self.refresh_embeddings(None)?;
+        Ok(out)
     }
 
     /// Reject a suggestion (`split_from` between the two), then re-resolve.
     pub fn review_reject(&mut self, a: &PersonKey, b: &PersonKey) -> Result<i64> {
         let now = self.now();
-        self.write(|tx, cfg| {
+        let out = self.write(|tx, cfg| {
             let (a, b) = (resolve_person(tx, a)?.person, resolve_person(tx, b)?.person);
             let id = resolve::review::reject(tx, a, b, now)?;
             rebuild::incremental(tx, cfg, &touched_people(&[a, b]), now)?;
             Ok(id)
-        })
+        })?;
+        self.refresh_embeddings(None)?;
+        Ok(out)
     }
 
     /// Apply field edits (overrides) to a person and refresh its derived
     /// fields, score and FTS row. Returns the person id.
     pub fn edit(&mut self, person: &PersonKey, edit: &Edit) -> Result<PersonId> {
         let now = self.now();
-        self.write(|tx, cfg| {
+        let out = self.write(|tx, cfg| {
             let p = resolve_person(tx, person)?.person;
             overrides::apply_edit(tx, p, edit, now)?;
             rebuild::refresh_people(tx, cfg, &[p], now)?;
             Ok(p)
-        })
+        })?;
+        self.refresh_embeddings(Some(&[out]))?;
+        Ok(out)
     }
 
     /// Merge people (writes `merged_into`), then re-resolve.
     pub fn merge(&mut self, people: &[PersonKey]) -> Result<MergeOutcome> {
         let now = self.now();
-        self.write(|tx, cfg| {
+        let out = self.write(|tx, cfg| {
             let ids = people
                 .iter()
                 .map(|k| resolve_person(tx, k).map(|r| r.person))
@@ -392,18 +407,22 @@ impl Graph {
             let out = resolve::commands::merge(tx, &ids, now)?;
             rebuild::incremental(tx, cfg, &touched_people(&ids), now)?;
             Ok(out)
-        })
+        })?;
+        self.refresh_embeddings(None)?;
+        Ok(out)
     }
 
     /// Split identities out of a person (pins both sides), then re-resolve.
     pub fn split(&mut self, person: &PersonKey, identities: &[IdentityId]) -> Result<SplitOutcome> {
         let now = self.now();
-        self.write(|tx, cfg| {
+        let out = self.write(|tx, cfg| {
             let p = resolve_person(tx, person)?.person;
             let out = resolve::commands::split(tx, p, identities, now)?;
             rebuild::incremental(tx, cfg, &touched_people(&[out.kept, out.moved]), now)?;
             Ok(out)
-        })
+        })?;
+        self.refresh_embeddings(None)?;
+        Ok(out)
     }
 
     /// Search.
