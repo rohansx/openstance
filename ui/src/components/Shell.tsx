@@ -107,7 +107,7 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
             </span>
           </div>
         </header>
-        <main className="main" id="main">
+        <main className="main" id="main" tabIndex={-1}>
           {children}
         </main>
       </div>
