@@ -15,6 +15,10 @@ pub struct Fused {
     pub fts: f64,
     /// Normalized vector relevance (`None` without a vector half).
     pub vector: Option<f64>,
+    /// Raw negated bm25 (`None` when not an FTS hit).
+    pub fts_raw: Option<f64>,
+    /// Raw cosine similarity (`None` when not a vector hit).
+    pub vec_raw: Option<f64>,
     /// Fused relevance.
     pub relevance: f64,
     /// After the score lift.
@@ -47,6 +51,8 @@ pub fn fuse(
 ) -> Vec<Fused> {
     use std::collections::BTreeMap;
 
+    let fts_raw: BTreeMap<PersonId, f64> = fts.iter().copied().collect();
+    let vec_raw: BTreeMap<PersonId, f64> = vector.unwrap_or(&[]).iter().copied().collect();
     let fts_n: BTreeMap<PersonId, f64> = min_max(fts).into_iter().collect();
     let vec_n: Option<BTreeMap<PersonId, f64>> = vector.map(|v| min_max(v).into_iter().collect());
     let mut ids: Vec<PersonId> = fts_n.keys().copied().collect();
@@ -74,6 +80,8 @@ pub fn fuse(
                     id,
                     fts: f,
                     vector: v,
+                    fts_raw: fts_raw.get(&id).copied(),
+                    vec_raw: vec_raw.get(&id).copied(),
                     relevance,
                     final_score,
                 },
@@ -96,6 +104,52 @@ mod tests {
 
     fn close(a: f64, b: f64) -> bool {
         (a - b).abs() < 1e-3
+    }
+
+    #[test]
+    fn a_single_candidate_in_each_list_does_not_divide_by_zero() {
+        let out = fuse(&[(1, 3.0)], Some(&[(2, 0.4)]), 0.5, 0.5, &|_| 0.0);
+        assert_eq!(out.len(), 2);
+        assert!(out
+            .iter()
+            .all(|f| f.relevance == 0.5 && f.final_score.is_finite()));
+        let one = fuse(&[(1, 3.0)], Some(&[(1, 0.4)]), 0.5, 0.5, &|_| 1.0);
+        assert_eq!(one[0].relevance, 1.0);
+        assert_eq!(one[0].final_score, 1.0);
+    }
+
+    #[test]
+    fn a_strong_relationship_lifts_a_weaker_text_match() {
+        // A: best text match, a stranger. B: slightly weaker text, close.
+        let fts = [(1, 10.0), (2, 9.0), (3, 2.0)];
+        let vec = [(1, 0.90), (2, 0.88), (3, 0.40)];
+        let score = |id: PersonId| match id {
+            1 => 0.0,
+            2 => 0.95,
+            _ => 1.0,
+        };
+        let out = fuse(&fts, Some(&vec), 0.5, 0.5, &score);
+        let order: Vec<_> = out.iter().map(|f| f.id).collect();
+        assert_eq!(order, [2, 1, 3]);
+        // ...but a cold exact match keeps half its relevance
+        assert_eq!(out[1].final_score, 0.5);
+    }
+
+    #[test]
+    fn raw_signals_are_kept_next_to_the_normalized_ones() {
+        let out = fuse(
+            &[(1, 9.0), (2, 6.0)],
+            Some(&[(2, 0.7), (3, 0.6)]),
+            0.5,
+            0.5,
+            &|_| 0.5,
+        );
+        let by = |id| *out.iter().find(|f| f.id == id).unwrap();
+        assert_eq!((by(1).fts_raw, by(1).vec_raw), (Some(9.0), None));
+        assert_eq!((by(2).fts_raw, by(2).vec_raw), (Some(6.0), Some(0.7)));
+        assert_eq!((by(3).fts_raw, by(3).vec_raw), (None, Some(0.6)));
+        let fts_only = fuse(&[(1, 9.0)], None, 0.5, 0.5, &|_| 0.5);
+        assert_eq!(fts_only[0].vec_raw, None);
     }
 
     #[test]

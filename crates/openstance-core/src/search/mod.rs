@@ -6,7 +6,8 @@
 //! - [`rules`]: `RuleParser` (the default `QueryParser`) and its lexicon;
 //! - [`filters`]: structured filters to SQL with bound parameters only;
 //! - [`fts`]: `person_fts` maintenance, `escape_query`, bm25 candidates;
-//! - [`fuse`]: min-max normalization and the score lift;
+//! - [`fuse`]: min-max normalization and the score lift (FTS + vector
+//!   candidates from [`crate::embed`], P2-CORE-03);
 //! - [`evidence`]: recent interactions, evidence lines, matched fields;
 //! - [`person`]: the `Person` / `PersonDetail` JSON builders (`who`).
 
@@ -154,12 +155,70 @@ fn scores(conn: &Connection, ids: &[PersonId]) -> Result<BTreeMap<PersonId, f64>
     Ok(m)
 }
 
-/// Text candidates fused and filtered; `None` when there is no text.
+/// Embedding text for the vector half: the query text plus industry terms.
+fn vec_text(q: &Query) -> Option<String> {
+    let text = q.text.as_deref()?.trim();
+    let mut parts = vec![text.to_string()];
+    parts.extend(q.industry.iter().cloned());
+    Some(parts.join(" "))
+}
+
+/// Step 3b: embed the query when stored vectors match the configured
+/// embedder (search.md section 6.2 and the degradation table, section 12).
+/// `None` skips the vector half; the reason, if any, becomes a warning.
+fn query_vector(
+    conn: &Connection,
+    models: &Models,
+    q: &Query,
+    warnings: &mut Vec<String>,
+) -> Result<Option<Vec<f32>>> {
+    use crate::embed::Status;
+    let Some(text) = vec_text(q) else {
+        return Ok(None);
+    };
+    let e = models.embedder.as_ref();
+    let rebuild = "run 'openstance rebuild --embeddings'";
+    match crate::embed::status(conn, e)? {
+        Status::Disabled => Ok(None),
+        Status::NotIndexed => {
+            warnings.push(format!("embeddings not built yet: {rebuild}"));
+            Ok(None)
+        }
+        Status::Building => {
+            warnings.push(format!("embeddings incomplete: {rebuild}"));
+            Ok(None)
+        }
+        Status::Changed { .. } => {
+            warnings.push(format!("embeddings out of date: {rebuild}"));
+            Ok(None)
+        }
+        Status::Ready => match e.embed(&[text.as_str()], openstance_model::EmbedKind::Query) {
+            Ok(mut v) if v.len() == 1 && v[0].len() == e.dims() => Ok(v.pop()),
+            Ok(_) => {
+                warnings.push(
+                    "embedder unavailable: wrong vector shape; using full-text search only".into(),
+                );
+                Ok(None)
+            }
+            Err(err) => {
+                warnings.push(format!(
+                    "embedder unavailable: {err}; {rebuild} when online"
+                ));
+                Ok(None)
+            }
+        },
+    }
+}
+
+/// Text candidates (FTS top N, plus vector top N when `qvec` is given),
+/// fused; `None` when there is no text. Candidates stay inside the
+/// structured filter's allowed set.
 fn text_candidates(
     conn: &Connection,
     cfg: &Config,
     q: &Query,
     allowed: &[PersonId],
+    qvec: Option<&[f32]>,
 ) -> Result<Option<Vec<fuse::Fused>>> {
     let Some(text) = fts_text(q) else {
         return Ok(None);
@@ -167,11 +226,23 @@ fn text_candidates(
     let restrict = q.has_structured_filters().then_some(allowed);
     let limit = usize::try_from(cfg.search.candidates_fts).unwrap_or(200);
     let hits = fts::candidates(conn, &text, restrict, limit)?;
-    let ids: Vec<PersonId> = hits.iter().map(|h| h.0).collect();
+    let vhits = match qvec {
+        Some(v) => {
+            let k = usize::try_from(cfg.search.candidates_vec).unwrap_or(200);
+            let set: Option<std::collections::HashSet<PersonId>> =
+                restrict.map(|ids| ids.iter().copied().collect());
+            Some(crate::embed::vector_candidates(conn, v, set.as_ref(), k)?)
+        }
+        None => None,
+    };
+    let mut ids: Vec<PersonId> = hits.iter().map(|h| h.0).collect();
+    if let Some(v) = &vhits {
+        ids.extend(v.iter().map(|h| h.0));
+    }
     let sc = scores(conn, &ids)?;
     let fused = fuse::fuse(
         &hits,
-        None,
+        vhits.as_deref(),
         cfg.search.text_weight,
         cfg.search.relationship_lift,
         &|id| sc.get(&id).copied().unwrap_or(0.0),
@@ -188,9 +259,9 @@ fn drop_zero(fused: Vec<fuse::Fused>, limit: usize) -> Vec<fuse::Fused> {
 }
 
 /// Count of results a query would return (used for suggestions).
-fn count(conn: &Connection, cfg: &Config, q: &Query) -> Result<usize> {
+fn count(conn: &Connection, cfg: &Config, q: &Query, qvec: Option<&[f32]>) -> Result<usize> {
     let allowed = filters::allowed_ids(conn, q)?;
-    Ok(match text_candidates(conn, cfg, q, &allowed)? {
+    Ok(match text_candidates(conn, cfg, q, &allowed, qvec)? {
         Some(f) if !f.is_empty() => f.len(),
         Some(_) if q.has_structured_filters() => allowed.len(),
         Some(_) => 0,
@@ -199,7 +270,12 @@ fn count(conn: &Connection, cfg: &Config, q: &Query) -> Result<usize> {
 }
 
 /// Zero-result hints: each filter that alone would widen the result.
-fn suggestions(conn: &Connection, cfg: &Config, q: &Query) -> Result<Vec<String>> {
+fn suggestions(
+    conn: &Connection,
+    cfg: &Config,
+    q: &Query,
+    qvec: Option<&[f32]>,
+) -> Result<Vec<String>> {
     type Drop = (&'static str, fn(&mut Query));
     let drops: &[Drop] = &[
         ("company", |q| q.company.clear()),
@@ -221,7 +297,7 @@ fn suggestions(conn: &Connection, cfg: &Config, q: &Query) -> Result<Vec<String>
         if wider == *q {
             continue;
         }
-        let n = count(conn, cfg, &wider)?;
+        let n = count(conn, cfg, &wider, qvec)?;
         if n > 0 {
             let noun = if n == 1 { "result" } else { "results" };
             out.push(format!("drop {name} -> {n} {noun}"));
@@ -395,14 +471,10 @@ pub fn search(
     timings.filter = ms(t);
 
     let limit = q.effective_limit();
-    if models.embedder.dims() > 0 && q.text.is_some() {
-        warnings.push(
-            "vector search is not available in this version; using full-text search only".into(),
-        );
-    }
 
     let t = Instant::now();
-    let candidates = text_candidates(conn, cfg, &q, &allowed)?;
+    let qvec = query_vector(conn, models, &q, &mut warnings)?;
+    let candidates = text_candidates(conn, cfg, &q, &allowed, qvec.as_deref())?;
     timings.candidates = ms(t);
 
     let t = Instant::now();
@@ -426,6 +498,7 @@ pub fn search(
                 cfg,
                 models,
                 req,
+                qvec.as_deref(),
                 q,
                 query_source,
                 SearchMode::Text,
@@ -455,6 +528,7 @@ pub fn search(
         cfg,
         models,
         req,
+        qvec.as_deref(),
         q,
         query_source,
         mode,
@@ -474,6 +548,7 @@ fn finish(
     cfg: &Config,
     models: &Models,
     req: &SearchRequest,
+    qvec: Option<&[f32]>,
     q: Query,
     query_source: QuerySource,
     mode: SearchMode,
@@ -520,11 +595,24 @@ fn finish(
             }
         }
         matched.extend(text_matches(conn, &q, &p)?);
+        if let Some(f) = relevance.get(&p.id) {
+            if f.fts_raw.is_none() {
+                if let Some(sim) = f.vec_raw {
+                    matched.push(Matched {
+                        field: "semantic".into(),
+                        similarity: Some(round3(sim)),
+                        ..Matched::default()
+                    });
+                }
+            }
+        }
         let rel = relevance.get(&p.id).map(|f| Relevance {
             fts: round3(f.fts),
             vector: f.vector.map(round3),
             fused: round3(f.relevance),
             final_: round3(f.final_score),
+            fts_rank: f.fts_raw.map(round3),
+            vec_sim: f.vec_raw.map(round3),
         });
         let reason = reasons.get(&p.id).cloned();
         results.push(SearchResult {
@@ -540,7 +628,7 @@ fn finish(
         });
     }
     let suggestions = if results.is_empty() && (q.has_structured_filters()) {
-        suggestions(conn, cfg, &q)?
+        suggestions(conn, cfg, &q, qvec)?
     } else {
         Vec::new()
     };
@@ -659,3 +747,7 @@ pub mod testkit;
 #[cfg(test)]
 #[path = "search_tests.rs"]
 mod search_tests;
+
+#[cfg(test)]
+#[path = "fusion_tests.rs"]
+mod fusion_tests;

@@ -291,6 +291,12 @@ pub struct Relevance {
     /// `fused * (0.5 + 0.5 * score)`.
     #[serde(rename = "final")]
     pub final_: f64,
+    /// Raw negated bm25 before normalization (`null` when not an FTS hit).
+    #[serde(default)]
+    pub fts_rank: Option<f64>,
+    /// Raw cosine similarity (`null` when not a vector hit).
+    #[serde(default)]
+    pub vec_sim: Option<f64>,
 }
 
 /// One matched field of a result (search.md section 8).
@@ -913,6 +919,8 @@ mod tests {
                     vector: None,
                     fused: 1.0,
                     final_: 0.89,
+                    fts_rank: Some(4.2),
+                    vec_sim: None,
                 }),
                 matched: vec![Matched {
                     field: "subjects".into(),
