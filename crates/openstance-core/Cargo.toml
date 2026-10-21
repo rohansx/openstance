@@ -38,6 +38,7 @@ chrono.workspace = true
 chrono-tz.workspace = true
 csv.workspace = true
 lru.workspace = true
+sqlite-vec.workspace = true
 
 [dev-dependencies]
 # Integration tests import the real fixture files, so they enable the
@@ -48,5 +49,11 @@ tempfile.workspace = true
 proptest.workspace = true
 insta.workspace = true
 
-[lints]
-workspace = true
+# The workspace forbids unsafe code. Core denies it instead so that the one
+# sqlite-vec registration call in db/vec.rs can carry an explicit
+# `#[allow(unsafe_code)]` with a SAFETY comment (conventions.md rule 11).
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+dbg_macro = "warn"

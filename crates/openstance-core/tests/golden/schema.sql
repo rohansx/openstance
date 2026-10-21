@@ -53,6 +53,12 @@ CREATE UNIQUE INDEX source_file_hash ON source(file_hash) WHERE file_hash IS NOT
 -- index sqlite_autoindex_interaction_1 on interaction
 -- (auto)
 
+-- index sqlite_autoindex_person_vec_info_1 on person_vec_info
+-- (auto)
+
+-- index sqlite_autoindex_person_vec_vector_chunks00_1 on person_vec_vector_chunks00
+-- (auto)
+
 -- index sqlite_autoindex_view_1 on view
 -- (auto)
 
@@ -175,6 +181,13 @@ CREATE TABLE person (
   no_enrich      INTEGER NOT NULL DEFAULT 0  -- materialized from override
 );
 
+-- table person_embed on person_embed
+CREATE TABLE person_embed (
+  person_id INTEGER PRIMARY KEY,
+  text_hash TEXT    NOT NULL,
+  at        INTEGER NOT NULL
+);
+
 -- table person_fts on person_fts
 CREATE VIRTUAL TABLE person_fts USING fts5(
   display_name, title, company, location, bio,
@@ -200,6 +213,24 @@ CREATE TABLE 'person_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB);
 -- table person_fts_idx on person_fts_idx
 CREATE TABLE 'person_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID;
 
+-- table person_vec on person_vec
+CREATE VIRTUAL TABLE person_vec USING vec0(
+  person_id INTEGER PRIMARY KEY,
+  embedding float[384]
+);
+
+-- table person_vec_chunks on person_vec_chunks
+CREATE TABLE "person_vec_chunks"(chunk_id INTEGER PRIMARY KEY AUTOINCREMENT,size INTEGER NOT NULL,validity BLOB NOT NULL,rowids BLOB NOT NULL);
+
+-- table person_vec_info on person_vec_info
+CREATE TABLE "person_vec_info" (key text primary key, value any);
+
+-- table person_vec_rowids on person_vec_rowids
+CREATE TABLE "person_vec_rowids"(rowid INTEGER PRIMARY KEY AUTOINCREMENT,id,chunk_id INTEGER,chunk_offset INTEGER);
+
+-- table person_vec_vector_chunks00 on person_vec_vector_chunks00
+CREATE TABLE "person_vec_vector_chunks00"(rowid PRIMARY KEY,vectors BLOB NOT NULL);
+
 -- table source on source
 CREATE TABLE source (
   id               INTEGER PRIMARY KEY,
@@ -212,6 +243,9 @@ CREATE TABLE source (
   importer_version INTEGER NOT NULL DEFAULT 1,
   stats_json       TEXT                  -- ImportStats, see ingestion.md
 );
+
+-- table sqlite_sequence on sqlite_sequence
+CREATE TABLE sqlite_sequence(name,seq);
 
 -- table tie on tie
 CREATE TABLE tie (

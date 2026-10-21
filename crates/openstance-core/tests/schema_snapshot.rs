@@ -45,13 +45,14 @@ fn schema_matches_golden_snapshot() {
 }
 
 #[test]
-fn schema_has_the_nine_regular_tables_plus_meta_and_person_fts() {
+fn schema_has_the_nine_regular_tables_plus_meta_and_the_derived_indexes() {
     let mut c = open_in_memory().unwrap();
     migrate(&mut c, None, 0).unwrap();
     let mut stmt = c
         .prepare(
             "SELECT name FROM sqlite_master WHERE type = 'table'
-             AND name NOT LIKE 'person_fts%' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+             AND name NOT LIKE 'person_fts%' AND name NOT LIKE 'person_vec%'
+             AND name NOT LIKE 'sqlite_%' ORDER BY name",
         )
         .unwrap();
     let names: Vec<String> = stmt
@@ -69,11 +70,27 @@ fn schema_has_the_nine_regular_tables_plus_meta_and_person_fts() {
             "meta",
             "override",
             "person",
+            "person_embed",
             "source",
             "tie",
             "view"
         ]
     );
+}
+
+#[test]
+fn person_vec_is_a_384_dim_vec0_table() {
+    let mut c = open_in_memory().unwrap();
+    migrate(&mut c, None, 0).unwrap();
+    let sql: String = c
+        .query_row(
+            "SELECT sql FROM sqlite_master WHERE name = 'person_vec'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert!(sql.contains("USING vec0"), "{sql}");
+    assert!(sql.contains("float[384]"), "{sql}");
 }
 
 #[test]

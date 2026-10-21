@@ -19,14 +19,21 @@ pub struct Migration {
 }
 
 /// Every migration this binary ships, in order.
-pub const MIGRATIONS: &[Migration] = &[Migration {
-    version: 1,
-    name: "0001_init",
-    sql: include_str!("../../migrations/0001_init.sql"),
-}];
+pub const MIGRATIONS: &[Migration] = &[
+    Migration {
+        version: 1,
+        name: "0001_init",
+        sql: include_str!("../../migrations/0001_init.sql"),
+    },
+    Migration {
+        version: 2,
+        name: "0002_person_vec",
+        sql: include_str!("../../migrations/0002_person_vec.sql"),
+    },
+];
 
 /// Newest schema version this binary knows.
-pub const LATEST_VERSION: u32 = 1;
+pub const LATEST_VERSION: u32 = 2;
 
 /// What [`migrate`] did.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -211,11 +218,14 @@ mod tests {
         let r = migrate(&mut c, None, 1_790_000_000).unwrap();
         assert_eq!(r.from, 0);
         assert_eq!(r.to, LATEST_VERSION);
-        assert_eq!(r.applied, vec!["0001_init".to_string()]);
+        assert_eq!(
+            r.applied,
+            vec!["0001_init".to_string(), "0002_person_vec".to_string()]
+        );
         assert_eq!(r.backup, None);
-        assert_eq!(schema_version(&c).unwrap(), 1);
-        assert_eq!(user_version(&c), 1);
-        assert_eq!(meta(&c, "schema_version").as_deref(), Some("1"));
+        assert_eq!(schema_version(&c).unwrap(), LATEST_VERSION);
+        assert_eq!(user_version(&c), LATEST_VERSION);
+        assert_eq!(meta(&c, "schema_version"), Some(LATEST_VERSION.to_string()));
         assert_eq!(meta(&c, "normalizer_version").as_deref(), Some("1"));
         let rec = meta(&c, "migration.0001_init").unwrap();
         assert_eq!(rec, format!("1790000000:{}", checksum(MIGRATIONS[0].sql)));
@@ -227,7 +237,7 @@ mod tests {
         migrate(&mut c, None, 1).unwrap();
         let r = migrate(&mut c, None, 2).unwrap();
         assert!(r.applied.is_empty());
-        assert_eq!((r.from, r.to), (1, 1));
+        assert_eq!((r.from, r.to), (LATEST_VERSION, LATEST_VERSION));
         // history keeps the original applied_at
         assert!(meta(&c, "migration.0001_init").unwrap().starts_with("1:"));
     }
@@ -295,7 +305,7 @@ mod tests {
     #[test]
     fn failing_migration_rolls_back_and_reports_its_name() {
         let mut c = open_in_memory().unwrap();
-        migrate(&mut c, None, 1).unwrap();
+        migrate_with(&mut c, None, &MIGRATIONS[..1], 1).unwrap();
         let bad = Migration {
             version: 2,
             name: "0002_bad",
@@ -315,6 +325,47 @@ mod tests {
             )
             .unwrap();
         assert_eq!(n, 0);
+    }
+
+    /// P2-CORE-01: a v0.2.0 database (schema 1) gains `person_vec` and
+    /// `person_embed` with every existing row intact, and a backup.
+    #[test]
+    fn v1_database_upgrades_to_vectors_without_data_loss() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("graph.db");
+        let mut c = open(&path, &DbOptions::default()).unwrap();
+        migrate_with(&mut c, Some(&path), &MIGRATIONS[..1], 1).unwrap();
+        c.execute_batch(
+            "INSERT INTO source(id, kind, imported_at) VALUES (1, 'vcf', 1);
+             INSERT INTO person(id, display_name, score) VALUES (10, 'Ana Example', 0.5);
+             INSERT INTO identity(id, kind, value, source_id, person_id)
+               VALUES (10, 'email', 'a@example.com', 1, 10);",
+        )
+        .unwrap();
+        let r = migrate(&mut c, Some(&path), 2).unwrap();
+        assert_eq!(r.applied, vec!["0002_person_vec".to_string()]);
+        assert!(r.backup.is_some());
+        let name: String = c
+            .query_row("SELECT display_name FROM person WHERE id = 10", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(name, "Ana Example");
+        assert_eq!(meta(&c, "person_vec_dims").as_deref(), Some("384"));
+        let blob = crate::db::vec::to_blob(&[0.5f32; 384]);
+        c.execute(
+            "INSERT INTO person_vec(person_id, embedding) VALUES (10, ?1)",
+            [&blob],
+        )
+        .unwrap();
+        let d: f64 = c
+            .query_row(
+                "SELECT vec_distance_cosine(embedding, ?1) FROM person_vec WHERE person_id = 10",
+                [&blob],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert!(d.abs() < 1e-6);
     }
 
     #[test]

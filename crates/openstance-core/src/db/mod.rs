@@ -8,6 +8,7 @@ use rusqlite::Connection;
 use crate::error::{Error, Result};
 
 pub mod migrate;
+pub mod vec;
 
 pub use migrate::{migrate, schema_version, MigrateReport, Migration, LATEST_VERSION, MIGRATIONS};
 
@@ -37,6 +38,7 @@ pub fn open(path: &Path, opts: &DbOptions) -> Result<Connection> {
         }
     }
     let existed = path.exists();
+    vec::register();
     let conn = Connection::open(path)?;
     if !existed {
         set_mode(path, 0o600)?;
@@ -59,6 +61,7 @@ fn set_mode(_path: &Path, _mode: u32) -> Result<()> {
 
 /// An in-memory database with the same pragmas (tests, `--dry-run`).
 pub fn open_in_memory() -> Result<Connection> {
+    vec::register();
     let conn = Connection::open_in_memory()?;
     apply_pragmas(&conn, &DbOptions::default())?;
     Ok(conn)
