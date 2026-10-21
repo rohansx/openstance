@@ -51,7 +51,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-14]
+        # Linux runs on 24.04: the prebuilt ONNX Runtime that ort 2.0.0-rc.15
+        # links (fastembed, default feature models-local) is built against
+        # glibc 2.38 and GCC 13's libstdc++, so it does not link on 22.04
+        # (undefined __isoc23_strtol, _M_replace_cold).
+        os: [ubuntu-24.04, macos-14]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -71,7 +75,8 @@ jobs:
   # evals/search.toml. The model (about 33 MB) is downloaded once and cached
   # between runs; the eval itself runs with downloads forbidden.
   eval:
-    runs-on: ubuntu-22.04
+    # 24.04 for the same ONNX Runtime glibc floor as the test job.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       OPENSTANCE_MODEL_DIR: ${{ github.workspace }}/.models
