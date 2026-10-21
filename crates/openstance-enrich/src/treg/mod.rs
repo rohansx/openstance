@@ -147,6 +147,13 @@ impl TregEnricher {
         self.prices.lock().unwrap_or_else(|p| p.into_inner())
     }
 
+    /// The token, or the `Auth` error that stops a run before any call.
+    fn token(&self) -> Result<&str, EnrichError> {
+        self.token
+            .as_deref()
+            .ok_or_else(|| EnrichError::Auth(format!("no treg token: set {}", self.token_env)))
+    }
+
     /// One `POST /call/<tool>` with a cost ceiling equal to the quoted price.
     fn call(&self, token: &str, tool: &'static str, body: &Value) -> Result<Called, EnrichError> {
         let (ceiling, _) = self.price(tool)?;
@@ -309,17 +316,19 @@ impl Enricher for TregEnricher {
             .collect()
     }
 
+    fn preflight(&self, job: &EnrichJob) -> Result<(), EnrichError> {
+        if let CallPlan::Insufficient(why) = map::plan(&job.request) {
+            return Err(EnrichError::Unsupported(why.to_string()));
+        }
+        self.token().map(|_| ())
+    }
+
     fn enrich(&self, job: &EnrichJob) -> Result<EnrichResult, EnrichError> {
         let plan = map::plan(&job.request);
         if let CallPlan::Insufficient(why) = plan {
             return Err(EnrichError::Unsupported(why.to_string()));
         }
-        let Some(token) = self.token.as_deref() else {
-            return Err(EnrichError::Auth(format!(
-                "no treg token: set {}",
-                self.token_env
-            )));
-        };
+        let token = self.token()?;
         let result = |data, cost, provider| EnrichResult {
             job: job.clone(),
             cost_micro_usd: cost,

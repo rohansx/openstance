@@ -157,6 +157,11 @@ pub trait Enricher: Send + Sync {
     /// prices, but only op names, never names/emails/domains.
     fn quote(&self, jobs: &[EnrichJob]) -> Result<Vec<QuoteLine>, EnrichError>;
 
+    /// Network-free check that `job` can be sent (credentials, enough input).
+    /// The gate calls it right before marking the row `sent`; an error means
+    /// nothing left the machine (row `blocked`, not counted). Default: Ok.
+    fn preflight(&self, _job: &EnrichJob) -> Result<(), EnrichError> { Ok(()) }
+
     /// Perform one job. Called only by EgressGate, never by playbooks directly.
     fn enrich(&self, job: &EnrichJob) -> Result<EnrichResult, EnrichError>;
 }
@@ -330,7 +335,7 @@ sequenceDiagram
 2. Before each call: if `spent + line.micro_usd > budget`, stop. The remaining jobs are recorded in the receipt as `skipped: over_budget`, and the playbook returns partial results with `status: "partial"`.
 3. After each call: `spent += result.cost_micro_usd`. If a backend reports an actual cost above its quote, the gate logs a warning, keeps the actual cost, and the budget check on the next job uses the real `spent`. The overrun is shown on the receipt.
 4. `no_enrich` is checked again in `execute` by `person_id`, in case the flag changed between quote and run (for example in a long `watch`).
-5. Errors are logged (`status = 'error'`) and do not abort the run unless the error is `Auth`, `Config`, `Disabled` or `Payment` (no balance: later calls would fail the same way).
+5. Errors are logged (`status = 'error'`) and do not abort the run unless the error is `Auth`, `Config`, `Disabled` or `Payment` (no balance: later calls would fail the same way). An error from `preflight` (before anything is sent) is logged `blocked` instead, does not count as a sent request, and follows the same abort rule.
 6. Approval semantics per surface:
    - **CLI:** print the quote, then prompt `Send N requests for $X.XX? [y/N]`. `--yes` approves. A non-TTY run without `--yes` prints the quote and exits with code `3` (see [interfaces.md](interfaces.md#14-exit-codes)).
    - **MCP / HTTP:** `allow_egress: true` in the same call approves whatever quote that call produces, if it fits in `max_usd`. An agent that wants to show the user the price first calls with `allow_egress: false`, shows the quote, then calls again with `true`.
@@ -379,7 +384,7 @@ CREATE INDEX enrich_log_person ON enrich_log(person_id);
 CREATE INDEX enrich_log_at     ON enrich_log(at);
 ```
 
-- One row per priced job, written by `EgressGate::quote` with status `quoted` (nothing has left the machine yet), then moved to `sent` just before the request leaves and to `ok`, `not_found` or `error` when the backend answers. A job the gate refuses (no_enrich set after the quote, over budget, run stopped after an auth or payment error) ends `blocked`. Rows still `quoted` were never sent. A prompt-then-run in the CLI reuses the run's `quoted` rows (same run id), so each request has one row. Migration `0003_enrich_log_status` added these states (P3-CORE-01).
+- One row per priced job, written by `EgressGate::quote` with status `quoted` (nothing has left the machine yet), then moved to `sent` just before the request leaves and to `ok`, `not_found` or `error` when the backend answers. A job the gate refuses (no_enrich set after the quote, over budget, run stopped after an auth or payment error) ends `blocked`. So does a job the backend refuses in `Enricher::preflight`, the network-free check the gate runs right before it would mark the row `sent` (for `treg`: no token, or a `Profile` with neither a LinkedIn identity nor a company); the reason is in `error`, and an `Auth`/`Config`/`Disabled` refusal stops the run like rule 5 in section 4.1. Rows still `quoted` or `blocked` were never sent; `sent`, `ok`, `not_found` and `error` rows left the machine and are the only ones counted in `requests_sent` and the `enrich log` totals. A prompt-then-run in the CLI reuses the run's `quoted` rows (same run id), so each request has one row. Migration `0003_enrich_log_status` added these states (P3-CORE-01).
 - `request_json` records the outbound payload exactly as sent, so the user can audit precisely what left the machine. Auth headers are never stored.
 - `response_json` is the normalized `EnrichData`, not the raw provider body. It is the raw material that `openstance rebuild` replays (section 7). Like other source rows, it is kept until the user deletes it.
 - Users read it with `openstance enrich log [--run <id>] [--since 30d] [--json]` or `GET /enrich-log`. Totals per run and per month are shown at the bottom.

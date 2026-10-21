@@ -344,3 +344,69 @@ fn requoting_the_same_jobs_in_one_run_reuses_the_quoted_rows() {
     other.quote(jobs).unwrap();
     assert_eq!(rows(&g).len(), 4);
 }
+
+#[test]
+fn a_request_the_backend_refuses_before_sending_is_not_counted_as_sent() {
+    let g = graph();
+    let mock = MockEnricher::new()
+        .fail_before_send(EnrichRequest::WebSearch { query: "x".into() }, || {
+            EnrichError::Auth("no token".into())
+        });
+    let mut gate = EgressGate::new(&g, &mock, "brief", "run-p", 500_000);
+    let q = gate.quote(vec![search("x"), search("y")]).unwrap();
+    gate.approve(&q).unwrap();
+    match gate.execute(&search("x")).unwrap() {
+        Executed::Failed { error, fatal, .. } => {
+            assert!(fatal);
+            assert!(error.contains("no token"), "{error}");
+        }
+        other => panic!("{other:?}"),
+    }
+    // Fatal: the rest of the run is not sent either.
+    assert!(matches!(
+        gate.execute(&search("y")).unwrap(),
+        Executed::Failed { fatal: true, .. }
+    ));
+    assert!(mock.calls().is_empty());
+    let r = gate.receipt();
+    assert_eq!((r.requests_sent, r.spent_micro_usd), (0, 0));
+    let statuses: Vec<String> = rows(&g).into_iter().map(|r| r.1).collect();
+    assert_eq!(statuses, vec!["blocked", "blocked"]);
+    let err: Option<String> = g
+        .conn()
+        .query_row(
+            "SELECT error FROM enrich_log WHERE id = ?1",
+            [r.enrich_log_ids[0]],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert!(err.unwrap().contains("no token"));
+    let totals = g
+        .enrich_log(&crate::egress::log::LogFilter::default())
+        .unwrap()
+        .totals;
+    assert_eq!(totals.requests_sent, 0);
+}
+
+#[test]
+fn a_non_fatal_preflight_refusal_skips_only_that_request() {
+    let g = graph();
+    let mock = MockEnricher::new()
+        .fail_before_send(EnrichRequest::WebSearch { query: "x".into() }, || {
+            EnrichError::Unsupported("not enough input".into())
+        });
+    let mut gate = EgressGate::new(&g, &mock, "brief", "run-p2", 500_000);
+    let q = gate.quote(vec![search("x"), search("y")]).unwrap();
+    gate.approve(&q).unwrap();
+    assert!(matches!(
+        gate.execute(&search("x")).unwrap(),
+        Executed::Failed { fatal: false, .. }
+    ));
+    assert!(matches!(
+        gate.execute(&search("y")).unwrap(),
+        Executed::Done { .. }
+    ));
+    assert_eq!(gate.receipt().requests_sent, 1);
+    let statuses: Vec<String> = rows(&g).into_iter().map(|r| r.1).collect();
+    assert_eq!(statuses, vec!["blocked", "not_found"]);
+}

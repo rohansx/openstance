@@ -332,6 +332,47 @@ fn path_quotes_first_then_spends_only_when_allowed() {
 }
 
 #[test]
+fn approved_run_without_a_token_sends_nothing_and_counts_nothing() {
+    let home = seeded();
+    let server = Server::start();
+    use_treg(home.path(), &server.base);
+    let v = ok_json(ost(home.path()).env_remove("OST_TEST_TREG_TOKEN").args([
+        "--json",
+        "--now",
+        NOW,
+        "path",
+        "Dana Whitfield",
+        "--company",
+        "Contoso",
+        "--find-email",
+        "--allow-egress",
+    ]));
+    assert_eq!(v["receipt"]["requests_sent"], 0, "{v}");
+    assert_eq!(v["receipt"]["spent_micro_usd"], 0, "{v}");
+    assert!(server.requests().iter().all(|r| r.0 == "GET"));
+    let run_id = v["receipt"]["run_id"].as_str().unwrap().to_string();
+    let log = ok_json(ost(home.path()).args(["--json", "enrich", "log", "--run", &run_id]));
+    let rows = log["rows"].as_array().unwrap();
+    assert!(!rows.is_empty(), "{log}");
+    // The profile request was refused before it left; the email steps had
+    // no input and stay quoted. Nothing reads as sent.
+    assert_eq!(rows[0]["status"], "blocked", "{log}");
+    assert!(
+        rows.iter()
+            .all(|r| r["status"] == "blocked" || r["status"] == "quoted"),
+        "{log}"
+    );
+    assert!(
+        rows[0]["error"]
+            .as_str()
+            .unwrap()
+            .contains("OST_TEST_TREG_TOKEN"),
+        "{log}"
+    );
+    assert_eq!(log["totals"]["requests_sent"], 0);
+}
+
+#[test]
 fn plan_flag_prints_the_quote_and_exits_zero() {
     let home = seeded();
     let server = Server::start();

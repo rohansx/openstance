@@ -364,6 +364,14 @@ pub trait Enricher: Send + Sync {
     fn supports(&self, op: &str) -> bool;
     /// Price each job BEFORE any call. Must not send contact data.
     fn quote(&self, jobs: &[EnrichJob]) -> Result<Vec<QuoteLine>, EnrichError>;
+    /// Check, without any network call, that `job` can be sent: credentials
+    /// present, enough input. The gate calls this right before it marks the
+    /// request `sent`; an error here means nothing left the machine, so the
+    /// request is logged `blocked` and not counted as sent. The default
+    /// accepts every job.
+    fn preflight(&self, _job: &EnrichJob) -> Result<(), EnrichError> {
+        Ok(())
+    }
     /// Perform one job.
     fn enrich(&self, job: &EnrichJob) -> Result<EnrichResult, EnrichError>;
 }

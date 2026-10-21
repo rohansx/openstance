@@ -90,6 +90,7 @@ pub struct MockEnricher {
     supported: HashSet<String>,
     responses: HashMap<EnrichRequest, MockResponse>,
     fail_on: HashMap<EnrichRequest, ErrFn>,
+    fail_before_send: HashMap<EnrichRequest, ErrFn>,
     quote_error: Option<ErrFn>,
     fetched_at: Option<i64>,
     events: Mutex<Vec<MockEvent>>,
@@ -124,6 +125,7 @@ impl MockEnricher {
             supported: ALL_OPS.iter().map(|s| s.to_string()).collect(),
             responses: HashMap::new(),
             fail_on: HashMap::new(),
+            fail_before_send: HashMap::new(),
             quote_error: None,
             fetched_at: None,
             events: Mutex::new(Vec::new()),
@@ -219,6 +221,14 @@ impl MockEnricher {
         self
     }
 
+    /// Make `preflight(request)` fail with the given error: the backend
+    /// refuses before anything would leave the machine (no token, not
+    /// enough input), so `enrich` is never called for it.
+    pub fn fail_before_send(mut self, request: EnrichRequest, err: fn() -> EnrichError) -> Self {
+        self.fail_before_send.insert(request, err);
+        self
+    }
+
     /// Make every `quote` fail with the given error.
     pub fn quote_fails_with(mut self, err: fn() -> EnrichError) -> Self {
         self.quote_error = Some(err);
@@ -301,6 +311,13 @@ impl Enricher for MockEnricher {
                 })
             })
             .collect()
+    }
+
+    fn preflight(&self, job: &EnrichJob) -> Result<(), EnrichError> {
+        match self.fail_before_send.get(&job.request) {
+            Some(f) => Err(f()),
+            None => Ok(()),
+        }
     }
 
     fn enrich(&self, job: &EnrichJob) -> Result<EnrichResult, EnrichError> {

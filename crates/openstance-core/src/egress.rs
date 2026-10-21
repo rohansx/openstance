@@ -15,7 +15,10 @@
 //!    (status `blocked`, receipt `skipped: over_budget`);
 //! 5. each attempt moves its `enrich_log` row `quoted -> sent ->
 //!    ok | not_found | error` (or `blocked`), the row is written before the
-//!    result is used, and the actual cost reported by the backend is kept;
+//!    result is used, and the actual cost reported by the backend is kept.
+//!    A request the backend refuses in [`Enricher::preflight`] (no token,
+//!    not enough input) never left: it ends `blocked` and is not counted in
+//!    `requests_sent`;
 //! 6. results are committed ([`EgressGate::commit`]) under one
 //!    `source(kind = 'enrich:<backend>')` row and become field facts that
 //!    rank below overrides ([`facts`]) and identities that resolution
@@ -455,6 +458,22 @@ impl<'a> EgressGate<'a> {
                 reason: SkipReason::OverBudget,
             });
         }
+        // The backend's own pre-send checks (token, enough input). A refusal
+        // here means nothing left the machine: the row ends `blocked` with
+        // the reason and the request is not counted as sent.
+        if let Err(e) = self.enricher.preflight(job) {
+            let fatal = is_fatal(&e);
+            let msg = e.to_string();
+            self.block(slot.log_id, SkipReason::Unsupported, Some(&msg))?;
+            if fatal {
+                self.fatal = Some(format!("run stopped after: {msg}"));
+            }
+            return Ok(Executed::Failed {
+                log_id: slot.log_id,
+                error: msg,
+                fatal,
+            });
+        }
         // The row says `sent` before the request leaves.
         self.conn().execute(
             "UPDATE enrich_log SET status = 'sent', at = ?2, request_json = ?3 WHERE id = ?1",
@@ -498,13 +517,7 @@ impl<'a> EgressGate<'a> {
                 })
             }
             Err(e) => {
-                let fatal = matches!(
-                    e,
-                    EnrichError::Auth(_)
-                        | EnrichError::Disabled
-                        | EnrichError::Config(_)
-                        | EnrichError::Payment(_)
-                );
+                let fatal = is_fatal(&e);
                 let msg = e.to_string();
                 self.conn().execute(
                     "UPDATE enrich_log SET status = 'error', error = ?2 WHERE id = ?1",
@@ -631,6 +644,18 @@ impl<'a> EgressGate<'a> {
             enrich_log_ids: self.log_ids.clone(),
         }
     }
+}
+
+/// Errors after which every later call of the run would fail the same way
+/// (enrichment.md section 4.1 rule 5).
+fn is_fatal(e: &EnrichError) -> bool {
+    matches!(
+        e,
+        EnrichError::Auth(_)
+            | EnrichError::Disabled
+            | EnrichError::Config(_)
+            | EnrichError::Payment(_)
+    )
 }
 
 /// `{"kind": op, ...outbound fields}`: exactly what leaves the machine.

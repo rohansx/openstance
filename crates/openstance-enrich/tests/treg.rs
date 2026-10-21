@@ -446,6 +446,8 @@ fn profile_with_name_only_is_refused_without_network() {
     let l = e.quote(std::slice::from_ref(&j)).unwrap();
     assert_eq!(l[0].micro_usd, 0);
     assert!(matches!(e.enrich(&j), Err(EnrichError::Unsupported(_))));
+    // The gate learns this before it marks the request sent.
+    assert!(matches!(e.preflight(&j), Err(EnrichError::Unsupported(_))));
     assert!(s.requests().is_empty());
 }
 
@@ -662,7 +664,18 @@ fn missing_token_fails_before_any_call() {
     let err = e.enrich(&job(find_email())).unwrap_err();
     assert!(matches!(err, EnrichError::Auth(_)), "{err:?}");
     assert!(err.to_string().contains("OPENSTANCE_TREG_TOKEN"));
+    // The gate learns this before it marks the request sent.
+    let pre = e.preflight(&job(find_email())).unwrap_err();
+    assert!(matches!(pre, EnrichError::Auth(_)), "{pre:?}");
     assert!(s.requests().iter().all(|r| r.method == "GET"));
+}
+
+#[test]
+fn preflight_with_a_token_and_enough_input_passes_without_network() {
+    let s = Server::start(happy_treg);
+    let e = enricher(&s.base);
+    e.preflight(&job(find_email())).unwrap();
+    assert!(s.requests().is_empty());
 }
 
 #[test]
