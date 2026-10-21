@@ -5,8 +5,7 @@ use std::collections::BTreeMap;
 
 use openstance_core::config::{Config, Origin};
 use openstance_core::json::{
-    ymd, Evidence, FlaggedMerge, ImportResponse, PersonDetail, ReviewQueue, SearchMode,
-    SearchResponse,
+    ymd, Evidence, FlaggedMerge, ImportResponse, ReviewQueue, SearchMode, SearchResponse,
 };
 use openstance_core::overrides::OverrideRow;
 use openstance_core::stats::GraphCounts;
@@ -315,122 +314,6 @@ pub fn review_list(q: &ReviewQueue) {
         println!(
             "confirm: openstance review --confirm <id>   split: openstance review --split <id>"
         );
-    }
-}
-
-/// `who`.
-pub fn who(d: &PersonDetail) {
-    let p = &d.person;
-    let c = &p.components;
-    let mut head = p
-        .display_name
-        .clone()
-        .unwrap_or_else(|| format!("#{}", p.id));
-    let tc = title_company(&p.title, &p.company);
-    if !tc.is_empty() {
-        head.push_str(&format!(" - {tc}"));
-    }
-    if let Some(l) = &p.location {
-        head.push_str(&format!(" - {l}"));
-    }
-    println!("{head}    score {:.2} (preset {})", p.score, c.preset);
-    if let Some(from) = d.resolved_from {
-        println!("  (resolved from merged id {from})");
-    }
-    let raw = c.raw.as_ref();
-    let w = &c.weights;
-    let days = raw.and_then(|r| r.days_since_last).map_or_else(
-        || "no contact".to_string(),
-        |d| format!("{d:.0} days since last"),
-    );
-    println!(
-        "  R {:.3}  ({days}; half-life {})  x {:.2}",
-        c.recency, c.half_life_days, w.recency
-    );
-    println!(
-        "  F {:.3}  ({} interactions)  x {:.2}",
-        c.frequency,
-        raw.map_or(0, |r| r.n_interactions),
-        w.frequency
-    );
-    println!(
-        "  C {:.3}  ({} replies / {} sent)  x {:.2}",
-        c.reciprocity,
-        raw.map_or(0, |r| r.replies_from_them),
-        raw.map_or(0, |r| r.messages_from_you),
-        w.reciprocity
-    );
-    println!(
-        "  M {:.3}  ({} meetings)  x {:.2}",
-        c.meetings,
-        raw.map_or(0, |r| r.n_meetings),
-        w.meetings
-    );
-    println!(
-        "  B {:.3}  ({})  x {:.2}",
-        c.breadth,
-        raw.map(|r| r.channels.join(", ")).unwrap_or_default(),
-        w.breadth
-    );
-    if p.is_bulk {
-        println!("  bulk sender (hidden from search)");
-    }
-    let ids: Vec<String> = d
-        .identities
-        .iter()
-        .map(|i| {
-            format!(
-                "{}:{} ({}, {})",
-                i.kind,
-                i.value,
-                i.source.kind,
-                i.confidence
-                    .map_or_else(|| "-".into(), |c| format!("{c:.2}"))
-            )
-        })
-        .collect();
-    println!("identities  {}", ids.join("  "));
-    if !p.tags.is_empty() {
-        println!("tags        {}", p.tags.join(", "));
-    }
-    for (i, e) in d.recent_interactions.iter().enumerate() {
-        if let Some(l) = evidence_line(e) {
-            let label = if i == 0 { "recent" } else { "" };
-            println!("{label:<11} {l}");
-        }
-    }
-    if !d.mutuals.is_empty() {
-        let m: Vec<String> = d
-            .mutuals
-            .iter()
-            .map(|m| {
-                format!(
-                    "{} ({} shared)",
-                    m.person.display_name.as_deref().unwrap_or("-"),
-                    m.n_shared
-                )
-            })
-            .collect();
-        println!("mutuals     {}", m.join("  "));
-    }
-    for o in &d.overrides {
-        println!(
-            "{:<11} override ({})",
-            format!("{} from", o.field),
-            day(&Some(o.set_at.clone()))
-        );
-    }
-    for n in &d.notes {
-        println!("note        {} ({})", n.value, day(&Some(n.set_at.clone())));
-    }
-    let fs: BTreeMap<_, _> = p
-        .field_sources
-        .iter()
-        .filter_map(|(k, v)| v.as_ref().map(|v| (k, v)))
-        .collect();
-    if !fs.is_empty() {
-        let parts: Vec<String> = fs.iter().map(|(k, v)| format!("{k}: {v}")).collect();
-        println!("sources     {}", parts.join("  "));
     }
 }
 

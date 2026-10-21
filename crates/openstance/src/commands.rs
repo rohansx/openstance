@@ -20,7 +20,7 @@ use openstance_import::ImportOptions;
 use crate::render;
 use crate::{
     Cli, Command, ConfigAction, ConfigArgs, EditArgs, ExportArgs, FilterArgs, Format, ImportArgs,
-    InitArgs, MergeArgs, ReviewArgs, SearchArgs, SplitArgs, UsageError, WhoArgs,
+    InitArgs, MergeArgs, ReviewArgs, SearchArgs, SplitArgs, UsageError,
 };
 
 /// Global state for one invocation.
@@ -42,12 +42,30 @@ impl Ctx {
 
     fn open(&self, cfg: Config, providers: Providers) -> Result<Graph> {
         let db = &self.loaded.paths.db;
-        Graph::open(cfg, db, providers, self.clock())
-            .with_context(|| format!("opening {}", db.display()))
+        let g = Graph::open(cfg, db, providers, self.clock())
+            .with_context(|| format!("opening {}", db.display()))?;
+        if let Some(w) = g.embedding_warning() {
+            eprintln!("warning: {w}");
+        }
+        Ok(g)
+    }
+
+    /// Providers for `cfg`: the configured embedder (loaded lazily) plus
+    /// `importers`.
+    fn providers(
+        &self,
+        cfg: &Config,
+        importers: Vec<Box<dyn openstance_import::Importer>>,
+    ) -> Result<Providers> {
+        let mut p = Providers::with_importers(importers);
+        p.models.embedder = crate::embeddings::embedder(cfg, &self.loaded.paths)?;
+        Ok(p)
     }
 
     fn open_default(&self) -> Result<Graph> {
-        self.open(self.loaded.config.clone(), Providers::null())
+        let cfg = self.loaded.config.clone();
+        let providers = self.providers(&cfg, Vec::new())?;
+        self.open(cfg, providers)
     }
 
     fn today(&self) -> i64 {
@@ -96,10 +114,11 @@ pub fn dispatch(cli: Cli) -> Result<()> {
     match cli.command {
         Command::Init(a) => init(&ctx, a),
         Command::Import(a) => import(&ctx, a),
-        Command::Rebuild => rebuild(&ctx),
+        Command::Rebuild(a) => rebuild(&ctx, a),
         Command::Review(a) => review(&ctx, a),
         Command::Search(a) => search_cmd(&ctx, a),
-        Command::Who(a) => who(&ctx, a),
+        Command::Who(a) => crate::who::run(&ctx.open_default()?, ctx.json, a),
+        Command::How(a) => crate::how::run(&ctx.open_default()?, ctx.json, a),
         Command::Edit(a) => edit(&ctx, a),
         Command::Merge(a) => merge(&ctx, a),
         Command::Split(a) => split(&ctx, a),
@@ -174,8 +193,9 @@ fn import(ctx: &Ctx, a: ImportArgs) -> Result<()> {
         max_message_bytes: u64::from(cfg.import.max_message_mb) * 1024 * 1024,
         ..ImportOptions::default()
     };
-    let providers = Providers::with_importers(openstance_import::registry(&opts));
+    let providers = ctx.providers(&cfg, openstance_import::registry(&opts))?;
     let mut g = ctx.open(cfg, providers)?;
+    crate::embeddings::show_progress(&mut g, ctx.json);
     let req = ImportRequest {
         kind: a.kind,
         label: a.label,
@@ -186,6 +206,7 @@ fn import(ctx: &Ctx, a: ImportArgs) -> Result<()> {
         eprintln!("importing {} file(s)...", a.files.len());
     }
     let resp = g.import(&a.files, &req).context("importing")?;
+    crate::embeddings::print_refresh(&g, ctx.json);
     if ctx.json {
         return print_json(&resp);
     }
@@ -197,9 +218,14 @@ fn import(ctx: &Ctx, a: ImportArgs) -> Result<()> {
     Ok(())
 }
 
-fn rebuild(ctx: &Ctx) -> Result<()> {
+fn rebuild(ctx: &Ctx, a: crate::embeddings::RebuildArgs) -> Result<()> {
     let mut g = ctx.open_default()?;
+    if a.embeddings {
+        return crate::embeddings::run(&mut g, ctx.json);
+    }
+    crate::embeddings::show_progress(&mut g, ctx.json);
     let r = g.rebuild()?;
+    crate::embeddings::print_refresh(&g, ctx.json);
     if ctx.json {
         return print_json(&with_v(&r)?);
     }
@@ -435,7 +461,8 @@ fn search_cmd(ctx: &Ctx, a: SearchArgs) -> Result<()> {
         cfg.model.embedder = "none".into();
         cfg.model.reranker = "none".into();
     }
-    let g = ctx.open(cfg, Providers::null())?;
+    let providers = ctx.providers(&cfg, Vec::new())?;
+    let g = ctx.open(cfg, providers)?;
     let mut patch = QueryPatch::default();
     let mut text = a.text.clone();
     let mut no_parse = a.no_parse;
@@ -475,27 +502,6 @@ fn search_cmd(ctx: &Ctx, a: SearchArgs) -> Result<()> {
         return print_json(&resp);
     }
     render::search_table(&resp, a.explain);
-    Ok(())
-}
-
-fn who(ctx: &Ctx, a: WhoArgs) -> Result<()> {
-    let g = ctx.open_default()?;
-    let r = resolve_person(g.conn(), &PersonKey::parse(&a.person))?;
-    let d = openstance_core::search::person::detail(
-        g.conn(),
-        g.config(),
-        r.person,
-        r.resolved_from,
-        openstance_core::search::person::DetailOptions {
-            interactions: a.interactions,
-            mutuals: 10,
-        },
-        ctx.now,
-    )?;
-    if ctx.json {
-        return print_json(&d);
-    }
-    render::who(&d);
     Ok(())
 }
 

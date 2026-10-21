@@ -18,6 +18,10 @@ fn bin(name: &str, home: &Path) -> Command {
         .env_remove("OPENSTANCE_CONFIG")
         .env_remove("OPENSTANCE_DB")
         .env_remove("OPENSTANCE_LOG")
+        // No model download in tests: the embedder tier lives in
+        // tests/embeddings.rs (hash embedder) and the ignored model tests.
+        .env("OPENSTANCE__MODEL__EMBEDDER", "none")
+        .env("OPENSTANCE_OFFLINE", "1")
         .env("NO_COLOR", "1");
     c
 }
@@ -120,7 +124,7 @@ fn init_creates_home_and_is_idempotent() {
     assert!(second.contains(&dir.path().join("graph.db").display().to_string()));
     let v = json(ost(dir.path()).args(["init", "--json"]));
     assert_eq!(v["created_db"], false);
-    assert_eq!(v["schema_version"], 1);
+    assert_eq!(v["schema_version"], 2);
 }
 
 // --- P1-CLI-07: config -----------------------------------------------------

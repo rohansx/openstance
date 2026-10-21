@@ -13,8 +13,11 @@ use std::process::ExitCode;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
 mod commands;
+mod embeddings;
+mod how;
 pub mod mcp;
 mod render;
+mod who;
 
 /// Global flags shared by every command (interfaces.md section 4).
 #[derive(Debug, Parser)]
@@ -56,13 +59,16 @@ pub enum Command {
     /// Import export files (mbox, LinkedIn CSV, vcf).
     Import(ImportArgs),
     /// Recompute everything derived from sources and edits.
-    Rebuild,
+    Rebuild(embeddings::RebuildArgs),
     /// Confirm or split flagged merges.
     Review(ReviewArgs),
     /// Search people.
     Search(SearchArgs),
     /// Show one person: fields, score breakdown, identities, evidence.
     Who(WhoArgs),
+    /// Warm intro paths to someone in your graph.
+    #[command(visible_alias = "how-connected")]
+    How(how::HowArgs),
     /// Edit a person (writes overrides).
     Edit(EditArgs),
     /// Merge two people.
