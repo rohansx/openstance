@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(any(test, feature = "mock"))]
 pub mod mock;
+#[cfg(feature = "ownkeys")]
+pub mod ownkeys;
 #[cfg(feature = "treg")]
 pub mod treg;
 
