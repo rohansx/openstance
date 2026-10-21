@@ -1,5 +1,8 @@
 # P1-CI-02: fmt, clippy -D warnings, tests on Linux and macOS, cargo deny,
-# and the dependency-direction check. See docs/engineering/ci-and-release.md.
+# and the dependency-direction check. P4: the web UI and the landing site
+# (lint, typecheck, test, build, bundle size), and a release build with the
+# UI embedded, smoke-tested with Playwright. See
+# docs/engineering/ci-and-release.md.
 name: ci
 
 on:
@@ -133,3 +136,85 @@ jobs:
         run: |
           if [ -f "$RUNNER_TEMP/base.json" ]; then export OPENSTANCE_BENCH_COMPARE="$RUNNER_TEMP/base.json"; fi
           cargo bench --locked -p openstance-core --bench search -- --quick
+
+  # P4-UI-*: the web UI (ui/) and the landing site (site/). Vite + React +
+  # TypeScript; the gzipped bundle must stay under 300 KB.
+  node:
+    name: node (${{ matrix.project }})
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [ui, site]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Bundle size (under 300 KB gzipped)
+        run: npm run size
+
+  # P4-API-06: the release binary embeds ui/dist (feature `ui`, on by
+  # default). The UI is built first; without ui/dist the binary would serve a
+  # placeholder page. Then the Playwright smoke tests run against it
+  # (offline, fictional demo dataset).
+  ui-release:
+    name: release build with embedded UI
+    # 24.04 for the ONNX Runtime glibc floor (see the test job).
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ui-release
+      - name: Build the web UI
+        working-directory: ui
+        run: npm ci && npm run build
+      - run: cargo build --release --locked -p openstance
+      - name: The binary serves the embedded UI, not the placeholder
+        env:
+          OPENSTANCE_HOME: ${{ runner.temp }}/home
+          OPENSTANCE_OFFLINE: "1"
+          OPENSTANCE__MODEL__EMBEDDER: none
+        run: |
+          bin=target/release/openstance
+          "$bin" init
+          "$bin" serve --port 0 --json > "$RUNNER_TEMP/ready.json" &
+          for _ in $(seq 100); do [ -s "$RUNNER_TEMP/ready.json" ] && break; sleep 0.1; done
+          base=$(jq -r .api "$RUNNER_TEMP/ready.json")
+          curl -sf "$base/" > "$RUNNER_TEMP/index.html"
+          grep -q 'assets/index-' "$RUNNER_TEMP/index.html"
+          if grep -q 'npm run build' "$RUNNER_TEMP/index.html"; then echo "placeholder page served"; exit 1; fi
+          kill %1
+      - name: Playwright smoke tests
+        working-directory: ui
+        env:
+          OPENSTANCE_BIN: ${{ github.workspace }}/target/release/openstance
+        run: |
+          npx playwright install --with-deps chromium
+          npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            ui/playwright-report
+            ui/test-results

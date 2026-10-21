@@ -1,10 +1,13 @@
-// Gzipped size of the built UI (P4-UI-01 budget: under 300 KB gzipped).
+// Gzipped size of a built bundle (P4-UI-01 budget: under 300 KB gzipped).
+//   node scripts/size.mjs            # ui/dist
+//   node ../ui/scripts/size.mjs dist # another project's dist (the site)
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
 const BUDGET = 300 * 1024;
-const dist = new URL('../dist/', import.meta.url).pathname;
+const dist = process.argv[2] ? resolve(process.argv[2]) + sep : fileURLToPath(new URL('../dist/', import.meta.url));
 
 function walk(dir) {
   return readdirSync(dir).flatMap((f) => {

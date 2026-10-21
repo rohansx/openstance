@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
   "description": "Static landing page for openstance",
   "scripts": {
     "dev": "vite",
@@ -11,7 +14,8 @@
     "typecheck": "tsc --noEmit -p .",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "size": "node ../ui/scripts/size.mjs dist"
   },
   "dependencies": {
     "react": "^19.3.1",
