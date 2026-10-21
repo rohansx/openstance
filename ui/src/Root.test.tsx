@@ -72,6 +72,7 @@ describe('Root: token handoff and shell', () => {
     expect(screen.getByRole('link', { name: /import contacts/i })).toHaveAttribute('href', '#/sources');
     // counts come from GET /stats
     expect(await within(nav).findByText('1,210')).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: /^Review queue/ })).toHaveTextContent('2');
     expect(screen.getByLabelText('Breadcrumb')).toHaveTextContent('Search people');
   });
 

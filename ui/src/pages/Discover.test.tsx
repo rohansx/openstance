@@ -94,7 +94,7 @@ describe('Search page (P4-UI-02)', () => {
   });
 
   it('toggles the shortlist from a result card', async () => {
-    const { api } = renderApp('#/discover', { 'DELETE /shortlist/812': { status: 204 }, 'POST /shortlist': { person_id: 1203, note: null } });
+    const { api } = renderApp('#/discover', { 'DELETE /shortlist/812': { v: 1, removed: true }, 'POST /shortlist': { v: 1, entry: { person_id: 1203, person: null, note: null, added_at: '2026-10-21T00:00:00Z' } } });
     await search('devtools dinner');
     const tom = (await screen.findByRole('heading', { name: 'Tom Okafor' })).closest('article')!;
     const save = await within(tom).findByRole('button', { name: /remove tom okafor from shortlist/i });
@@ -104,7 +104,7 @@ describe('Search page (P4-UI-02)', () => {
 
     const kai = screen.getByRole('heading', { name: 'Kai Wu' }).closest('article')!;
     await userEvent.click(within(kai).getByRole('button', { name: /save kai wu to shortlist/i }));
-    await waitFor(() => expect(api.callsTo('POST /shortlist')[0]?.body).toEqual({ person_id: 1203 }));
+    await waitFor(() => expect(api.callsTo('POST /shortlist')[0]?.body).toEqual({ person: 1203, note: null }));
   });
 
   it('People page lists everyone by score with a structured (no text) search', async () => {

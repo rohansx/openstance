@@ -18,9 +18,11 @@ import type {
   ImportResponse,
   Intro,
   IntroPatch,
+  IntroStage,
   NewIntro,
   Outcome,
   PersonDetail,
+  PersonRefArg,
   PlaybookRequest,
   Quote,
   ReviewQueue,
@@ -149,7 +151,8 @@ export function createClient(opts: ClientOptions) {
         `/people/${seg(id)}${toSearchParams({ interactions: p.interactions ?? 10, mutuals: p.mutuals ?? 10 })}`,
       ),
 
-    ties: (id: number, other: number) => json<TieDetail>('GET', `/people/${seg(id)}/ties/${seg(other)}`),
+    ties: (id: number, other: number, limit = 10) =>
+      json<TieDetail>('GET', `/people/${seg(id)}/ties/${seg(other)}${toSearchParams({ limit })}`),
 
     connections: (target: string | number, limit = 3) =>
       json<HowConnected>('GET', `/connections${toSearchParams({ target: String(target), limit })}`),
@@ -179,8 +182,8 @@ export function createClient(opts: ClientOptions) {
     searchView: (name: string, p: { q?: string; company?: string[]; limit?: number } = {}) =>
       json<{ results: unknown[] }>('GET', `/views/${seg(name)}/search${toSearchParams(p)}`),
 
-    exportView: async (name: string): Promise<Blob> => {
-      const res = await raw('POST', `/views/${seg(name)}/export`);
+    exportView: async (name: string, armor = false): Promise<Blob> => {
+      const res = await raw('POST', `/views/${seg(name)}/export${toSearchParams({ armor: armor || undefined })}`);
       return res.blob();
     },
 
@@ -193,15 +196,26 @@ export function createClient(opts: ClientOptions) {
 
     stats: () => json<Stats>('GET', '/stats'),
 
-    shortlist: () => json<unknown>('GET', '/shortlist').then((r) => pick<ShortlistEntry>(r, 'shortlist')),
-    addToShortlist: (person_id: number, note?: string) =>
-      json<ShortlistEntry>('POST', '/shortlist', note ? { person_id, note } : { person_id }),
-    removeFromShortlist: (person_id: number) => json<void>('DELETE', `/shortlist/${seg(person_id)}`),
+    shortlist: () => json<{ shortlist: ShortlistEntry[] }>('GET', '/shortlist').then((r) => pick<ShortlistEntry>(r, 'shortlist')),
+    addToShortlist: (person: PersonRefArg, note: string | null = null) =>
+      json<{ entry: ShortlistEntry }>('POST', '/shortlist', { person, note }).then((r) => r.entry),
+    setShortlistNote: (person: number, note: string | null) =>
+      json<{ entry: ShortlistEntry }>('PATCH', `/shortlist/${seg(person)}`, { note }).then((r) => r.entry),
+    removeFromShortlist: (person: number) => json<{ removed: boolean }>('DELETE', `/shortlist/${seg(person)}`),
 
-    intros: () => json<unknown>('GET', '/intros').then((r) => pick<Intro>(r, 'intros')),
-    createIntro: (intro: NewIntro) => json<Intro>('POST', '/intros', intro),
-    updateIntro: (id: number, patch: IntroPatch) => json<Intro>('PATCH', `/intros/${seg(id)}`, patch),
-    deleteIntro: (id: number) => json<void>('DELETE', `/intros/${seg(id)}`),
+    intros: (stage?: IntroStage) =>
+      json<{ intros: Intro[] }>('GET', `/intros${toSearchParams({ stage })}`).then((r) => pick<Intro>(r, 'intros')),
+    createIntro: (intro: NewIntro) =>
+      json<{ intro: Intro }>('POST', '/intros', {
+        person: intro.person,
+        connector: intro.connector ?? null,
+        stage: intro.stage,
+        note: intro.note ?? null,
+        follow_up: intro.follow_up ?? null,
+      }).then((r) => r.intro),
+    updateIntro: (id: number, patch: IntroPatch) =>
+      json<{ intro: Intro }>('PATCH', `/intros/${seg(id)}`, patch).then((r) => r.intro),
+    deleteIntro: (id: number) => json<{ removed: boolean }>('DELETE', `/intros/${seg(id)}`),
 
     /**
      * POST /import (multipart, repeatable `file`). Uses XMLHttpRequest so the

@@ -1,3 +1,11 @@
-{ "v": 1, "enrich": { "backend": "none", "max_usd_per_run": 0.5 },
-  "model": { "parser": "rules", "embedder": "fastembed:bge-small-en-v1.5", "reranker": "none" },
-  "serve": { "host": "127.0.0.1", "port": 7411, "cors_origins": [] } }
+{ "v": 1,
+  "config": {
+    "enrich": { "backend": "none", "max_usd_per_run": 0.5, "treg": { "endpoint": "https://treg.to", "token_env": "OPENSTANCE_TREG_TOKEN" } },
+    "model": { "parser": "rules", "embedder": "fastembed:bge-small-en-v1.5", "reranker": "none" },
+    "score": { "preset": "default", "half_life_days": 180 },
+    "serve": { "host": "127.0.0.1", "port": 7411, "cors_origins": [] }
+  },
+  "origins": { "enrich.backend": "default", "model.parser": "default", "serve.port": "default" },
+  "warnings": [],
+  "config_file": "~/.openstance/config.toml",
+  "file_found": false }

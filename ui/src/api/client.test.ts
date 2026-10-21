@@ -101,27 +101,34 @@ describe('api client', () => {
   });
 
   it('shortlist and intro writes use the documented payloads', async () => {
+    const intro = fx.intros().intros[0]!;
+    const entry = fx.shortlist().shortlist[0]!;
     const api = mockApi({
-      'POST /shortlist': { person_id: 812, note: null },
-      'DELETE /shortlist/812': { status: 204 },
-      'POST /intros': { id: 2, person_id: 1203, connector_id: 812, stage: 'shortlisted', note: null, follow_up: null },
-      'PATCH /intros/2': { id: 2, person_id: 1203, connector_id: 812, stage: 'asked', note: null, follow_up: null },
-      'DELETE /intros/2': { status: 204 },
+      'POST /shortlist': { v: 1, entry },
+      'PATCH /shortlist/812': { v: 1, entry: { ...entry, note: 'n' } },
+      'DELETE /shortlist/812': { v: 1, removed: true },
+      'POST /intros': { v: 1, intro: { ...intro, stage: 'draft' } },
+      'PATCH /intros/1': { v: 1, intro },
+      'DELETE /intros/1': { v: 1, removed: true },
     });
     const c = client();
-    await c.addToShortlist(812);
+    expect((await c.addToShortlist(812)).person_id).toBe(812);
+    expect((await c.setShortlistNote(812, 'n')).note).toBe('n');
     await c.removeFromShortlist(812);
-    await c.createIntro({ person_id: 1203, connector_id: 812, stage: 'shortlisted' });
-    await c.updateIntro(2, { stage: 'asked' });
-    await c.deleteIntro(2);
+    expect((await c.createIntro({ person: 1203, connector: 812, stage: 'draft' })).stage).toBe('draft');
+    expect((await c.updateIntro(1, { stage: 'asked' })).stage).toBe('asked');
+    await c.deleteIntro(1);
     expect(api.calls.map((x) => `${x.method} ${x.path}`)).toEqual([
       'POST /shortlist',
+      'PATCH /shortlist/812',
       'DELETE /shortlist/812',
       'POST /intros',
-      'PATCH /intros/2',
-      'DELETE /intros/2',
+      'PATCH /intros/1',
+      'DELETE /intros/1',
     ]);
-    expect(api.calls[0]!.body).toEqual({ person_id: 812 });
-    expect(api.calls[3]!.body).toEqual({ stage: 'asked' });
+    expect(api.calls[0]!.body).toEqual({ person: 812, note: null });
+    expect(api.calls[1]!.body).toEqual({ note: 'n' });
+    expect(api.calls[3]!.body).toEqual({ person: 1203, connector: 812, stage: 'draft', note: null, follow_up: null });
+    expect(api.calls[4]!.body).toEqual({ stage: 'asked' });
   });
 });

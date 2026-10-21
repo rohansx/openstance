@@ -6,9 +6,6 @@
 // `v: 1`. Money is integer micro-USD. Timestamps are ISO 8601 UTC strings.
 // `null` means unknown; arrays are always present.
 //
-// The shortlist, intros and stats endpoints are not in interfaces.md yet; their
-// shapes here are the UI's assumption (see ui/README.md) and are reconciled
-// with the API stream at integration.
 
 export type Iso = string;
 export type MicroUsd = number;
@@ -269,7 +266,12 @@ export interface PersonDetail {
 }
 
 export interface TieDetail {
-  tie: Record<string, unknown>;
+  v: number;
+  person: PersonRef;
+  other: PersonRef;
+  /** The strongest kind, or null. */
+  tie: Tie | null;
+  ties: Tie[];
   interactions: Evidence[];
 }
 
@@ -365,9 +367,11 @@ export interface ViewSummary {
 
 export interface CreateViewRequest {
   name: string;
-  query: SearchRequest;
+  query: string | SearchRequest;
   ttl: string;
+  /** age public keys or aliases (`self`). */
   to: string[];
+  replace?: boolean;
 }
 
 // 1.11
@@ -393,18 +397,25 @@ export interface ErrorBody {
 }
 
 // 3.2 Edit ops
+// `person`, `a`, `b` take a person id or any reference string. A batch holds
+// 1 to 500 ops and applies all or nothing.
 export type EditOp =
-  | { op: 'set'; person: number; field: ScalarField; value: string }
-  | { op: 'unset'; person: number; field: ScalarField }
-  | { op: 'tag'; person: number; value: string }
-  | { op: 'untag'; person: number; value: string }
-  | { op: 'note'; person: number; value: string }
-  | { op: 'flag'; person: number; field: 'do_not_share' | 'no_enrich'; value: boolean }
-  | { op: 'merge'; a: number; b: number }
-  | { op: 'split'; person: number; identities: number[] }
-  | { op: 'unmerge'; a: number; b: number };
+  | { op: 'set'; person: PersonRefArg; field: ScalarField; value: string }
+  | { op: 'unset'; person: PersonRefArg; field: ScalarField }
+  | { op: 'tag'; person: PersonRefArg; value: string }
+  | { op: 'untag'; person: PersonRefArg; value: string }
+  | { op: 'note'; person: PersonRefArg; value: string }
+  | { op: 'flag'; person: PersonRefArg; field: 'do_not_share' | 'no_enrich' | 'is_bulk'; value: boolean }
+  | { op: 'merge'; a: PersonRefArg; b: PersonRefArg }
+  | { op: 'split'; person: PersonRefArg; identities: number[] }
+  | { op: 'unmerge'; a: PersonRefArg; b: PersonRefArg }
+  /** accept a flagged merge (`review --confirm`) */
+  | { op: 'confirm'; person: PersonRefArg }
+  /** keep a suggested pair apart (`review --reject`) */
+  | { op: 'reject'; a: PersonRefArg; b: PersonRefArg };
 
 export interface EditsResponse {
+  v?: number;
   applied: number;
   people: PersonRef[];
 }
@@ -463,9 +474,11 @@ export interface SourceRow {
   id: number;
   kind: string;
   label: string | null;
-  path?: string | null;
-  imported_at?: Iso | null;
-  [extra: string]: unknown;
+  path: string | null;
+  imported_at: Iso;
+  importer_version?: number | null;
+  /** ImportStats; null for enrichment sources. */
+  stats?: Record<string, unknown> | null;
 }
 
 // Enrich log (`GET /enrich-log`)
@@ -487,12 +500,10 @@ export interface EnrichLogRow {
 }
 
 export interface EnrichLogResponse {
-  v?: number;
+  v: number;
+  /** Oldest first. */
   rows: EnrichLogRow[];
-  /** interfaces.md 3.1 */
-  total_micro_usd?: MicroUsd;
-  /** core EnrichLogResponse */
-  totals?: { requests_sent: number; spent_micro_usd: MicroUsd; quoted_only: number; blocked: number };
+  totals: { requests_sent: number; spent_micro_usd: MicroUsd; quoted_only: number; blocked: number };
 }
 
 export interface Health {
@@ -501,46 +512,78 @@ export interface Health {
   schema_version: number;
 }
 
-// Assumed (not yet in interfaces.md): shortlist, intros, stats.
+// Workspace, dashboard and source shapes (interfaces.md section 3.4).
 export interface ShortlistEntry {
   person_id: number;
+  /** null only when the person no longer exists. */
+  person: PersonRef | null;
   note: string | null;
-  added_at?: Iso;
-  person?: PersonRef | null;
+  added_at: Iso;
 }
 
-export const INTRO_STAGES = ['shortlisted', 'asked', 'introduced', 'meeting'] as const;
+export const INTRO_STAGES = ['draft', 'asked', 'intro_made', 'met', 'closed'] as const;
 export type IntroStage = (typeof INTRO_STAGES)[number];
 
 export interface Intro {
   id: number;
   person_id: number;
-  connector_id: number | null;
-  stage: IntroStage | string;
+  person: PersonRef | null;
+  /** null: a direct ask. */
+  connector: PersonRef | null;
+  stage: IntroStage;
   note: string | null;
+  /** YYYY-MM-DD */
   follow_up: string | null;
-  created_at?: Iso;
-  updated_at?: Iso;
-  person?: PersonRef | null;
-  connector?: PersonRef | null;
+  created_at: Iso;
+  updated_at: Iso;
 }
 
+/** `<ref>`: a person id or any person reference string. */
+export type PersonRefArg = number | string;
+
 export interface NewIntro {
-  person_id: number;
-  connector_id?: number | null;
+  person: PersonRefArg;
+  connector?: PersonRefArg | null;
   stage: IntroStage;
   note?: string | null;
   follow_up?: string | null;
 }
 
-export type IntroPatch = Partial<Omit<NewIntro, 'person_id'>>;
-
-export interface Stats {
-  people: number;
-  sources: number;
-  last_import: Iso | null;
-  flagged: number;
-  enrich_total_micro_usd: MicroUsd;
+export interface IntroPatch {
+  stage?: IntroStage;
+  connector?: PersonRefArg | null;
+  note?: string | null;
+  follow_up?: string | null;
 }
 
-export type ConfigJson = Record<string, unknown>;
+export interface Stats {
+  v?: number;
+  /** Excludes you and bulk senders. */
+  people: number;
+  bulk: number;
+  sources: number;
+  last_import: Iso | null;
+  review: { flagged: number; suggestions: number };
+  enrich: { requests_sent: number; spent_micro_usd: MicroUsd };
+  shortlist: number;
+  intros: Partial<Record<IntroStage, number>>;
+  schema_version: number;
+}
+
+export interface Tie {
+  tie_kind: string;
+  n_shared: number;
+  weight: number;
+  last_at: Iso;
+}
+
+/** `GET /config`, same as `openstance config --json`. Secrets are never included. */
+export interface ConfigJson {
+  v?: number;
+  config?: Record<string, unknown>;
+  origins?: Record<string, string>;
+  warnings?: string[];
+  config_file?: string | null;
+  file_found?: boolean;
+  [extra: string]: unknown;
+}

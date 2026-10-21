@@ -15,17 +15,22 @@ export function useShortlist() {
     async (person: { id: number; display_name: string | null }) => {
       const had = ids.has(person.id);
       const before = current ?? [];
-      setData(had ? before.filter((e) => e.person_id !== person.id) : [...before, { person_id: person.id, note: null }]);
+      setData(
+        had
+          ? before.filter((e) => e.person_id !== person.id)
+          : [{ person_id: person.id, person: null, note: null, added_at: new Date().toISOString() }, ...before],
+      );
       try {
         if (had) await api.removeFromShortlist(person.id);
         else await api.addToShortlist(person.id);
+        reload();
         toast(had ? `Removed ${displayName(person)} from your shortlist.` : `Added ${displayName(person)} to your shortlist.`);
       } catch (e) {
         setData(before);
         toast(`Shortlist not updated: ${(e as Error).message}`);
       }
     },
-    [api, ids, current, setData, toast],
+    [api, ids, current, setData, reload, toast],
   );
 
   return { entries: list.data ?? [], ids, toggle, loading: list.loading, error: list.error, reload };

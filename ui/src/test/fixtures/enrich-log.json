@@ -1,17 +1,70 @@
-{ "v": 1,
+{
+  "v": 1,
   "rows": [
-    { "id": 311, "run_id": "01JC4Z6Y3R1M8Q", "at": "2026-10-19T12:00:00Z", "backend": "treg", "provider": null,
-      "playbook": "path", "person_id": null, "person_name": null, "op": "profile",
-      "request": { "kind": "profile", "name": "Priya Raman", "company": "Stripe" },
-      "quoted_micro_usd": 10000, "cost_micro_usd": 10000, "status": "ok", "error": null },
-    { "id": 312, "run_id": "01JC4Z6Y3R1M8Q", "at": "2026-10-19T12:00:01Z", "backend": "treg", "provider": null,
-      "playbook": "path", "person_id": null, "person_name": null, "op": "find_email",
-      "request": { "kind": "find_email", "name": "Priya Raman", "domain": "stripe.com" },
-      "quoted_micro_usd": 10000, "cost_micro_usd": 10000, "status": "ok", "error": null },
-    { "id": 313, "run_id": "01JC4Z6Y3R1M8Q", "at": "2026-10-19T12:00:02Z", "backend": "treg", "provider": null,
-      "playbook": "path", "person_id": null, "person_name": null, "op": "verify_email",
-      "request": { "kind": "verify_email", "email": "priya@stripe.example" },
-      "quoted_micro_usd": 5000, "cost_micro_usd": 5000, "status": "ok", "error": null }
+    {
+      "id": 311,
+      "run_id": "01JC4Z6Y3R1M8Q",
+      "at": "2026-10-19T12:00:00Z",
+      "backend": "treg",
+      "provider": null,
+      "playbook": "path",
+      "person_id": null,
+      "person_name": null,
+      "op": "profile",
+      "request": {
+        "kind": "profile",
+        "name": "Priya Raman",
+        "company": "Stripe"
+      },
+      "quoted_micro_usd": 10000,
+      "cost_micro_usd": 10000,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "id": 312,
+      "run_id": "01JC4Z6Y3R1M8Q",
+      "at": "2026-10-19T12:00:01Z",
+      "backend": "treg",
+      "provider": null,
+      "playbook": "path",
+      "person_id": null,
+      "person_name": null,
+      "op": "find_email",
+      "request": {
+        "kind": "find_email",
+        "name": "Priya Raman",
+        "domain": "stripe.com"
+      },
+      "quoted_micro_usd": 10000,
+      "cost_micro_usd": 10000,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "id": 313,
+      "run_id": "01JC4Z6Y3R1M8Q",
+      "at": "2026-10-19T12:00:02Z",
+      "backend": "treg",
+      "provider": null,
+      "playbook": "path",
+      "person_id": null,
+      "person_name": null,
+      "op": "verify_email",
+      "request": {
+        "kind": "verify_email",
+        "email": "priya@stripe.example"
+      },
+      "quoted_micro_usd": 5000,
+      "cost_micro_usd": 5000,
+      "status": "ok",
+      "error": null
+    }
   ],
-  "total_micro_usd": 25000
+  "totals": {
+    "requests_sent": 3,
+    "spent_micro_usd": 25000,
+    "quoted_only": 0,
+    "blocked": 0
+  }
 }

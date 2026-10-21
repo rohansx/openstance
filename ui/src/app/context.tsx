@@ -75,7 +75,8 @@ export function useApp(): AppCtx {
 
 /** Read a dotted key from the effective config (`enrich.backend`). */
 export function configValue(cfg: ConfigJson | undefined, key: string): unknown {
-  let cur: unknown = cfg;
+  // `GET /config` wraps the effective config: { v, config, origins, ... }
+  let cur: unknown = cfg && typeof cfg.config === 'object' ? cfg.config : cfg;
   for (const part of key.split('.')) {
     if (cur && typeof cur === 'object' && part in (cur as Record<string, unknown>)) {
       cur = (cur as Record<string, unknown>)[part];

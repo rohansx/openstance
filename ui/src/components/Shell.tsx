@@ -31,7 +31,8 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
   const count = (key: NavKey): number | undefined => {
     if (!stats) return undefined;
     if (key === 'people') return stats.people;
-    if (key === 'review') return stats.flagged;
+    if (key === 'review') return stats.review?.flagged;
+    if (key === 'shortlist') return stats.shortlist;
     return undefined;
   };
 
