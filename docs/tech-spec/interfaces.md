@@ -828,9 +828,9 @@ All playbook commands share `--json`, `--yes`, `--max-usd`, `--plan` (print the 
 | --- | --- | --- |
 | `openstance path "<target>"` | P3 | `--company`, `--linkedin`, `--find-email`, `--limit 3` |
 | `openstance brief <person>` | P3 | `--web` |
-| `openstance accounts <companies.txt>` | P4 | `--no-one-hop`, `--limit-per-company 10` |
+| `openstance accounts <companies.txt>` | P4 | `--no-one-hop`, `--limit-per-company 10`, `--csv` (one name or domain per line; `#` comments and blank lines are skipped) |
 | `openstance refresh` | P4 | `--min-interactions 5`, `--limit 50` |
-| `openstance watch` | P4 | `--targets <file or list>`, `--check-profiles`, `--top 100` |
+| `openstance watch` | P4 | `--targets <file or comma-separated list>`, `--check-profiles`, `--top 100` (alias `--top-n`) |
 | `openstance reconnect` | P4 | `--limit 10` |
 | `openstance verify <person>` | P4 | - |
 
