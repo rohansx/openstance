@@ -258,11 +258,12 @@ fn drop_zero(fused: Vec<fuse::Fused>, limit: usize) -> Vec<fuse::Fused> {
     keep
 }
 
-/// Count of results a query would return (used for suggestions).
+/// Count of results a query would return (used for suggestions). Matches
+/// `search()`'s `total`, including the zero-relevance drop.
 fn count(conn: &Connection, cfg: &Config, q: &Query, qvec: Option<&[f32]>) -> Result<usize> {
     let allowed = filters::allowed_ids(conn, q)?;
     Ok(match text_candidates(conn, cfg, q, &allowed, qvec)? {
-        Some(f) if !f.is_empty() => f.len(),
+        Some(f) if !f.is_empty() => drop_zero(f, q.effective_limit()).len(),
         Some(_) if q.has_structured_filters() => allowed.len(),
         Some(_) => 0,
         None => allowed.len(),
