@@ -24,10 +24,10 @@ use crate::{
 };
 
 /// Global state for one invocation.
-struct Ctx {
-    loaded: LoadedConfig,
-    json: bool,
-    now: i64,
+pub(crate) struct Ctx {
+    pub(crate) loaded: LoadedConfig,
+    pub(crate) json: bool,
+    pub(crate) now: i64,
     fixed_now: bool,
 }
 
@@ -62,18 +62,18 @@ impl Ctx {
         Ok(p)
     }
 
-    fn open_default(&self) -> Result<Graph> {
+    pub(crate) fn open_default(&self) -> Result<Graph> {
         let cfg = self.loaded.config.clone();
         let providers = self.providers(&cfg, Vec::new())?;
         self.open(cfg, providers)
     }
 
-    fn today(&self) -> i64 {
+    pub(crate) fn today(&self) -> i64 {
         search::today_start(self.now, search::timezone(&self.loaded.config))
     }
 }
 
-fn usage(msg: impl Into<String>) -> anyhow::Error {
+pub(crate) fn usage(msg: impl Into<String>) -> anyhow::Error {
     anyhow::Error::new(UsageError(msg.into()))
 }
 
@@ -124,6 +124,8 @@ pub fn dispatch(cli: Cli) -> Result<()> {
         Command::Split(a) => split(&ctx, a),
         Command::Export(a) => export(&ctx, a),
         Command::Config(a) => config_cmd(&ctx, a),
+        Command::View(a) => crate::view::run(&ctx, a),
+        Command::Keys(a) => crate::view::keys(&ctx, a),
         Command::Mcp(a) => crate::mcp::run(
             ctx.loaded.config.clone(),
             &ctx.loaded.paths.db,
@@ -134,7 +136,7 @@ pub fn dispatch(cli: Cli) -> Result<()> {
     }
 }
 
-fn print_json<T: serde::Serialize>(v: &T) -> Result<()> {
+pub(crate) fn print_json<T: serde::Serialize>(v: &T) -> Result<()> {
     let s = serde_json::to_string_pretty(v)?;
     let mut out = std::io::stdout().lock();
     writeln!(out, "{s}")?;
@@ -167,8 +169,16 @@ fn init(ctx: &Ctx, a: InitArgs) -> Result<()> {
         &InitOptions { me: a.me },
         ctx.now,
     )?;
+    // P3-CORE-09: new installs get their age key for views right away.
+    let key = crate::view::ensure_key(ctx)?;
     if ctx.json {
         return print_json(&with_v(&r)?);
+    }
+    if key.created {
+        println!(
+            "created {} (share: openstance keys show)",
+            key.path.display()
+        );
     }
     let state = |created: bool| if created { "created" } else { "exists " };
     println!(
@@ -386,7 +396,7 @@ fn date_flag(name: &str, v: &Option<String>, today: i64, ctx: &Ctx) -> Result<Op
 }
 
 /// Lay the flags over `patch` (flags always win).
-fn apply_filters(ctx: &Ctx, f: &FilterArgs, patch: &mut QueryPatch) -> Result<()> {
+pub(crate) fn apply_filters(ctx: &Ctx, f: &FilterArgs, patch: &mut QueryPatch) -> Result<()> {
     let today = ctx.today();
     let vec = |v: &Vec<String>| (!v.is_empty()).then(|| v.clone());
     if let Some(v) = vec(&f.company) {
@@ -717,6 +727,7 @@ fn export(ctx: &Ctx, a: ExportArgs) -> Result<()> {
     let format = match a.format {
         Format::Csv => ExportFormat::Csv,
         Format::Json => ExportFormat::Json,
+        Format::Vcf => ExportFormat::Vcf,
     };
     let report = match &a.out {
         Some(path) => {

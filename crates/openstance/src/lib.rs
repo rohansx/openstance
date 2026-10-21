@@ -17,6 +17,7 @@ mod embeddings;
 mod how;
 pub mod mcp;
 mod render;
+mod view;
 mod who;
 
 /// Global flags shared by every command (interfaces.md section 4).
@@ -75,12 +76,16 @@ pub enum Command {
     Merge(MergeArgs),
     /// Split identities out of a person.
     Split(SplitArgs),
-    /// Export people as csv or json.
+    /// Export people as csv, json or vcf.
     Export(ExportArgs),
     /// Print the effective configuration.
     Config(ConfigArgs),
     /// Run the MCP server on stdio (for Claude Code, Cursor, Claude Desktop).
     Mcp(mcp::McpArgs),
+    /// Share slices of the graph: saved queries exported as encrypted .ost files.
+    View(view::ViewArgs),
+    /// My age key for views (`keys show`).
+    Keys(view::KeysArgs),
 }
 
 /// `openstance init`.
@@ -321,6 +326,8 @@ pub enum Format {
     Csv,
     /// `{"v": 1, "people": [PersonDetail]}`.
     Json,
+    /// vCard 3.0, one card per person.
+    Vcf,
 }
 
 /// `openstance export`.
