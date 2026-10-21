@@ -105,6 +105,12 @@ pub fn dispatch(cli: Cli) -> Result<()> {
         Command::Split(a) => split(&ctx, a),
         Command::Export(a) => export(&ctx, a),
         Command::Config(a) => config_cmd(&ctx, a),
+        Command::Mcp(a) => crate::mcp::run(
+            ctx.loaded.config.clone(),
+            &ctx.loaded.paths.db,
+            ctx.clock(),
+            a,
+        ),
     }
 }
 

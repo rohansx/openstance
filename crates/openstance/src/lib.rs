@@ -13,6 +13,7 @@ use std::process::ExitCode;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
 mod commands;
+pub mod mcp;
 mod render;
 
 /// Global flags shared by every command (interfaces.md section 4).
@@ -72,6 +73,8 @@ pub enum Command {
     Export(ExportArgs),
     /// Print the effective configuration.
     Config(ConfigArgs),
+    /// Run the MCP server on stdio (for Claude Code, Cursor, Claude Desktop).
+    Mcp(mcp::McpArgs),
 }
 
 /// `openstance init`.

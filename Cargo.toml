@@ -83,6 +83,10 @@ lru = "0.12"
 # CLI
 clap = { version = "4", features = ["derive", "env"] }
 
+# servers (MCP; core never depends on these)
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-std", "io-util", "sync"] }
+rmcp = { version = "1.7", default-features = false, features = ["server", "transport-io"] }
+
 # vectors and embeddings (Phase 2). sqlite-vec is compiled from C and
 # statically registered; fastembed is only ever enabled through
 # openstance-model's `fastembed` feature (core never depends on it).

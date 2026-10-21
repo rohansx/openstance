@@ -1,0 +1,163 @@
+---
+source: crates/openstance-mcp/tests/tools.rs
+assertion_line: 153
+expression: tools
+---
+[
+  {
+    "name": "search_people",
+    "description": "Search the user's own relationship graph (local, free). Returns people ranked by text relevance lifted by relationship score, with dated evidence. Filters you set are echoed back in `query`; edit and rerun instead of rephrasing.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "free text, e.g. 'fintech founders I met'"
+        },
+        "company": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "title": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "location": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "industry": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "soft: boosts relevance, never excludes"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "exact match on the user's tags"
+        },
+        "since": {
+          "type": "string",
+          "description": "had an interaction on or after: YYYY, YYYY-MM, YYYY-MM-DD or 90d/6m/1y"
+        },
+        "until": {
+          "type": "string",
+          "description": "had an interaction before this date (with since: inside the window)"
+        },
+        "last_contact_before": {
+          "type": "string",
+          "description": "last contact strictly before this date (\"haven't talked since\")"
+        },
+        "met_in_person": {
+          "type": "boolean"
+        },
+        "replied": {
+          "type": "boolean"
+        },
+        "min_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "lost_touch": {
+          "type": "boolean",
+          "description": "high frequency, low recency"
+        },
+        "include_bulk": {
+          "type": "boolean",
+          "default": false
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        },
+        "parse": {
+          "type": "boolean",
+          "default": true,
+          "description": "run the query parser on text; false = take text and filters literally (search.md no_parse)"
+        },
+        "explain": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_person",
+    "description": "Look up one person in the user's own relationship graph (local, free): fields and where each came from, the relationship score with its five components, identities, recent interactions and the strongest mutual connections. An ambiguous name returns an `ambiguous` error with candidates; ask the user which one and call again with the id.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "person"
+      ],
+      "properties": {
+        "person": {
+          "type": "string",
+          "description": "id, email, linkedin url/slug, @x_handle, or name"
+        },
+        "interactions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50,
+          "default": 10
+        },
+        "mutuals": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50,
+          "default": 10
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "how_connected",
+    "description": "Find warm introduction paths to someone already in the user's graph (local, free). Each path goes through a mutual connection: strength = the user's score with the mutual x the mutual's tie to the target, with dated evidence. Returns `found: false` when the target is not in the graph.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "target"
+      ],
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "person id, email, linkedin, or name (must be in the graph; use path_to for strangers)"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  }
+]

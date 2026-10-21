@@ -1,6 +1,6 @@
 [package]
 name = "openstance-mcp"
-description = "MCP server (Phase 2): tool schemas mapped to openstance-core calls"
+description = "MCP server: tool schemas mapped to openstance-core calls"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,6 +10,18 @@ publish.workspace = true
 
 [dependencies]
 openstance-core.workspace = true
+rmcp.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+
+[dev-dependencies]
+openstance-core = { workspace = true, features = ["test-util"] }
+rmcp = { workspace = true, features = ["client"] }
+tempfile.workspace = true
+insta.workspace = true
 
 [lints]
 workspace = true
