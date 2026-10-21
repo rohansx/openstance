@@ -82,6 +82,12 @@ test('U4: path to someone in the graph renders ranked path cards with evidence',
   await expect(cards.first().locator('.evidence-lines li').first()).toBeVisible();
 });
 
+test('U5: settings names the resolved graph.db from GET /config', async ({ page }) => {
+  await open(page, 'settings');
+  const db = page.locator('section.panel', { hasText: /on this device/i }).locator('code').first();
+  await expect(db).toHaveText(`${process.env.E2E_HOME}/graph.db`);
+});
+
 test('U6: the import file input has an accessible label', async ({ page }) => {
   await open(page, 'sources');
   await expect(page.getByLabel('Choose export files')).toHaveAttribute('type', 'file');
