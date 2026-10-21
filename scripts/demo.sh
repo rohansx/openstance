@@ -75,6 +75,10 @@ stage_exports() {
   mkdir -p "$exports"
   cp "$repo/fixtures/demo/takeout.mbox" "$repo/fixtures/demo/Connections.csv" \
     "$repo/fixtures/demo/contacts.vcf" "$exports/"
+  # Sources without an export date in their name (Connections.csv) are
+  # labelled with the file's mtime; date the copies on the demo's "today"
+  # so evidence lines do not show the day the demo was run.
+  touch -t "$(printf '%s' "$now" | tr -d -)1200" "$exports"/*
 }
 
 has_command() { "$bin" "$1" --help > /dev/null 2>&1; }
