@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useApp } from './app/context';
 import { useRoute } from './app/router';
 import { ConnectGate } from './components/ConnectGate';
@@ -17,9 +18,27 @@ import { Shortlist } from './pages/Shortlist';
 import { Sources } from './pages/Sources';
 import { Views } from './pages/Views';
 
+/**
+ * On every route change after the first render: back to the top of the page
+ * and focus on `main`, so the new page starts where a reader expects and a
+ * screen reader announces the new content (U3).
+ */
+function useResetScrollOnRoute(key: string, enabled: boolean) {
+  const last = useRef<string | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    const prev = last.current;
+    last.current = key;
+    if (prev === null || prev === key) return;
+    window.scrollTo(0, 0);
+    document.getElementById('main')?.focus({ preventScroll: true });
+  }, [key, enabled]);
+}
+
 export function App() {
   const { token } = useApp();
   const route = useRoute();
+  useResetScrollOnRoute(JSON.stringify(route), !!token);
   if (!token) {
     return (
       <>
