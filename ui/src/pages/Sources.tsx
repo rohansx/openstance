@@ -11,7 +11,7 @@ const n = (x: unknown) => (typeof x === 'number' ? x.toLocaleString('en-US') : '
 // Importers that exist in openstance-import today.
 const KINDS: [string, string][] = [
   ['', 'Detect automatically'],
-  ['linkedin_csv', 'LinkedIn Connections.csv'],
+  ['linkedin_csv', 'LinkedIn export (.zip or Connections.csv)'],
   ['mbox', 'Mail archive (.mbox, Google Takeout)'],
   ['ics', 'Calendar (.ics)'],
   ['vcf', 'Contacts (.vcf vCard)'],
@@ -158,7 +158,7 @@ function ImportPanel({ onImported }: { onImported: () => void }) {
           <small className="muted" id="import-files-hint">
             {count > 0
               ? `Selected: ${files.map((f) => f.name).join(', ')}`
-              : 'LinkedIn Connections.csv, mail .mbox, calendar .ics, contacts .vcf or an X archive.'}
+              : 'LinkedIn export .zip or Connections.csv, mail .mbox, calendar .ics, contacts .vcf or an X archive.'}
           </small>
         </div>
         <label className="field">

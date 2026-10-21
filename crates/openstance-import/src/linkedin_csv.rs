@@ -20,16 +20,28 @@
 //!   Direction (INCOMING -> In, OUTGOING -> Out), one participant (role
 //!   `Subject`): the other side of the invitation; external id
 //!   `inv:<direction>:<slug>:<sent at>`; Message is never read;
+//! - the export `.zip` LinkedIn emails (`Complete_LinkedInDataExport_*.zip`,
+//!   sometimes saved as `.zip.zip`): `Connections.csv`, `messages.csv` and
+//!   `Invitations.csv` at the root or one folder down are read in that order
+//!   into one source (the messages join uses the zip's `Connections.csv`).
+//!   Zip safety as in `x_archive`: only those named entries are opened,
+//!   nothing is written to disk, decompressed bytes are capped per entry and
+//!   in total. A zip without `Connections.csv` (LinkedIn's "Basic" export)
+//!   is rejected with instructions to request the larger archive. Skip
+//!   locators carry the entry name (`messages.csv row 3`);
 //! - `default_label` = `linkedin <export date>` (export folder / zip name,
 //!   else file mtime).
 
+use std::cell::Cell;
 use std::collections::{BTreeMap, HashMap};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
+use std::rc::Rc;
 
 use chrono::{NaiveDate, NaiveDateTime, TimeZone};
 
+use crate::zip_limits::Limited;
 use crate::{
     sniff, Detection, Direction, Handle, HandleKind, Hints, ImportError, ImportOptions,
     ImportStats, Importer, InteractionKind, Participant, RawInteraction, Role, Sink, SkipReason,
@@ -38,16 +50,43 @@ use crate::{
 /// Records allowed before the header row (the `Notes:` preamble).
 const MAX_PREAMBLE_RECORDS: usize = 10;
 
-/// Importer for the three LinkedIn export CSVs.
+/// Default cap on one decompressed export-zip entry.
+pub const DEFAULT_MAX_ENTRY_BYTES: u64 = 1024 * 1024 * 1024;
+/// Default cap on all decompressed bytes read from one export zip.
+pub const DEFAULT_MAX_TOTAL_BYTES: u64 = 4 * 1024 * 1024 * 1024;
+
+/// The export-zip entries this importer reads, in processing order.
+const ZIP_ENTRIES: [&str; 3] = ["Connections.csv", "messages.csv", "Invitations.csv"];
+
+/// Why a LinkedIn export zip without `Connections.csv` cannot be imported.
+pub const BASIC_EXPORT_MESSAGE: &str = "This is LinkedIn's Basic export; it has no \
+     Connections.csv. Request the larger archive (Settings > Data privacy > Get a copy of \
+     your data > 'Download larger data archive').";
+
+/// Importer for the three LinkedIn export CSVs and the export zip.
 #[derive(Debug, Clone)]
 pub struct LinkedinCsvImporter {
     opts: ImportOptions,
+    max_entry: u64,
+    max_total: u64,
 }
 
 impl LinkedinCsvImporter {
     /// Construct with options from config.
     pub fn new(opts: ImportOptions) -> Self {
-        LinkedinCsvImporter { opts }
+        LinkedinCsvImporter {
+            opts,
+            max_entry: DEFAULT_MAX_ENTRY_BYTES,
+            max_total: DEFAULT_MAX_TOTAL_BYTES,
+        }
+    }
+
+    /// Override the decompressed size caps for export zips (per entry,
+    /// whole archive).
+    pub fn with_limits(mut self, max_entry: u64, max_total: u64) -> Self {
+        self.max_entry = max_entry;
+        self.max_total = max_total;
+        self
     }
 
     /// The options this importer was built with.
@@ -65,11 +104,17 @@ impl Importer for LinkedinCsvImporter {
     /// `First Name,Last Name` and `URL`, or `CONVERSATION ID` and
     /// `SENDER PROFILE URL`, or `Direction` and `inviterProfileUrl`.
     /// Weak: file name `Connections.csv`.
+    /// Zips: Strong when the zip holds one of the three CSVs or LinkedIn's
+    /// `Profile.csv` (a Basic export, so the import can explain what is
+    /// missing); Weak for any other zip named `*LinkedInDataExport*`.
     fn detect(&self, path: &Path) -> Detection {
         if !path.is_file() {
             return Detection::No;
         }
         let buf = sniff(path);
+        if is_zip(&buf) {
+            return detect_zip(path);
+        }
         let body = buf.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(&buf);
         let mut rdr = csv_reader(body);
         for rec in rdr.byte_records().take(MAX_PREAMBLE_RECORDS + 1) {
@@ -95,84 +140,26 @@ impl Importer for LinkedinCsvImporter {
 
     fn import(&self, path: &Path, sink: &mut dyn Sink) -> Result<ImportStats, ImportError> {
         let started = std::time::Instant::now();
-        let file = File::open(path)?;
-        let total = file.metadata().ok().map(|m| m.len());
-        let mut rdr = csv_reader(open_without_bom(file)?);
-        let mut stats = ImportStats::default();
-
-        // Find the header row within the preamble allowance.
-        let mut header: Option<(FileKind, Columns)> = None;
-        let mut rec = csv::StringRecord::new();
-        for _ in 0..=MAX_PREAMBLE_RECORDS {
-            match rdr.read_record(&mut rec) {
-                Ok(true) => {}
-                Ok(false) => break,
-                Err(e) if e.is_io_error() => return Err(into_io(e)),
-                Err(_) => continue,
-            }
-            let fields: Vec<String> = rec.iter().map(str::to_string).collect();
-            if let Some(kind) = FileKind::from_header(&fields) {
-                header = Some((kind, Columns::new(&fields)));
-                break;
-            }
+        let mut st = ReadState::default();
+        if is_zip(&sniff(path)) {
+            self.import_zip(path, sink, &mut st)?;
+        } else {
+            let file = File::open(path)?;
+            let total = file.metadata().ok().map(|m| m.len());
+            let mut joins = || sibling_connections(path);
+            let bytes = self.read_csv(
+                open_without_bom(file)?,
+                "",
+                &mut joins,
+                sink,
+                &mut st,
+                (0, total),
+            )?;
+            st.stats.bytes = bytes;
+            sink.progress(bytes, total);
         }
-        let Some((kind, cols)) = header else {
-            return Err(ImportError::WrongFormat {
-                kind: "linkedin_csv",
-                reason: "no LinkedIn header row found in the first 11 records; expected \
-                         `First Name`, `Last Name`, `URL` (Connections), `CONVERSATION ID`, \
-                         `SENDER PROFILE URL` (messages) or `Direction`, `inviterProfileUrl` \
-                         (Invitations)"
-                    .into(),
-            });
-        };
-
-        let joins = match kind {
-            FileKind::Messages => sibling_connections(path),
-            _ => HashMap::new(),
-        };
-        let mut row_mapper = RowMapper {
-            opts: &self.opts,
-            cols: &cols,
-            joins: &joins,
-            self_counts: BTreeMap::new(),
-        };
-
-        let mut row = 0u64;
-        loop {
-            match rdr.read_record(&mut rec) {
-                Ok(true) => {}
-                Ok(false) => break,
-                Err(e) if e.is_io_error() => return Err(into_io(e)),
-                Err(_) => {
-                    row += 1;
-                    stats.records_read += 1;
-                    skip(sink, &mut stats, SkipReason::Malformed, row);
-                    continue;
-                }
-            }
-            if rec.len() == 1 && rec[0].trim().is_empty() {
-                continue; // blank line
-            }
-            row += 1;
-            stats.records_read += 1;
-            let outcome = match kind {
-                FileKind::Connections => row_mapper.connection(&rec),
-                FileKind::Messages => row_mapper.message(&rec),
-                FileKind::Invitations => row_mapper.invitation(&rec),
-            };
-            match outcome {
-                Ok(i) => sink.interaction(i),
-                Err(reason) => skip(sink, &mut stats, reason, row),
-            }
-            if row.is_multiple_of(1000) {
-                sink.progress(rdr.position().byte(), total);
-            }
-        }
-        stats.bytes = rdr.position().byte();
-        sink.progress(stats.bytes, total);
-
-        let mut cands: Vec<(u64, String)> = row_mapper
+        let mut stats = st.stats;
+        let mut cands: Vec<(u64, String)> = st
             .self_counts
             .into_iter()
             .map(|(slug, n)| (n, slug))
@@ -200,8 +187,241 @@ impl Importer for LinkedinCsvImporter {
     }
 }
 
-fn skip(sink: &mut dyn Sink, stats: &mut ImportStats, reason: SkipReason, row: u64) {
-    sink.skip(reason, &format!("row {row}"));
+/// Counters shared by every CSV of one import.
+#[derive(Default)]
+struct ReadState {
+    stats: ImportStats,
+    /// Owner slug -> how often it showed up as the owner's side.
+    self_counts: BTreeMap<String, u64>,
+}
+
+impl LinkedinCsvImporter {
+    /// Read one CSV (any of the three kinds) into `sink`. `prefix` starts
+    /// every skip locator (`"messages.csv "` inside a zip). `joins` is
+    /// called once, for a messages file only. `progress` is
+    /// `(bytes already done, total)`. Returns the bytes read.
+    fn read_csv<R: Read>(
+        &self,
+        reader: R,
+        prefix: &str,
+        joins: &mut dyn FnMut() -> HashMap<String, Option<String>>,
+        sink: &mut dyn Sink,
+        st: &mut ReadState,
+        progress: (u64, Option<u64>),
+    ) -> Result<u64, ImportError> {
+        let mut rdr = csv_reader(reader);
+        let stats = &mut st.stats;
+
+        // Find the header row within the preamble allowance.
+        let mut header: Option<(FileKind, Columns)> = None;
+        let mut rec = csv::StringRecord::new();
+        for _ in 0..=MAX_PREAMBLE_RECORDS {
+            match rdr.read_record(&mut rec) {
+                Ok(true) => {}
+                Ok(false) => break,
+                Err(e) if e.is_io_error() => return Err(into_io(e)),
+                Err(_) => continue,
+            }
+            let fields: Vec<String> = rec.iter().map(str::to_string).collect();
+            if let Some(kind) = FileKind::from_header(&fields) {
+                header = Some((kind, Columns::new(&fields)));
+                break;
+            }
+        }
+        let Some((kind, cols)) = header else {
+            return Err(ImportError::WrongFormat {
+                kind: "linkedin_csv",
+                reason: format!(
+                    "{}no LinkedIn header row found in the first 11 records; expected \
+                     `First Name`, `Last Name`, `URL` (Connections), `CONVERSATION ID`, \
+                     `SENDER PROFILE URL` (messages) or `Direction`, `inviterProfileUrl` \
+                     (Invitations)",
+                    if prefix.is_empty() {
+                        String::new()
+                    } else {
+                        format!("{}: ", prefix.trim_end())
+                    }
+                ),
+            });
+        };
+
+        let joins = match kind {
+            FileKind::Messages => joins(),
+            _ => HashMap::new(),
+        };
+        let mut row_mapper = RowMapper {
+            opts: &self.opts,
+            cols: &cols,
+            joins: &joins,
+            self_counts: std::mem::take(&mut st.self_counts),
+        };
+
+        let mut row = 0u64;
+        loop {
+            match rdr.read_record(&mut rec) {
+                Ok(true) => {}
+                Ok(false) => break,
+                Err(e) if e.is_io_error() => return Err(into_io(e)),
+                Err(_) => {
+                    row += 1;
+                    stats.records_read += 1;
+                    skip(sink, stats, SkipReason::Malformed, prefix, row);
+                    continue;
+                }
+            }
+            if rec.len() == 1 && rec[0].trim().is_empty() {
+                continue; // blank line
+            }
+            row += 1;
+            stats.records_read += 1;
+            let outcome = match kind {
+                FileKind::Connections => row_mapper.connection(&rec),
+                FileKind::Messages => row_mapper.message(&rec),
+                FileKind::Invitations => row_mapper.invitation(&rec),
+            };
+            match outcome {
+                Ok(i) => sink.interaction(i),
+                Err(reason) => skip(sink, stats, reason, prefix, row),
+            }
+            if row.is_multiple_of(1000) {
+                sink.progress(progress.0 + rdr.position().byte(), progress.1);
+            }
+        }
+        st.self_counts = row_mapper.self_counts;
+        Ok(rdr.position().byte())
+    }
+
+    /// The export zip: the three CSVs in order, as one source.
+    fn import_zip(
+        &self,
+        path: &Path,
+        sink: &mut dyn Sink,
+        st: &mut ReadState,
+    ) -> Result<(), ImportError> {
+        let unreadable = |e: zip::result::ZipError| ImportError::WrongFormat {
+            kind: "linkedin_csv",
+            reason: format!("unreadable zip: {e}"),
+        };
+        let mut z = zip::ZipArchive::new(File::open(path)?).map_err(unreadable)?;
+        let names = zip_names(&z).ok_or_else(|| ImportError::WrongFormat {
+            kind: "linkedin_csv",
+            reason: "unreadable zip entry name".into(),
+        })?;
+        let entries: Vec<Option<String>> = ZIP_ENTRIES
+            .iter()
+            .map(|want| find_entry(&names, want))
+            .collect();
+        let Some(conn_entry) = entries[0].clone() else {
+            return Err(ImportError::WrongFormat {
+                kind: "linkedin_csv",
+                reason: BASIC_EXPORT_MESSAGE.into(),
+            });
+        };
+        let declared: u64 = entries
+            .iter()
+            .flatten()
+            .filter_map(|n| z.by_name(n).ok().map(|e| e.size()))
+            .sum();
+        let total = Rc::new(Cell::new(0u64));
+        // The messages join map comes from the zip's own Connections.csv.
+        let joins = match &entries[1] {
+            Some(_) => connections_names(self.open_entry(&mut z, &conn_entry, &total)?)?,
+            None => HashMap::new(),
+        };
+        let mut done = 0u64;
+        for (want, name) in ZIP_ENTRIES.iter().zip(&entries) {
+            let Some(name) = name else { continue };
+            let mut j = || joins.clone();
+            let r = self.open_entry(&mut z, name, &total)?;
+            done += self.read_csv(
+                r,
+                &format!("{want} "),
+                &mut j,
+                sink,
+                st,
+                (done, Some(declared)),
+            )?;
+        }
+        st.stats.bytes = total.get();
+        sink.progress(done, Some(declared));
+        Ok(())
+    }
+}
+
+impl LinkedinCsvImporter {
+    /// One named zip entry behind the size caps, after an optional BOM.
+    fn open_entry<'z>(
+        &self,
+        z: &'z mut zip::ZipArchive<File>,
+        name: &str,
+        total: &Rc<Cell<u64>>,
+    ) -> Result<BufReader<Limited<zip::read::ZipFile<'z, File>>>, ImportError> {
+        let entry = z.by_name(name).map_err(|e| ImportError::Parse {
+            locator: name.to_string(),
+            reason: e.to_string(),
+        })?;
+        Ok(skip_bom(Limited::new(
+            entry,
+            self.max_entry,
+            total.clone(),
+            self.max_total,
+        ))?)
+    }
+}
+
+fn is_zip(head: &[u8]) -> bool {
+    head.starts_with(b"PK\x03\x04") || head.starts_with(b"PK\x05\x06")
+}
+
+fn zip_names<R: Read + std::io::Seek>(z: &zip::ZipArchive<R>) -> Option<Vec<String>> {
+    let mut names: Vec<String> = z
+        .file_names()
+        .collect::<Result<Vec<_>, _>>()
+        .ok()?
+        .into_iter()
+        .map(|n| n.into_owned())
+        .collect();
+    names.sort();
+    Some(names)
+}
+
+/// The first entry named `want` (any case) at the root or one folder down.
+fn find_entry(names: &[String], want: &str) -> Option<String> {
+    names
+        .iter()
+        .find(|n| {
+            let norm = n.replace('\\', "/");
+            let segs: Vec<&str> = norm.split('/').collect();
+            segs.len() <= 2 && segs.last().is_some_and(|f| f.eq_ignore_ascii_case(want))
+        })
+        .cloned()
+}
+
+fn detect_zip(path: &Path) -> Detection {
+    let Some(names) = File::open(path)
+        .ok()
+        .and_then(|f| zip::ZipArchive::new(f).ok())
+        .and_then(|z| zip_names(&z))
+    else {
+        return Detection::No;
+    };
+    let has = |want: &str| find_entry(&names, want).is_some();
+    if ZIP_ENTRIES.iter().any(|w| has(w)) || has("Profile.csv") {
+        return Detection::Strong;
+    }
+    let named = path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .is_some_and(|n| n.to_ascii_lowercase().contains("linkedindataexport"));
+    if named {
+        Detection::Weak
+    } else {
+        Detection::No
+    }
+}
+
+fn skip(sink: &mut dyn Sink, stats: &mut ImportStats, reason: SkipReason, prefix: &str, row: u64) {
+    sink.skip(reason, &format!("{prefix}row {row}"));
     stats.record_skip(reason);
 }
 
@@ -224,7 +444,12 @@ fn csv_reader<R: Read>(r: R) -> csv::Reader<R> {
 
 /// A 1 MiB buffered reader positioned after an optional UTF-8 BOM.
 fn open_without_bom(file: File) -> std::io::Result<BufReader<File>> {
-    let mut r = BufReader::with_capacity(1 << 20, file);
+    skip_bom(file)
+}
+
+/// Any reader, buffered (1 MiB) and positioned after an optional UTF-8 BOM.
+fn skip_bom<R: Read>(r: R) -> std::io::Result<BufReader<R>> {
+    let mut r = BufReader::with_capacity(1 << 20, r);
     let has_bom = r.fill_buf()?.starts_with(b"\xEF\xBB\xBF");
     if has_bom {
         r.consume(3);
@@ -606,7 +831,7 @@ fn is_opaque(url: &str) -> bool {
 /// Unique full name -> profile URL from a `Connections.csv` next to `path`.
 /// Names seen more than once map to `None` (never joined).
 fn sibling_connections(path: &Path) -> HashMap<String, Option<String>> {
-    let mut map = HashMap::new();
+    let map = HashMap::new();
     let Some(dir) = path.parent() else {
         return map;
     };
@@ -625,14 +850,26 @@ fn sibling_connections(path: &Path) -> HashMap<String, Option<String>> {
     let Ok(r) = open_without_bom(file) else {
         return map;
     };
+    connections_names(r).unwrap_or(map)
+}
+
+/// Unique full name -> profile URL from a `Connections.csv` reader. Names
+/// seen more than once map to `None`. I/O errors (a zip entry over its cap)
+/// are returned; unreadable rows are ignored.
+fn connections_names<R: Read>(r: R) -> Result<HashMap<String, Option<String>>, ImportError> {
+    let mut map = HashMap::new();
     let mut rdr = csv_reader(r);
     let mut cols: Option<Columns> = None;
     for (i, rec) in rdr.records().enumerate() {
-        let Ok(rec) = rec else { continue };
+        let rec = match rec {
+            Ok(rec) => rec,
+            Err(e) if e.is_io_error() => return Err(into_io(e)),
+            Err(_) => continue,
+        };
         match &cols {
             None => {
                 if i > MAX_PREAMBLE_RECORDS {
-                    return map;
+                    return Ok(map);
                 }
                 let fields: Vec<String> = rec.iter().map(str::to_string).collect();
                 if FileKind::from_header(&fields) == Some(FileKind::Connections) {
@@ -655,7 +892,7 @@ fn sibling_connections(path: &Path) -> HashMap<String, Option<String>> {
             }
         }
     }
-    map
+    Ok(map)
 }
 
 // ---------------------------------------------------------------------------

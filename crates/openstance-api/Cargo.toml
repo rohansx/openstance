@@ -37,7 +37,8 @@ http-body-util.workspace = true
 [dev-dependencies]
 openstance-core = { workspace = true, features = ["test-util"] }
 openstance-enrich = { workspace = true, features = ["mock"] }
-openstance-import = { workspace = true, features = ["vcf"] }
+openstance-import = { workspace = true, features = ["vcf", "linkedin"] }
+zip = { workspace = true, features = ["deflate-flate2-zlib-rs"] }
 tower = { workspace = true, features = ["util"] }
 tempfile.workspace = true
 

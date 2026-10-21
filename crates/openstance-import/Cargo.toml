@@ -12,7 +12,7 @@ publish.workspace = true
 default = ["mbox", "linkedin", "vcf", "ics", "x-archive"]
 # Phase 1 importers. Each gates one module and its parser dependencies.
 mbox = ["dep:mail-parser", "dep:memchr", "dep:regex"]
-linkedin = ["dep:csv", "dep:regex"]
+linkedin = ["dep:csv", "dep:regex", "dep:zip"]
 vcf = ["dep:quoted_printable", "dep:regex"]
 # Phase 3 importers.
 ics = ["dep:rrule"]

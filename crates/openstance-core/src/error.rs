@@ -107,6 +107,11 @@ impl Error {
             }
             Error::SchemaTooNew { .. } => ErrorCode::SchemaTooNew,
             Error::Config { .. } | Error::BadRequest(_) | Error::Detect(_) => ErrorCode::BadRequest,
+            // The file is not what it claims to be (a Basic LinkedIn export,
+            // a broken zip): the user's input, with a message saying why.
+            Error::Import(openstance_import::ImportError::WrongFormat { .. }) => {
+                ErrorCode::BadRequest
+            }
             Error::NotFound(_) => ErrorCode::NotFound,
             Error::Ambiguous { .. } => ErrorCode::Ambiguous,
             Error::ViewExpired(_) => ErrorCode::ViewExpired,
@@ -143,6 +148,19 @@ mod tests {
         );
         assert_eq!(Error::BadRequest("x".into()).code().exit_code(), 2);
         assert_eq!(Error::Internal("x".into()).code().exit_code(), 1);
+    }
+
+    #[test]
+    fn a_file_in_the_wrong_format_is_the_users_input_not_a_bug() {
+        let e = Error::Import(openstance_import::ImportError::WrongFormat {
+            kind: "linkedin_csv",
+            reason: "no Connections.csv".into(),
+        });
+        assert_eq!(e.code(), ErrorCode::BadRequest);
+        let io = Error::Import(openstance_import::ImportError::Io(std::io::Error::other(
+            "x",
+        )));
+        assert_eq!(io.code(), ErrorCode::Internal);
     }
 
     #[test]

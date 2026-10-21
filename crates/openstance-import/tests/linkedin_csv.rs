@@ -422,3 +422,160 @@ fn golden_fixture_stats() {
         insta::assert_json_snapshot!(name, stats);
     }
 }
+
+// ---------------------------------------------------------------------------
+// The export .zip LinkedIn emails (Complete_/Basic_LinkedInDataExport_*.zip)
+// ---------------------------------------------------------------------------
+
+/// Zip `(name, bytes)` entries into `dir/name` (deflated).
+fn zip_entries(
+    dir: &std::path::Path,
+    name: &str,
+    entries: &[(&str, Vec<u8>)],
+) -> std::path::PathBuf {
+    use std::io::Write;
+    let p = dir.join(name);
+    let f = std::fs::File::create(&p).unwrap();
+    let mut z = zip::ZipWriter::new(f);
+    let o = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated);
+    for (n, b) in entries {
+        z.start_file(*n, o).unwrap();
+        z.write_all(b).unwrap();
+    }
+    z.finish().unwrap();
+    p
+}
+
+/// The three synthetic CSVs plus files the importer must ignore, zipped
+/// like LinkedIn's "larger data archive".
+fn complete_export(dir: &std::path::Path, name: &str) -> std::path::PathBuf {
+    let read = |f: &str| std::fs::read(fixture(&format!("linkedin/{f}"))).unwrap();
+    zip_entries(
+        dir,
+        name,
+        &[
+            (
+                "Profile.csv",
+                b"First Name,Last Name\nOwen,Ryder\n".to_vec(),
+            ),
+            ("Invitations.csv", read("Invitations.csv")),
+            ("messages.csv", read("messages.csv")),
+            ("Connections.csv", read("Connections.csv")),
+            ("Rich_Media.csv", format!("x,{SENTINEL}\n").into_bytes()),
+            ("Jobs/Job Applications.csv", b"a,b\n".to_vec()),
+        ],
+    )
+}
+
+#[test]
+fn complete_export_zip_imports_all_three_csvs_as_one_source() {
+    let dir = tempfile::tempdir().unwrap();
+    let zip = complete_export(dir.path(), "Complete_LinkedInDataExport_10-20-2026.zip");
+    assert_eq!(imp().detect(&zip), Detection::Strong);
+    let (stats, sink) = run(&imp(), &zip);
+
+    // Same records as importing the three files one by one (the messages
+    // join to Connections works inside the zip too).
+    let mut want = Vec::new();
+    let mut read = 0;
+    for f in ["Connections.csv", "messages.csv", "Invitations.csv"] {
+        let (st, s) = run(&imp(), &fixture(&format!("linkedin/{f}")));
+        read += st.records_read;
+        want.extend(s.interactions);
+    }
+    assert_eq!(sink.interactions, want);
+    assert_eq!(stats.records_read, read);
+    assert_eq!(
+        stats.self_candidates,
+        vec!["linkedin_url:owen-ryder-example".to_string()]
+    );
+    assert!(stats.bytes > 0);
+    assert_no_sentinel(&sink);
+    assert_eq!(
+        imp().default_label(&zip).as_deref(),
+        Some("linkedin 2026-10-20")
+    );
+}
+
+#[test]
+fn double_suffixed_and_nested_export_zip_still_imports() {
+    let dir = tempfile::tempdir().unwrap();
+    let read = |f: &str| std::fs::read(fixture(&format!("linkedin/{f}"))).unwrap();
+    let zip = zip_entries(
+        dir.path(),
+        "Complete_LinkedInDataExport_10-20-2026.zip.zip",
+        &[(
+            "Complete_LinkedInDataExport_10-20-2026/Connections.csv",
+            read("Connections.csv"),
+        )],
+    );
+    assert_eq!(imp().detect(&zip), Detection::Strong);
+    let (stats, sink) = run(&imp(), &zip);
+    assert_eq!(stats.records_read, 12);
+    assert_eq!(sink.interactions.len(), 12);
+    assert_eq!(
+        imp().default_label(&zip).as_deref(),
+        Some("linkedin 2026-10-20")
+    );
+    let reg = registry(&ImportOptions::default());
+    assert_eq!(detect(&reg, &zip).unwrap().kind(), "linkedin_csv");
+}
+
+#[test]
+fn basic_export_zip_without_connections_fails_with_actionable_message() {
+    let dir = tempfile::tempdir().unwrap();
+    let zip = zip_entries(
+        dir.path(),
+        "Basic_LinkedInDataExport_10-20-2026.zip",
+        &[
+            (
+                "Profile.csv",
+                b"First Name,Last Name\nOwen,Ryder\n".to_vec(),
+            ),
+            (
+                "Email Addresses.csv",
+                b"Email Address\nowen@example.com\n".to_vec(),
+            ),
+            ("Registration.csv", b"Registered At\n2020-01-01\n".to_vec()),
+        ],
+    );
+    // Auto-detection still routes it here so the user gets the real reason.
+    let reg = registry(&ImportOptions::default());
+    assert_eq!(detect(&reg, &zip).unwrap().kind(), "linkedin_csv");
+    let mut sink = MemorySink::default();
+    let err = imp().import(&zip, &mut sink).unwrap_err();
+    assert!(
+        err.to_string().contains(
+            "This is LinkedIn's Basic export; it has no Connections.csv. Request the larger \
+             archive (Settings > Data privacy > Get a copy of your data > 'Download larger data \
+             archive')."
+        ),
+        "{err}"
+    );
+    assert!(sink.interactions.is_empty());
+}
+
+#[test]
+fn unrelated_zip_is_not_claimed() {
+    let dir = tempfile::tempdir().unwrap();
+    let zip = zip_entries(dir.path(), "photos.zip", &[("a.csv", b"x,y\n".to_vec())]);
+    assert_eq!(imp().detect(&zip), Detection::No);
+    assert_eq!(
+        imp().detect(&fixture("x/twitter-archive.zip")),
+        Detection::No
+    );
+}
+
+#[test]
+fn oversized_zip_entry_aborts_the_import() {
+    let dir = tempfile::tempdir().unwrap();
+    let zip = complete_export(dir.path(), "Complete_LinkedInDataExport_10-20-2026.zip");
+    let small = imp().with_limits(64, 1 << 20);
+    let mut sink = MemorySink::default();
+    let err = small.import(&zip, &mut sink).unwrap_err();
+    assert!(err.to_string().contains("too large"), "{err}");
+    let total = imp().with_limits(1 << 20, 64);
+    let err = total.import(&zip, &mut MemorySink::default()).unwrap_err();
+    assert!(err.to_string().contains("too large"), "{err}");
+}

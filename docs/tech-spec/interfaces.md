@@ -275,7 +275,7 @@ See [sharing-and-views.md](sharing-and-views.md#4-the-ost-file-format).
 
 | `code` | HTTP | CLI exit | Meaning |
 | --- | --- | --- | --- |
-| `bad_request` | 400 | 2 | invalid input or flags |
+| `bad_request` | 400 | 2 | invalid input or flags, or an import file in the wrong format (a LinkedIn Basic export, an unreadable zip) |
 | `unauthorized` | 401 | - | missing or wrong bearer token |
 | `not_found` | 404 | 5 | no such person, view or playbook |
 | `ambiguous` | 409 | 6 | the person reference matched several people; see `candidates` |

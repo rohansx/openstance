@@ -14,6 +14,13 @@ describe('Sources and import', () => {
     expect(within(list).getByText(/enrichment results/i)).toBeInTheDocument();
   });
 
+  it('names the LinkedIn export .zip as an accepted format', async () => {
+    renderApp('#/sources');
+    const panel = await screen.findByRole('region', { name: /import your contacts/i });
+    expect(within(panel).getByText(/LinkedIn export \.zip or Connections\.csv/)).toBeInTheDocument();
+    expect(within(panel).getByRole('option', { name: /LinkedIn export \(\.zip or Connections\.csv\)/ })).toBeInTheDocument();
+  });
+
   it('uploads files to POST /import with progress, then shows the import stats', async () => {
     const XHR = installFakeXhr();
     renderApp('#/sources');

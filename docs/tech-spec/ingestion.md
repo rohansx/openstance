@@ -188,7 +188,7 @@ The Sink caches `(kind, value) -> identity.id` in a bounded LRU (100k entries, ~
 | Importer | Strong | Weak |
 |---|---|---|
 | `mbox` | First non-empty line starts with `From ` and the next 64 KiB contain a `Message-ID:` or `Date:` header | `.mbox` extension |
-| `linkedin_csv` | CSV whose header row (after an optional `Notes:` preamble of up to 10 lines) contains `First Name,Last Name` and `URL` (Connections), or `CONVERSATION ID` and `SENDER PROFILE URL` (messages), or `Direction` and `inviterProfileUrl` (Invitations); or a `.zip` containing `Connections.csv` | `Connections.csv` file name |
+| `linkedin_csv` | CSV whose header row (after an optional `Notes:` preamble of up to 10 lines) contains `First Name,Last Name` and `URL` (Connections), or `CONVERSATION ID` and `SENDER PROFILE URL` (messages), or `Direction` and `inviterProfileUrl` (Invitations); or a `.zip` holding `Connections.csv`, `messages.csv`, `Invitations.csv` or `Profile.csv` at the root or one folder down (a Basic export is claimed so the import can say what is missing) | `Connections.csv` file name; any other `.zip` named `*LinkedInDataExport*` |
 | `x_archive` | `.zip` (or directory) containing `data/manifest.js` and any of `data/following.js`, `data/follower.js`, `data/direct-messages.js` | a `.js` file starting with `window.YTD.` |
 | `vcf` | Starts with `BEGIN:VCARD` (after BOM/whitespace) | `.vcf` / `.vcard` |
 | `ics` | Starts with `BEGIN:VCALENDAR` | `.ics` |
@@ -230,7 +230,7 @@ Phases follow [../plan/roadmap.md](../plan/roadmap.md).
 | Importer | Phase | Feature flag | Input | Emits |
 |---|---|---|---|---|
 | `mbox` | 1 | `mbox` (default) | Google Takeout / any mboxo/mboxrd file, `.zip` Takeout | email interactions, email identities |
-| `linkedin_csv` | 1 | `linkedin` (default) | `Connections.csv`, `messages.csv`, `Invitations.csv`, or the export `.zip` | linkedin_url (+ email) identities, connection + dm interactions |
+| `linkedin_csv` | 1 | `linkedin` (default) | `Connections.csv`, `messages.csv`, `Invitations.csv`, or the export `.zip` (`Complete_LinkedInDataExport_*.zip`; the Basic export is rejected, 6.2) | linkedin_url (+ email) identities, connection + dm interactions |
 | `vcf` | 1 | `vcf` (default) | Apple / Google Contacts `.vcf` (3.0, 4.0) | contact records: email, phone, linkedin/x/ig handles, name/title/company hints |
 | `ics` | 3 | `ics` (default) | Calendar `.ics` export | meeting interactions with attendees |
 | `x_archive` | 3 | `x` (default) | X/Twitter archive `.zip` | x_user_id identities, follow + dm interactions |
@@ -264,7 +264,9 @@ Phases follow [../plan/roadmap.md](../plan/roadmap.md).
 
 ### 6.2 `linkedin_csv` (Phase 1)
 
-All three files may come as separate CSVs or in the export zip. Each import of an export is its own `source`, labelled `linkedin <export date>` (export date from the zip name `Basic_LinkedInDataExport_10-15-2026.zip` or file mtime). CSV parsing ports the v0.1 prototype's tested behavior: UTF-8 BOM, quoted commas, doubled quotes, CRLF, multiline values, and a `Notes:` preamble before the header (see [../prototype-v0.1.md](../prototype-v0.1.md)).
+All three files may come as separate CSVs or in the export zip. Each import of an export is its own `source`, labelled `linkedin <export date>` (export date from the zip or folder name `Complete_LinkedInDataExport_10-15-2026.zip`, also when the browser saved it as `.zip.zip`, else file mtime).
+
+**The export zip.** `openstance import Complete_LinkedInDataExport_10-20-2026.zip` (and `POST /import` with the zip as the uploaded file) reads `Connections.csv`, `messages.csv` and `Invitations.csv` from inside the zip, at the root or one folder down, in that order, into **one** source; the opaque-URL join for messages uses the zip's own `Connections.csv`. Zip safety is the same as `x_archive` (6.5): only those three named entries are opened (every other member, such as `Rich_Media.csv` or `Profile.csv`, is never read), nothing is written to disk, and decompressed bytes are capped at 1 GiB per entry and 4 GiB per archive (an over-cap entry aborts the import). Skip locators name the entry (`messages.csv row 3`). LinkedIn's **Basic** export (`Basic_LinkedInDataExport_*.zip`) has no `Connections.csv`; importing it fails with a `bad_request` error (CLI exit 2, HTTP 400) whose message is: *This is LinkedIn's Basic export; it has no Connections.csv. Request the larger archive (Settings > Data privacy > Get a copy of your data > 'Download larger data archive').* CSV parsing ports the v0.1 prototype's tested behavior: UTF-8 BOM, quoted commas, doubled quotes, CRLF, multiline values, and a `Notes:` preamble before the header (see [../prototype-v0.1.md](../prototype-v0.1.md)).
 
 | File | Columns used | Emits |
 |---|---|---|

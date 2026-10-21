@@ -456,6 +456,25 @@ impl std::fmt::Display for UsageError {
 
 impl std::error::Error for UsageError {}
 
+/// `{e:#}` without repeating a cause its parent already printed
+/// (`import failed: X` caused by `X`).
+fn chain_text(e: &anyhow::Error) -> String {
+    let mut out = String::new();
+    let mut prev = String::new();
+    for c in e.chain() {
+        let s = c.to_string();
+        if !prev.is_empty() && prev.ends_with(&s) {
+            continue;
+        }
+        if !out.is_empty() {
+            out.push_str(": ");
+        }
+        out.push_str(&s);
+        prev = s;
+    }
+    out
+}
+
 /// Print the error (stderr, and the JSON envelope on stdout with `--json`)
 /// and return the exit code.
 fn report_error(e: &anyhow::Error, json: bool) -> u8 {
@@ -479,7 +498,7 @@ fn report_error(e: &anyhow::Error, json: bool) -> u8 {
             },
         },
     };
-    eprintln!("error: {e:#}");
+    eprintln!("error: {}", chain_text(e));
     for c in &resp.error.candidates {
         eprintln!("  {:>6}  {}", c.id, c.display_name);
     }
@@ -495,6 +514,18 @@ fn report_error(e: &anyhow::Error, json: bool) -> u8 {
 mod tests {
     use super::*;
     use clap::CommandFactory;
+
+    #[test]
+    fn error_chain_does_not_repeat_a_cause_its_parent_printed() {
+        let inner = openstance_core::Error::Import(openstance_import::ImportError::Unsupported(
+            "zip".into(),
+        ));
+        let e = anyhow::Error::new(inner).context("importing");
+        assert_eq!(
+            chain_text(&e),
+            "importing: import failed: not supported: zip"
+        );
+    }
 
     #[test]
     fn cli_definition_is_valid() {

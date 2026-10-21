@@ -45,6 +45,7 @@ use std::rc::Rc;
 use chrono::DateTime;
 use serde_json::Value;
 
+use crate::zip_limits::Limited;
 use crate::{
     sniff, Detection, Direction, Handle, HandleKind, Hints, ImportError, ImportOptions,
     ImportStats, Importer, InteractionKind, Participant, RawInteraction, Role, Sink, SkipReason,
@@ -350,46 +351,6 @@ impl Importer for XArchiveImporter {
         sink.progress(stats.bytes, None);
         stats.elapsed_ms = started.elapsed().as_millis() as u64;
         Ok(stats)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Size limits
-// ---------------------------------------------------------------------------
-
-/// A reader that fails once an entry or the whole archive exceeds its cap.
-struct Limited<R> {
-    inner: R,
-    entry_left: u64,
-    total: Rc<Cell<u64>>,
-    total_max: u64,
-}
-
-impl<R: Read> Limited<R> {
-    fn new(inner: R, entry_max: u64, total: Rc<Cell<u64>>, total_max: u64) -> Self {
-        Limited {
-            inner,
-            entry_left: entry_max,
-            total,
-            total_max,
-        }
-    }
-}
-
-impl<R: Read> Read for Limited<R> {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let n = self.inner.read(buf)?;
-        let n64 = n as u64;
-        if n64 > self.entry_left {
-            return Err(std::io::Error::other("archive entry too large"));
-        }
-        self.entry_left -= n64;
-        let t = self.total.get() + n64;
-        if t > self.total_max {
-            return Err(std::io::Error::other("archive too large"));
-        }
-        self.total.set(t);
-        Ok(n)
     }
 }
 

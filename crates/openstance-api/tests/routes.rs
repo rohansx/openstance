@@ -443,6 +443,84 @@ async fn import_streams_files_through_the_importer() {
     assert_eq!(status, StatusCode::BAD_REQUEST, "{v}");
 }
 
+/// A deflated zip of `(name, bytes)` entries, in memory.
+fn zip_bytes(entries: &[(&str, &[u8])]) -> Vec<u8> {
+    use std::io::Write;
+    let mut z = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+    let o = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated);
+    for (n, b) in entries {
+        z.start_file(*n, o).unwrap();
+        z.write_all(b).unwrap();
+    }
+    z.finish().unwrap().into_inner()
+}
+
+/// `multipart/form-data` with one `file` field carrying `bytes`.
+fn upload(file_name: &str, bytes: &[u8]) -> axum::http::Request<Body> {
+    let boundary = "B0UNDARY";
+    let mut body = format!(
+        "--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"{file_name}\"\r\nContent-Type: application/zip\r\n\r\n"
+    )
+    .into_bytes();
+    body.extend_from_slice(bytes);
+    body.extend_from_slice(format!("\r\n--{boundary}--\r\n").as_bytes());
+    req(Method::POST, "/import")
+        .header("host", HOST)
+        .header("authorization", format!("Bearer {TOKEN}"))
+        .header(
+            "content-type",
+            format!("multipart/form-data; boundary={boundary}"),
+        )
+        .body(Body::from(body))
+        .unwrap()
+}
+
+#[tokio::test]
+async fn import_accepts_the_linkedin_export_zip() {
+    let opts = openstance_core::import::ImportOptions::default();
+    let h = harness_with(
+        openstance_core::Config::default(),
+        openstance_core::Providers::with_importers(openstance_core::import::registry(&opts)),
+    );
+    let conn = "First Name,Last Name,URL,Email Address,Company,Position,Connected On\n\
+                Quinn,Example,https://www.linkedin.com/in/quinn-example,,Fabrikam,CTO,12 Mar 2024\n";
+    let zip = zip_bytes(&[
+        ("Connections.csv", conn.as_bytes()),
+        ("Profile.csv", b"First Name,Last Name\nOwen,Ryder\n"),
+    ]);
+    let (status, v) = h
+        .send(upload("Complete_LinkedInDataExport_10-20-2026.zip", &zip))
+        .await
+        .into_status_json();
+    assert_eq!(status, StatusCode::OK, "{v}");
+    assert_eq!(v["sources"][0]["kind"], "linkedin_csv");
+    assert_eq!(v["sources"][0]["label"], "linkedin 2026-10-20");
+    assert_eq!(v["sources"][0]["interactions"], 1);
+    assert_eq!(
+        v["sources"][0]["path"],
+        "Complete_LinkedInDataExport_10-20-2026.zip"
+    );
+
+    // The Basic export has no Connections.csv: a 400 the UI can show as is.
+    let basic = zip_bytes(&[("Profile.csv", b"First Name,Last Name\nOwen,Ryder\n")]);
+    let (status, v) = h
+        .send(upload("Basic_LinkedInDataExport_10-20-2026.zip", &basic))
+        .await
+        .into_status_json();
+    assert_eq!(status, StatusCode::BAD_REQUEST, "{v}");
+    assert_eq!(v["error"]["code"], "bad_request");
+    let msg = v["error"]["message"].as_str().unwrap();
+    assert!(
+        msg.contains(
+            "This is LinkedIn's Basic export; it has no Connections.csv. Request the larger \
+             archive (Settings > Data privacy > Get a copy of your data > 'Download larger data \
+             archive')."
+        ),
+        "{msg}"
+    );
+}
+
 trait IntoStatusJson {
     fn into_status_json(self) -> (StatusCode, Value);
 }
