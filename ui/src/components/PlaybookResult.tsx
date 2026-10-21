@@ -193,6 +193,16 @@ function names(list: Obj[], extra: (p: Obj) => string): ReactNode {
   ));
 }
 
+/** Per-company totals: `counts` when present, else the list lengths. */
+function counts(c: Obj): { current: number; alumni: number; one_hop: number } {
+  const k = isObj(c.counts) ? c.counts : {};
+  return {
+    current: num(k.current) ?? arr(c.current).length,
+    alumni: num(k.alumni) ?? arr(c.alumni).length,
+    one_hop: num(k.one_hop) ?? arr(c.one_hop).length,
+  };
+}
+
 function Accounts({ result }: { result: Obj }) {
   if (!Array.isArray(result.companies)) return null;
   const rows = result.companies.filter(isObj);
@@ -215,6 +225,7 @@ function Accounts({ result }: { result: Obj }) {
             {rows.map((c, i) => {
               const current = arr(c.current).filter(isObj);
               const alumni = arr(c.alumni).filter(isObj);
+              const n = counts(c);
               const best = [...current, ...alumni].find((p) => num(p.id) === num(c.best) && num(c.best) !== null);
               return (
                 <tr key={i}>
@@ -222,9 +233,9 @@ function Accounts({ result }: { result: Obj }) {
                     {str(c.company) ?? str(c.domain) ?? '–'}
                     {str(c.domain) && str(c.company) ? <small> · {String(c.domain)}</small> : null}
                   </td>
-                  <td>{current.length}</td>
-                  <td>{alumni.length}</td>
-                  <td>{arr(c.one_hop).length}</td>
+                  <td>{n.current}</td>
+                  <td>{n.alumni}</td>
+                  <td>{n.one_hop}</td>
                   <td>
                     <span className={`tag ${c.coverage === 'none' ? 'neutral' : c.coverage === 'warm' ? '' : 'warn'}`}>{str(c.coverage) ?? '–'}</span>
                   </td>
@@ -251,14 +262,28 @@ function Accounts({ result }: { result: Obj }) {
         const alumni = arr(c.alumni).filter(isObj);
         const hop = arr(c.one_hop).filter(isObj);
         if (!current.length && !alumni.length && !hop.length) return null;
+        const n = counts(c);
+        // the engine caps each list at limit_per_company; `counts` has the totals
+        const of = (shown: number, total: number) => (total > shown ? ` (showing ${shown} of ${total})` : '');
+        const viaName = (id: number | null): string => {
+          if (id === null) return '–';
+          const tie = [...current, ...alumni].find((p) => num(p.id) === id);
+          return (tie && str(tie.display_name)) || `#${id}`;
+        };
         return (
           <details key={i} className="account-detail">
             <summary>{str(c.company) ?? str(c.domain) ?? 'Company'}: people</summary>
-            <p>Current: {names(current, (p) => [str(p.title), `(${score(p.score)})`].filter(Boolean).join(' '))}</p>
-            <p>Alumni: {names(alumni, (p) => `(alumni${str(p.left_seen) ? `, left ${String(p.left_seen)}` : ''})`)}</p>
             <p>
-              One hop:{' '}
-              {names(hop, (p) => `(via ${num(p.via) !== null ? `#${String(p.via)}` : '–'}, strength ${num(p.strength)?.toFixed(2) ?? '–'})`)}
+              Current: {names(current, (p) => [str(p.title), `(${score(p.score)})`].filter(Boolean).join(' '))}
+              {of(current.length, n.current)}
+            </p>
+            <p>
+              Alumni: {names(alumni, (p) => `(alumni${str(p.left_seen) ? `, left ${String(p.left_seen)}` : ''})`)}
+              {of(alumni.length, n.alumni)}
+            </p>
+            <p>
+              One hop: {names(hop, (p) => `(via ${viaName(num(p.via))}, strength ${num(p.strength)?.toFixed(2) ?? '–'})`)}
+              {of(hop.length, n.one_hop)}
             </p>
           </details>
         );
@@ -277,6 +302,8 @@ function Refresh({ result }: { result: Obj }) {
   const updated = arr(result.updated).filter(isObj);
   const notFound = arr(result.not_found);
   const skipped = arr(result.skipped).filter(isObj);
+  const failed = arr(result.failed).filter(isObj);
+  const unchanged = arr(result.unchanged).length;
   return (
     <>
       {updated.length ? (
@@ -321,6 +348,22 @@ function Refresh({ result }: { result: Obj }) {
           })}
         </p>
       )}
+      {unchanged > 0 && (
+        <p className="muted">
+          {unchanged} {unchanged === 1 ? 'person' : 'people'} already up to date
+        </p>
+      )}
+      {failed.length > 0 && (
+        <p>
+          Failed:{' '}
+          {failed.map((f, i) => (
+            <span key={i}>
+              {i > 0 && '; '}
+              <PersonLink person={ref(f)} /> ({str(f.error) ?? 'error'})
+            </span>
+          ))}
+        </p>
+      )}
       {skipped.length > 0 && (
         <ul className="notes-out">
           {skipped.map((s, i) => (
@@ -335,17 +378,21 @@ function Refresh({ result }: { result: Obj }) {
 function Verify({ result }: { result: Obj }) {
   if (!('email' in result)) return null;
   const mutual = isObj(result.mutual) ? result.mutual : null;
-  if (!str(result.email)) return <p className="muted">No email to verify.</p>;
   return (
     <div className="verify-card">
-      <p>
-        <code>{String(result.email)}</code> <span className="status-tag">{str(result.status) ?? 'unverified'}</span>
-        {str(result.verified_at) && <small> · verified {shortDate(String(result.verified_at))}</small>}
-      </p>
+      {str(result.email) ? (
+        <p>
+          <code>{String(result.email)}</code> <span className="status-tag">{str(result.status) ?? 'unverified'}</span>
+          {str(result.verified_at) && <small> · verified {shortDate(String(result.verified_at))}</small>}
+        </p>
+      ) : (
+        <p className="muted">No email to verify.</p>
+      )}
       {mutual ? (
         <p>
           Freshest mutual who replied: <PersonLink person={ref(mutual)} />
           {str(mutual.last_reply) ? ` · last reply ${shortDate(String(mutual.last_reply))}` : ''}
+          {str(mutual.last_subject) ? ` · “${String(mutual.last_subject)}”` : ''}
         </p>
       ) : (
         <p className="muted">No mutual who replied.</p>
@@ -358,8 +405,20 @@ function Watch({ result }: { result: Obj }) {
   if (!Array.isArray(result.moves)) return null;
   const moves = result.moves.filter(isObj);
   const hits = moves.filter((m) => m.target_hit === true).length;
+  const titles = arr(result.title_changes).filter(isObj);
+  const added = arr(result.new_connections).filter(isObj);
+  const removed = arr(result.removed_connections).filter(isObj);
+  const src = isObj(result.sources) ? result.sources : null;
+  const exportName = (e: unknown) =>
+    isObj(e) ? `${str(e.label) ?? `source #${String(e.id)}`}${str(e.imported_at) ? ` (${shortDate(String(e.imported_at))})` : ''}` : '–';
+  const role = (title: unknown, company: unknown) => [str(title), str(company)].filter(Boolean).join(' · ') || '–';
   return (
     <>
+      {src && (
+        <p className="muted">
+          Comparing {exportName(src.previous)} with {exportName(src.latest)}
+        </p>
+      )}
       <p>
         {moves.length} move{moves.length === 1 ? '' : 's'} · {hits} move{hits === 1 ? '' : 's'} into your target companies
         {num(result.checked) !== null ? ` · ${String(result.checked)} profiles checked` : ''}
@@ -382,8 +441,8 @@ function Watch({ result }: { result: Obj }) {
                   <td>
                     <PersonLink person={ref(m)} />
                   </td>
-                  <td>{str(m.from) ?? '–'}</td>
-                  <td>{str(m.to) ?? '–'}</td>
+                  <td>{role(m.from_title, m.from)}</td>
+                  <td>{role(m.to_title, m.to)}</td>
                   <td>{String(m.detected_by ?? '–').replace(/_/g, ' ')}</td>
                   <td>{m.target_hit === true ? <span className="tag warn">target</span> : ''}</td>
                 </tr>
@@ -392,6 +451,34 @@ function Watch({ result }: { result: Obj }) {
           </table>
         </div>
       )}
+      {titles.length > 0 && (
+        <div className="table-wrap">
+          <table aria-label="Title changes">
+            <thead>
+              <tr>
+                <th>Person</th>
+                <th>Company</th>
+                <th>From</th>
+                <th>To</th>
+              </tr>
+            </thead>
+            <tbody>
+              {titles.map((t, i) => (
+                <tr key={i}>
+                  <td>
+                    <PersonLink person={ref(t)} />
+                  </td>
+                  <td>{str(t.company) ?? '–'}</td>
+                  <td>{str(t.from) ?? '–'}</td>
+                  <td>{str(t.to) ?? '–'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {added.length > 0 && <p>New connections: {names(added, (p) => `(${role(p.title, p.company)})`)}</p>}
+      {removed.length > 0 && <p>Removed connections: {names(removed, (p) => `(${role(p.title, p.company)})`)}</p>}
     </>
   );
 }

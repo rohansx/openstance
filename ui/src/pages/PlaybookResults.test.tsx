@@ -167,7 +167,7 @@ describe('playbook results, human-first (U4)', () => {
     expect(rows[2]).toHaveTextContent(/Ramp.*0.*0.*0.*none/);
     expect(within(rows[1]!).getByRole('link', { name: /tom okafor/i })).toHaveAttribute('href', '#/people/812');
     expect(within(result).getByText(/^Alumni:/)).toHaveTextContent(/Ana Lee \(alumni, left 2024-08\)/);
-    expect(within(result).getByText(/^One hop:/)).toHaveTextContent(/Kai Wu \(via #812, strength 0\.33\)/);
+    expect(within(result).getByText(/^One hop:/)).toHaveTextContent(/Kai Wu \(via Tom Okafor, strength 0\.33\)/);
   });
 
   it('refresh: updated people with their new fields, and the ones not found', async () => {
@@ -264,5 +264,108 @@ describe('runner inputs match playbooks.md (U8)', () => {
     const runner = await screen.findByRole('region', { name: /run watch/i });
     await userEvent.click(within(runner).getByRole('button', { name: /get plan and quote/i }));
     await waitFor(() => expect(within(runner).getByRole('alert')).toHaveTextContent('not found: playbook "watch"'));
+  });
+});
+
+// Shapes captured from the real engine (openstance --json <playbook> on
+// fixtures/demo), trimmed. The renderers must use every field that matters.
+describe('playbook results match the engine Outcome JSON', () => {
+  it('accounts: counts come from `counts` (the lists are capped), one-hop names the tie', async () => {
+    const { result } = await run(
+      'accounts',
+      {
+        companies: [
+          {
+            company: 'Hexwire',
+            domain: 'hexwire.example',
+            current: [
+              { id: 217, display_name: 'Keira Balogun', title: 'Senior Software Engineer', company: 'Hexwire', score: 0.798 },
+              { id: 8, display_name: 'Kaveh Beaumont', title: 'Engineering Manager', company: 'Hexwire', score: 0.751 },
+            ],
+            alumni: [{ id: 77, display_name: 'Ana Lee', company: 'Ramp', left_seen: '2024-08', seen_in: 'linkedin', score: 0.61 }],
+            one_hop: [{ id: 2, display_name: 'Jordan Avery', via: 217, strength: 0.56, score: 0.562 }],
+            counts: { current: 52, alumni: 3, one_hop: 1 },
+            coverage: 'warm',
+            best: 217,
+            best_score: 0.798,
+          },
+        ],
+      },
+      async (runner) => {
+        await userEvent.type(within(runner).getByRole('textbox', { name: /companies/i }), 'Hexwire');
+      },
+    );
+    const rows = within(within(result).getByRole('table', { name: /coverage/i })).getAllByRole('row');
+    expect(rows[1]).toHaveTextContent(/Hexwire.*52.*3.*1.*warm.*Keira Balogun \(0\.80\)/);
+    expect(within(result).getByText(/^Current:/)).toHaveTextContent(/showing 2 of 52/);
+    expect(within(result).getByText(/^One hop:/)).toHaveTextContent(/Jordan Avery \(via Keira Balogun, strength 0\.56\)/);
+  });
+
+  it('refresh: failed requests are listed with their error, and unchanged people are counted', async () => {
+    const { result } = await run('refresh', {
+      updated: [],
+      unchanged: [12, 13],
+      not_found: [],
+      failed: [{ id: 242, error: 'operation not supported by backend: profile needs a LinkedIn URL or handle, or a company' }],
+      skipped: [],
+    });
+    expect(within(result).getByText(/^Failed:/)).toHaveTextContent(/#242.*profile needs a LinkedIn URL/);
+    expect(within(result).getByRole('link', { name: '#242' })).toHaveAttribute('href', '#/people/242');
+    expect(within(result).getByText(/2 people already up to date/)).toBeInTheDocument();
+  });
+
+  it('verify: with no email on file the freshest mutual is still shown', async () => {
+    const { result } = await run(
+      'verify',
+      {
+        person_id: 69,
+        email: null,
+        status: null,
+        verified_at: null,
+        source: null,
+        mutual: { id: 197, display_name: 'Theo Marsh', last_reply: '2026-09-18T20:08:55Z', last_subject: 'Re: Lumen Pay API changes for Q4', interaction_id: 6365 },
+      },
+      type(/^person/i, 'Maya Chen'),
+    );
+    expect(within(result).getByText(/no email to verify/i)).toBeInTheDocument();
+    expect(within(result).getByRole('link', { name: 'Theo Marsh' })).toHaveAttribute('href', '#/people/197');
+    expect(result.querySelector('.verify-card')).toHaveTextContent(/Theo Marsh · last reply 2026-09-18 · “Re: Lumen Pay API changes for Q4”/);
+  });
+
+  it('watch: titles in moves, plus title changes and new and removed connections', async () => {
+    const { result } = await run('watch', {
+      moves: [
+        {
+          id: 434,
+          display_name: 'Soraya Iversen',
+          from: 'Hexwire',
+          to: 'Carebridge',
+          from_title: 'Product Designer',
+          to_title: 'Design Lead',
+          detected_by: 'linkedin_diff',
+          seen_between: ['2026-10-15T00:00:00Z', '2026-10-16T00:00:00Z'],
+          target_hit: true,
+          score: 0.277,
+          enrich_log_id: null,
+          evidence: [],
+        },
+      ],
+      title_changes: [{ id: 435, display_name: 'Zoltan Varga', company: 'Vellum Desk', from: 'Senior Product Manager', to: 'Group Product Manager', evidence: [] }],
+      new_connections: [{ id: 940, display_name: 'Nia Newperson', company: 'Hexwire', title: 'Engineer', interaction_id: 7327 }],
+      removed_connections: [{ id: 941, display_name: 'Old Contact', company: 'Ramp', title: null, interaction_id: 7000 }],
+      checked: 0,
+      targets: ['Carebridge'],
+      sources: {
+        previous: { id: 2, label: 'linkedin 2026-10-15', imported_at: '2026-10-15T00:00:00Z' },
+        latest: { id: 4, label: 'linkedin 2026-10-16', imported_at: '2026-10-16T00:00:00Z' },
+      },
+    });
+    const moves = within(within(result).getByRole('table', { name: /moves/i })).getAllByRole('row');
+    expect(moves[1]).toHaveTextContent(/Soraya Iversen.*Product Designer · Hexwire.*Design Lead · Carebridge.*target/);
+    expect(within(result).getByText(/comparing linkedin 2026-10-15 \(2026-10-15\) with linkedin 2026-10-16 \(2026-10-16\)/i)).toBeInTheDocument();
+    const titles = within(result).getByRole('table', { name: /title changes/i });
+    expect(titles).toHaveTextContent(/Zoltan Varga.*Vellum Desk.*Senior Product Manager.*Group Product Manager/);
+    expect(within(result).getByText(/^New connections:/)).toHaveTextContent(/Nia Newperson \(Engineer · Hexwire\)/);
+    expect(within(result).getByText(/^Removed connections:/)).toHaveTextContent(/Old Contact \(Ramp\)/);
   });
 });
