@@ -1,4 +1,4 @@
-/* Visual language ported from the v0.1 prototype (style.css + product.css). System fonts only: no external requests. */
+/* Visual language ported from the v0.1 prototype (style.css + product.css). Fonts are self-hosted (Inter, Inter Tight via @fontsource): no external requests. */
 :root {
   --ink: #233b2d;
   --green: #2e5145;
@@ -7,10 +7,11 @@
   --border: #dfe5d7;
   --muted: #737d76;
   --soft: #7d8a72;
-  --serif: Georgia, 'Times New Roman', serif;
-  --sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --display: 'Inter Tight Variable', 'Inter Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sans: 'Inter Variable', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --mono: 'SFMono-Regular', ui-monospace, Menlo, Consolas, 'Liberation Mono', monospace;
   font-family: var(--sans);
+  font-feature-settings: 'cv11', 'ss01';
   font-size: 14px;
   color: var(--ink);
   background: var(--paper);
@@ -60,7 +61,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, pre:focus-visible 
 .land-kicker { font-family: var(--mono); font-size: 10px; letter-spacing: 1.2px; line-height: 1.7; color: #6f7f63; font-weight: 500; }
 
 .landing { background: var(--paper); color: var(--ink); }
-.landing h1, .landing h2 { font-family: var(--serif); font-weight: 400; letter-spacing: -2px; }
+.landing h1, .landing h2 { font-family: var(--display); font-weight: 600; letter-spacing: -0.035em; }
 .landing h2 { font-size: 45px; line-height: 1.14; margin-top: 20px; }
 
 /* Nav */
@@ -187,7 +188,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, pre:focus-visible 
 .ownership-points { margin-top: 25px; display: flex; flex-direction: column; gap: 13px; font-size: 11px; color: #c4d3b7; }
 .ownership-points svg { width: 14px; height: 14px; margin-right: 6px; }
 .release-card { padding: 28px; border: 1px solid #5d7452; background: #354f39; border-radius: 10px; align-self: start; }
-.release-card h3 { font-family: var(--serif); font-size: 26px; margin: 20px 0 16px; font-weight: 400; }
+.release-card h3 { font-family: var(--display); font-size: 26px; margin: 20px 0 16px; font-weight: 600; letter-spacing: -0.02em; }
 .release-card .tag { font: 8px var(--mono); background: #4b6440; color: #c9dbb5; letter-spacing: 0.8px; }
 .price-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .price-table th, .price-table td { padding: 11px 0; border-top: 1px solid #546b48; text-align: left; font-weight: 400; color: #d6e2cb; }
