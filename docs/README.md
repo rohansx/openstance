@@ -29,6 +29,7 @@ Ownership of shared topics: the schema belongs to [data-model.md](tech-spec/data
 | [product/vision.md](product/vision.md) | Problem, product principles (local-first, explained, agent-native, egress off), what openstance is and is not |
 | [product/personas-and-use-cases.md](product/personas-and-use-cases.md) | Founder, recruiter, seller, community and agent personas, with concrete commands and the use-case matrix by phase |
 | [product/competitive-analysis.md](product/competitive-analysis.md) | Factual comparison with Happenstance and adjacent tools, each claim labelled verified or unconfirmed, and where competitors still win |
+| [product/github-inspiration.md](product/github-inspiration.md) | Open-source references (Lean Intros, Orbit, Relationship Substrate, Twenty, Monica, Relaticle), licence caveats, what we adapt, and a gap analysis against the code |
 | [product/pricing-and-cloud.md](product/pricing-and-cloud.md) | Free local core, bring-your-own-key enrichment, an indicative optional cloud tier and the rules it must follow |
 
 ### Architecture
@@ -60,12 +61,12 @@ Ownership of shared topics: the schema belongs to [data-model.md](tech-spec/data
 
 | Doc | Description |
 |---|---|
-| [plan/roadmap.md](plan/roadmap.md) | Phases 0 to 5, timeline, gates (public MVP, park criterion, cloud decision), what is out of scope per phase |
+| [plan/roadmap.md](plan/roadmap.md) | Phases 0 to 5, timeline, gates (public MVP, park criterion, cloud decision), what is out of scope per phase, and the research backlog (imports, warm paths, intros) |
 | [plan/phase-1.md](plan/phase-1.md) | Week 1: schema, mbox/LinkedIn/vcf importers, resolution and review, scoring, RuleParser + FTS5 search, usable CLI |
 | [plan/phase-2.md](plan/phase-2.md) | Week 2: embeddings and fusion, `who`, `how`, MCP server, 60-second demo, Show HN (the public MVP) |
 | [plan/phase-3.md](plan/phase-3.md) | Week 3: Enricher trait with Null and treg, path and brief, encrypted views, ics and X archive importers |
 | [plan/phase-4.md](plan/phase-4.md) | Week 4: HTTP API and minimal UI, remaining playbooks, model backends, cargo-dist releases (v1.0) |
-| [plan/phase-5-and-beyond.md](plan/phase-5-and-beyond.md) | Post-launch, gated on traction: sync, team federation, more importers, optional OAuth, cloud decision |
+| [plan/phase-5-and-beyond.md](plan/phase-5-and-beyond.md) | Post-launch, gated on traction: sync, team federation, more importers, optional OAuth, relationship memory, provider-backed research, cloud decision |
 | [plan/launch.md](plan/launch.md) | Positioning, Show HN copy, channels, README checklist, metrics, and the park criterion thresholds |
 
 ### Engineering
@@ -82,8 +83,8 @@ Ownership of shared topics: the schema belongs to [data-model.md](tech-spec/data
 
 | Doc | Description |
 |---|---|
-| [decisions/README.md](decisions/README.md) | ADR index (0001 to 0012) and pending decisions |
-| [risks-and-open-questions.md](risks-and-open-questions.md) | Risk register (R1 to R26) and open questions, reviewed at every phase gate |
+| [decisions/README.md](decisions/README.md) | ADR index (0001 to 0014, including the proposed [ADR-0014](decisions/0014-evidence-classes-and-claim-provenance.md) on evidence classes) and pending decisions |
+| [risks-and-open-questions.md](risks-and-open-questions.md) | Risk register (R1 to R30) and open questions, reviewed at every phase gate |
 | [glossary.md](glossary.md) | Terms used across the docs (anchor id, override, tombstone, tie, view, egress, ...) |
 | [prototype-v0.1.md](prototype-v0.1.md) | What the v0.1 browser prototype does, what carries over to the Rust core, and where it lives |
 

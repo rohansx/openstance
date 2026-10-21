@@ -1,6 +1,6 @@
 # Product vision
 
-> Status: accepted for v1 planning. Owner: product. Last reviewed: 2026-10-20.
+> Status: accepted for v1 planning. Owner: product. Last reviewed: 2026-10-21.
 > Sources: *openstance product overview* (PDF, 2026-10-20), *openstance tech spec* (PDF, 2026-10-20), and the sourced research in the v0.1 prototype (`dist/research.md`, summarized in [../prototype-v0.1.md](../prototype-v0.1.md)). Where the research corrects the overview, this document follows the research.
 
 ## What openstance is
@@ -113,12 +113,27 @@ The product is judged on outcomes, not features. These are gates, not achieved r
 
 **First validation question** (from the research): can a founder use openstance to find one relevant person they had forgotten, explain why that person fits, and reach an accepted introduction faster than with their current process, while keeping control of their data? If that loop works repeatedly, expand. If it does not, more integrations will not fix it.
 
+**A positioning line to test** (from the open-source research in [github-inspiration.md](github-inspiration.md); not yet launch copy):
+
+> Find the right person, understand why the connection matters, and follow through—with a network you control.
+
+It is tested in the pilot with three tasks, each tied to a measure. None of these is measured from the binary (no telemetry, Q11); they come from pilot sessions.
+
+| Task | Measure |
+|---|---|
+| Import your contacts without cleanup surprises, including a reimport of a newer export | Time to the first useful result; mistaken identity merges found on review |
+| Find an evidence-supported introduction path | Whether the connector confirms the suggested relationship, recorded separately for observed paths and possible overlaps ([ADR-0014](../decisions/0014-evidence-classes-and-claim-provenance.md)) |
+| Complete the follow-up | Introductions that actually happen (intro rows that reach introduced or met) |
+
+More integrations or a bigger graph do not count as evidence that the product is better.
+
 **Kill / park criterion:** if there is no meaningful Show HN response within a month of launch, park the project. Scope is deliberately one binary and one demo so that parking is cheap. Tracked in [../risks-and-open-questions.md](../risks-and-open-questions.md).
 
 ## Related documents
 
 - [personas-and-use-cases.md](personas-and-use-cases.md): who uses it and how
 - [competitive-analysis.md](competitive-analysis.md): Happenstance and adjacent tools, factually
+- [github-inspiration.md](github-inspiration.md): open-source references, what we adapt, and the gap analysis
 - [pricing-and-cloud.md](pricing-and-cloud.md): what stays free, what a cloud tier would sell
 - [../architecture/overview.md](../architecture/overview.md): how the binary is built
 - [../plan/roadmap.md](../plan/roadmap.md): phases 0 to 5

@@ -19,6 +19,7 @@ This folder records the decisions that shape openstance: what was decided, why, 
 | [0011](0011-one-json-shape-across-surfaces.md) | CLI, MCP and HTTP share one JSON shape | Accepted | 1 to 2 |
 | [0012](0012-spec-corrections.md) | Corrections to the original tech spec (a to g and other reconciliations) | Accepted | 1 |
 | [0013](0013-react-vite-web-ui-and-workspace.md) | Web UI in Vite + React + TypeScript; shortlist and introductions stored in the graph | Accepted | 4 |
+| [0014](0014-evidence-classes-and-claim-provenance.md) | Evidence classes: every fact and edge says where it came from; only observed interactions or user assertions establish a relationship | **Proposed** | 4 to 5 |
 
 ### Pending decisions without an ADR yet
 
@@ -45,6 +46,8 @@ flowchart TD
   A7[0007 Enricher + egress off] --> A11
   A8[0008 Views as age files] --> A11
   A11 --> A13[0013 React UI + workspace tables]
+  A5 --> A14[0014 Evidence classes - proposed]
+  A7 --> A14
   A1[0001 Name - open] -.-> A8
 ```
 

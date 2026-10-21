@@ -432,6 +432,8 @@ Evidence line format (CLI text output and the `line` field in JSON):
 
 `{YYYY-MM-DD}  {kind} {direction}  "{subject}"  ({source.label})`. Subjects only, never bodies (bodies are not imported by default; see [ingestion](ingestion.md)). LinkedIn and X DMs have no subject; the line shows the channel name.
 
+**Evidence classes (proposed, not built).** [ADR-0014](../decisions/0014-evidence-classes-and-claim-provenance.md) proposes that every evidence item carries a class derived from existing columns: `observed` (email, meeting, dm), `curated_export` (connection, contact, follow), `user_assertion` (overrides, intros), `enrichment` (`enrich:<backend>`) or `model_interpretation` (`semantic` matches, `reason_source: "model:<id>"`). Until it is accepted and the field is added in [interfaces](interfaces.md), nothing in this section changes.
+
 ---
 
 ## 9. Result JSON

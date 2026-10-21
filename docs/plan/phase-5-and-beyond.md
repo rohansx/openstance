@@ -73,10 +73,32 @@ Export-first stays the default. OAuth exists for people who want live sync and a
 
 These come from the v0.1 prototype and the research notes. Each one needs user demand before it is built.
 
-- Intro tracking (shortlist, asked, introduced, meeting, outcome) ported from the v0.1 intro board to the Rust core as an `intro` table plus CLI and UI.
+- ~~Intro tracking ported from the v0.1 intro board.~~ Built in Phase 4: `shortlist` and `intro` tables (migration `0004`, [ADR-0013](../decisions/0013-react-vite-web-ui-and-workspace.md)) with HTTP routes and UI. Extensions (more stages, next action, due list, CLI and MCP) are P4X-INTRO-01..03 and P4X-MCP-01 in the [roadmap](roadmap.md#research-backlog-2026-10-21).
 - Freshness states ("please reconfirm"), conflicting titles across sources, shown in `who`.
 - A Tauri desktop shell around the existing UI.
 - An SQLCipher build flag, tested in CI.
+
+### WP6: relationship memory (`openstance-core`, `ui/`)
+
+Priority 4 of the [research backlog](roadmap.md#research-backlog-2026-10-21). Monica's follow-up screen is the design reference (ideas only; Monica is AGPLv3, see [github-inspiration.md](../product/github-inspiration.md)). Commitments are user data, like overrides: `rebuild` never touches them, and rows store anchor person ids resolved on read.
+
+- [ ] **P5-MEM-01 Commitments.** A `commitment` table (person, text, due date, snoozed-until, status `open | done | dismissed`, origin, timestamps) with CLI, HTTP and UI: record a promise ("send Priya the deck"), set a due date, snooze it, mark it done.
+  - *Acceptance:* survives `rebuild`, merges and splits (anchor ids); never leaves the machine (views, exports to others and enrichment do not read it; the user's own `export` includes it); no reminders are delivered by the binary (scheduled delivery is a cloud-tier idea).
+- [ ] **P5-MEM-02 Follow-up screen.** One list for today: commitments due, intro follow-ups due (P4X-INTRO-02), and `reconnect` suggestions, each with the last interaction's date and subject as the reason to reconnect.
+  - *Acceptance:* every row shows its reason and evidence class; nothing on the screen is model-written unless labelled as such.
+- [ ] **P5-MEM-03 Suggested commitments (optional, model).** A configured model may propose commitments from text the user already has locally (notes, and email bodies only if `import.email_bodies` is on). A proposal is stored with status `suggested` and origin `model:<id>` and becomes a commitment only when the user accepts it.
+  - *Acceptance:* no suggestion appears in the due list until accepted; a hosted model is egress (opt-in, logged as `model:<provider>`, [models.md](../tech-spec/models.md#9-privacy-and-egress-rules-for-models)); with no model configured the feature is absent, not degraded.
+
+### WP7: provider-backed research (`openstance-enrich`, `openstance-core`)
+
+Priority 5 of the research backlog. Every provider result is `enrichment`-class evidence under [ADR-0014](../decisions/0014-evidence-classes-and-claim-provenance.md): it can support a profile fact or a possible overlap, and it can never establish a relationship.
+
+- [ ] **P5-RES-01 One provider result contract.** Every `Enricher` result records backend, endpoint id, `fetched_at`, `enrich_log` id, cost, and coverage (fields asked vs fields returned); partial failures are kept per request; `export` can include enrichment facts with their provenance. Keys stay in env or config on the user's machine.
+  - *Acceptance:* a `partial` run shows which requests failed and why; exported facts carry their class and source.
+- [ ] **P5-RES-02 Exa through treg.** Add a people-discovery op to the `Enricher` trait (today it has `profile`, `find_email`, `verify_email`, `company`, `web_search`). treg's catalog lists `exa.people.search` and `exa.web.search` (checked 2026-10-21); choose endpoints only after checking required fields, coverage and cost. Discovery results are candidates with source URLs, shown beside the local graph; they create no person, identity, tie or score unless the user adds one.
+  - *Acceptance:* quote first and `allow_egress` as for every egress; no contact record is needed to build a discovery query; the UI and JSON label results "public web, not a relationship".
+- [ ] **P5-RES-03 Boardy stays a handoff.** Keep the Integrations card as an email handoff: the user writes and reviews a brief, openstance produces it, and the user sends it. No API calls until an authorised integration is verified.
+  - *Acceptance:* the card never shows "Connected" for Boardy; the brief is labelled "handoff"; the research did not verify any Boardy API, and the card says so.
 
 ---
 
