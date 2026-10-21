@@ -78,6 +78,8 @@ mail-parser = "0.9"
 memchr = "2"
 csv = "1"
 quoted_printable = "0.5"
+rrule = { version = "0.14", default-features = false }
+zip = { version = "7.3", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 lru = "0.12"
 
 # CLI

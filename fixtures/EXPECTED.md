@@ -100,3 +100,17 @@ mbox `ImportStats`: `records_read = 177`, `skipped.bad_date = 1`, `skipped.unsup
 - `linkedin/messages.csv`: vanity profile URLs, `DATE` as `2026-08-03 10:00:00 UTC`, multi-line quoted `CONTENT` (never read), `FOLDER` INBOX/SENT.
 - `linkedin/Invitations.csv`: `Sent At` as `9/15/26, 10:00 AM`, INCOMING/OUTGOING, `Message` never read.
 - `vcf/contacts.vcf`: vCard 2.1 (quoted-printable UTF-8), 3.0 and 4.0 (`tel:` URI), CRLF, folded lines (base64 PHOTO, folded EMAIL value), grouped `item1.EMAIL`, `ADR`, `REV`, `NOTE`/`CATEGORIES` ignored.
+
+## Phase 3 importer fixtures (P3-IMP-01/02)
+
+Not part of the Phase 1 load set above, so the totals above do not change. Importer output with "now" after 2026-10-01:
+
+| File | Expected | Notes |
+|---|---|---|
+| `ics/google.ics` | 117 meetings from 13 VEVENTs | 1 one-off sync (room dropped) + 10 of a 12-week 1:1 (one `EXDATE`, one moved, one cancelled occurrence) + 104 of a weekly standup running since 2023 (cap per series) + Elena's coffee (declined Ravi dropped) + an all-day review; skipped: `unsupported` 5 (cancelled event, cancelled occurrence, owner declined, 60-person all-hands, not-yet-started series), `no_participants` 2 (focus time, owner-only) |
+| `ics/apple.ics` | 8 meetings from 4 VEVENTs | floating time, `TZID=Europe/Berlin`, `EMAIL=` parameter with a `urn:uuid` value on a folded line, a daily series with `UNTIL` (5); new people Quinn Harlow and Saoirse Delacroix |
+| both `.ics` files | 1 shared meeting | "Northwind sync" has the same UID and instant in both exports and is stored once (global meeting dedupe) |
+| `x/twitter-archive.zip` (= `x/archive/`) | 14 follow + 7 dm interactions | 8 following + 6 followers (3 overlap), 5 one-to-one messages in 2 conversations (a reaction is not a message), 2 group messages; 13 distinct account ids; self candidates `x_user_id:1000000001`, `x_handle:owenryder_x` |
+
+Loaded on top of the Phase 1 set (with `x_user_id:1000000001` added to `[me]`): 2 new named people from the calendars, 3 new X-only people from DMs (ids only, no names), and the 9 follow-only ids stay dormant (no person). Flagged merges and suggestions are unchanged.
+No record carries `SENTINEL-BODY-7f3a` (descriptions, locations, alarms, DM text, conversation names and tweets are never read).

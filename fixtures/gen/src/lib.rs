@@ -16,6 +16,7 @@ use std::path::Path;
 
 pub mod demo;
 pub mod graph;
+pub mod phase3;
 
 /// Planted in every body / note / DM content: must never reach the database.
 pub const BODY_SENTINEL: &str = "SENTINEL-BODY-7f3a";
@@ -1854,6 +1855,7 @@ pub fn expected_md() -> String {
     out.push_str("- `linkedin/messages.csv`: vanity profile URLs, `DATE` as `2026-08-03 10:00:00 UTC`, multi-line quoted `CONTENT` (never read), `FOLDER` INBOX/SENT.\n");
     out.push_str("- `linkedin/Invitations.csv`: `Sent At` as `9/15/26, 10:00 AM`, INCOMING/OUTGOING, `Message` never read.\n");
     out.push_str("- `vcf/contacts.vcf`: vCard 2.1 (quoted-printable UTF-8), 3.0 and 4.0 (`tel:` URI), CRLF, folded lines (base64 PHOTO, folded EMAIL value), grouped `item1.EMAIL`, `ADR`, `REV`, `NOTE`/`CATEGORIES` ignored.\n");
+    out.push_str(&phase3::expected_md_section());
     out
 }
 
@@ -1880,6 +1882,7 @@ pub fn files() -> BTreeMap<&'static str, String> {
     f.insert("vcf/contacts.vcf", vcf_text(&cards()));
     f.insert("config.toml", config_toml());
     f.insert("EXPECTED.md", expected_md());
+    f.extend(phase3::files());
     f
 }
 
@@ -1891,6 +1894,13 @@ pub fn generate(root: &Path) -> std::io::Result<()> {
             std::fs::create_dir_all(dir)?;
         }
         std::fs::write(path, text)?;
+    }
+    for (rel, bytes) in phase3::binary_files() {
+        let path = root.join(rel);
+        if let Some(dir) = path.parent() {
+            std::fs::create_dir_all(dir)?;
+        }
+        std::fs::write(path, bytes)?;
     }
     Ok(())
 }

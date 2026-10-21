@@ -1,5 +1,5 @@
-//! P1-IMP-05: every Phase 1 fixture is detected `Strong` by exactly one
-//! importer; unknown files error with the supported kinds.
+//! P1-IMP-05 / P3-IMP-01/02: every fixture is detected `Strong` by exactly
+//! one importer; unknown files error with the supported kinds.
 
 mod common;
 
@@ -12,13 +12,17 @@ const FIXTURES: &[(&str, &str)] = &[
     ("linkedin/messages.csv", "linkedin_csv"),
     ("linkedin/Invitations.csv", "linkedin_csv"),
     ("vcf/contacts.vcf", "vcf"),
+    ("ics/google.ics", "ics"),
+    ("ics/apple.ics", "ics"),
+    ("x/twitter-archive.zip", "x_archive"),
+    ("x/archive", "x_archive"),
 ];
 
 #[test]
-fn registry_order_is_mbox_linkedin_vcf() {
+fn registry_order_is_mbox_linkedin_vcf_ics_x() {
     let reg = registry(&ImportOptions::default());
     let kinds: Vec<_> = reg.iter().map(|i| i.kind()).collect();
-    assert_eq!(kinds, ["mbox", "linkedin_csv", "vcf"]);
+    assert_eq!(kinds, ["mbox", "linkedin_csv", "vcf", "ics", "x_archive"]);
 }
 
 #[test]
@@ -58,6 +62,10 @@ fn weak_matches_are_used_when_nothing_is_strong() {
     assert_eq!(detect(&reg, &p).unwrap().kind(), "mbox");
     let (_d2, p2) = temp_file("Connections.csv", b"");
     assert_eq!(detect(&reg, &p2).unwrap().kind(), "linkedin_csv");
+    let (_d3, p3) = temp_file("calendar.ics", b"");
+    assert_eq!(detect(&reg, &p3).unwrap().kind(), "ics");
+    let (_d4, p4) = temp_file("following.js", b"window.YTD.following.part0 = [ ]");
+    assert_eq!(detect(&reg, &p4).unwrap().kind(), "x_archive");
 }
 
 #[test]
@@ -67,7 +75,7 @@ fn unknown_file_lists_supported_kinds() {
     let err = detect(&reg, &p).err().unwrap();
     assert_eq!(
         err.to_string(),
-        "no importer recognizes this file; supported kinds: mbox, linkedin_csv, vcf; use --as <kind>"
+        "no importer recognizes this file; supported kinds: mbox, linkedin_csv, vcf, ics, x_archive; use --as <kind>"
     );
     let missing = fixture("does-not-exist.mbox");
     assert!(detect(&reg, &missing).is_err(), "I/O errors detect as No");

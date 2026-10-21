@@ -9,11 +9,14 @@ repository.workspace = true
 publish.workspace = true
 
 [features]
-default = ["mbox", "linkedin", "vcf"]
+default = ["mbox", "linkedin", "vcf", "ics", "x-archive"]
 # Phase 1 importers. Each gates one module and its parser dependencies.
 mbox = ["dep:mail-parser", "dep:memchr", "dep:regex"]
 linkedin = ["dep:csv", "dep:regex"]
 vcf = ["dep:quoted_printable", "dep:regex"]
+# Phase 3 importers.
+ics = ["dep:rrule"]
+x-archive = ["dep:zip", "dep:serde_json"]
 
 [dependencies]
 serde.workspace = true
@@ -26,8 +29,12 @@ memchr = { workspace = true, optional = true }
 csv = { workspace = true, optional = true }
 quoted_printable = { workspace = true, optional = true }
 regex = { workspace = true, optional = true }
+rrule = { workspace = true, optional = true }
+zip = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
 
 [dev-dependencies]
+zip = { workspace = true, features = ["deflate-flate2-zlib-rs"] }
 tempfile.workspace = true
 serde_json.workspace = true
 insta.workspace = true

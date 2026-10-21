@@ -1,5 +1,5 @@
 //! Importer and Sink traits, the raw record types importers emit, and the
-//! built-in Phase 1 importers (each behind a cargo feature).
+//! built-in importers (each behind a cargo feature).
 //!
 //! An importer turns one file into a stream of [`RawIdentity`] and
 //! [`RawInteraction`] records pushed into a [`Sink`]. It never touches the
@@ -60,12 +60,16 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ics")]
+pub mod ics;
 #[cfg(feature = "linkedin")]
 pub mod linkedin_csv;
 #[cfg(feature = "mbox")]
 pub mod mbox;
 #[cfg(feature = "vcf")]
 pub mod vcf;
+#[cfg(feature = "x-archive")]
+pub mod x_archive;
 
 /// Bytes an importer's `detect` may read from the start of a file.
 pub const DETECT_SNIFF_BYTES: usize = 64 * 1024;
@@ -542,6 +546,13 @@ pub struct ImportOptions {
     pub include_spam: bool,
     /// mbox: skip messages larger than this many bytes after the header.
     pub max_message_bytes: u64,
+    /// `[import] ics_max_attendees`: calendar events with more attendees
+    /// (all-hands) are skipped.
+    pub ics_max_attendees: u32,
+    /// `[me] identities` (`"email:me@example.com"`, ...). Importers use them
+    /// only to recognize the owner's side of a record (for example a
+    /// calendar event the owner declined); they never emit them.
+    pub me_identities: Vec<String>,
 }
 
 impl Default for ImportOptions {
@@ -553,6 +564,8 @@ impl Default for ImportOptions {
             tz: chrono_tz::UTC,
             include_spam: false,
             max_message_bytes: 50 * 1024 * 1024,
+            ics_max_attendees: 50,
+            me_identities: Vec::new(),
         }
     }
 }
@@ -577,6 +590,10 @@ pub fn registry(opts: &ImportOptions) -> Vec<Box<dyn Importer>> {
     )));
     #[cfg(feature = "vcf")]
     v.push(Box::new(vcf::VcfImporter::new(opts.clone())));
+    #[cfg(feature = "ics")]
+    v.push(Box::new(ics::IcsImporter::new(opts.clone())));
+    #[cfg(feature = "x-archive")]
+    v.push(Box::new(x_archive::XArchiveImporter::new(opts.clone())));
     let _ = opts;
     v
 }
