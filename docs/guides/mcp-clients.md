@@ -1,14 +1,19 @@
 # Connecting MCP clients
 
-`openstance mcp` runs a [Model Context Protocol](../tech-spec/interfaces.md#2-mcp-server) server on stdio. An agent such as Claude Code, Cursor or Claude Desktop starts it as a child process and can then search your graph with three tools:
+`openstance mcp` runs a [Model Context Protocol](../tech-spec/interfaces.md#2-mcp-server) server on stdio. An agent such as Claude Code, Cursor or Claude Desktop starts it as a child process and can then use eight tools:
 
-| Tool | What it answers |
-| --- | --- |
-| `search_people` | "who do I know at Northwind", "fintech founders I met since 2025", "who have I lost touch with" |
-| `get_person` | everything about one person: fields, score and why, identities, recent interactions, mutuals |
-| `how_connected` | warm introduction paths to someone already in your graph |
+| Tool | What it answers | Cost |
+| --- | --- | --- |
+| `search_people` | "who do I know at Northwind", "fintech founders I met since 2025", "who have I lost touch with" | free, local |
+| `get_person` | everything about one person: fields, score and why, identities, recent interactions, mutuals | free, local |
+| `how_connected` | warm introduction paths to someone already in your graph | free, local |
+| `list_views` | your saved views and the views other people sent you | free, local |
+| `search_view` | people in a view someone shared with you | free, local |
+| `quote_enrich` | the price of enrichment requests; sends no contact data | free (prices only) |
+| `path_to` | intro paths to anyone, including people not in your graph | may spend, only with `allow_egress: true` |
+| `brief` | a short fact-only brief on one person, optionally with one web search | may spend, only with `allow_egress: true` |
 
-All three are read-only and local. They read `~/.openstance/graph.db`, cost nothing, and make no network calls. Input schemas are in [interfaces.md section 2.2](../tech-spec/interfaces.md#22-input-schemas).
+The first five read `~/.openstance/graph.db` (and `~/.openstance/views/`), cost nothing, and make no network calls. `path_to` and `brief` return a quote (`status: "quote"`) and send nothing unless the call sets `allow_egress: true`, and with the default config (`enrich.backend = "none"`) nothing is ever sent at all. `max_usd` can only lower the configured `enrich.max_usd_per_run`. Every paid request is in `openstance enrich log`. Input schemas are in [interfaces.md section 2.2](../tech-spec/interfaces.md#22-input-schemas).
 
 ## Before you start
 
@@ -42,7 +47,7 @@ To serve a different graph, pass global flags after `mcp`:
 $ claude mcp add openstance -- openstance mcp --db /path/to/graph.db
 ```
 
-Agents pick the right tool more reliably when they also have the skill file [`playbooks/openstance-search.md`](../../playbooks/openstance-search.md). It explains when to use each tool and asks the agent to quote evidence lines instead of paraphrasing them. In Claude Code, copy it into the project's `.claude/skills/openstance-search/SKILL.md` (or `~/.claude/skills/...` for all projects).
+Agents pick the right tool more reliably when they also have the skill files in [`playbooks/`](../../playbooks/README.md). [`openstance-search.md`](../../playbooks/openstance-search.md) explains when to use each free tool and asks the agent to quote evidence lines instead of paraphrasing them. [`path.md`](../../playbooks/path.md) and [`brief.md`](../../playbooks/brief.md) tell the agent to ask for a quote first and to spend only after you agree. In Claude Code, copy it into the project's `.claude/skills/openstance-search/SKILL.md` (or `~/.claude/skills/...` for all projects).
 
 ## Cursor
 
@@ -95,7 +100,7 @@ $ npx @modelcontextprotocol/inspector openstance mcp
 - **Logs.** The server writes logs to stderr only. stdout carries the protocol and nothing else. Set `OPENSTANCE_LOG=debug` in the client's `env` block to get more detail in the client's server log.
 - **Embeddings.** `search_people` uses the embedder set in `model.embedder`, the same as `openstance search`, so its ranking matches the CLI. Nothing loads at startup. The model loads on the first search that needs it, from the local cache (`model.cache_dir`, or `OPENSTANCE_MODEL_DIR`). To keep the server fully offline, run `openstance rebuild --embeddings` once with network, or set `model.embedder = "none"` to get full-text search only. If the embedder changed since the vectors were built, the server logs a warning on stderr and searches use full-text only until you run `openstance rebuild --embeddings`.
 - **Fixed time.** `openstance mcp --now 2026-10-20` pins "now" for scores and relative dates (`since: "90d"`). This is useful for demos and tests.
-- **`--read-only`.** Accepted now, and also set by `[mcp] read_only = true`. It matters once tools that can spend money (`path_to`, `brief`) arrive in Phase 3. It forces `allow_egress` to false.
+- **`--read-only`.** Also set by `[mcp] read_only = true`. It forces `allow_egress` to false on `path_to` and `brief`, so those tools only ever return quotes.
 - **Same JSON as the CLI.** A tool's `structuredContent` is the document the CLI prints with `--json`. `search_people` with `{"text": "devtools dinner", "limit": 5}` returns the same JSON as `openstance search "devtools dinner" --limit 5 --json` (apart from `took_ms`). Its `rerun` field is that CLI command, so you can repeat an agent's search in a terminal.
 - **Privacy.** Over stdio, results include people marked `do_not_share`, as local search does. That flag only affects sharing views.
 

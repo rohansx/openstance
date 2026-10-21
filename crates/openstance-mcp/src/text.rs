@@ -275,6 +275,216 @@ pub fn how(v: &Value) -> String {
     out
 }
 
+/// `$0.0100` from micro-USD.
+fn usd(v: &Value) -> String {
+    let m = v.as_u64().unwrap_or(0);
+    format!("${}.{:04}", m / 1_000_000, (m % 1_000_000) / 100)
+}
+
+/// The quote part shared by `path_to`, `brief` and `quote_enrich`.
+fn quote_summary(out: &mut String, q: &Value) {
+    let lines = q["lines"].as_array().map_or(&[][..], Vec::as_slice);
+    if lines.is_empty() {
+        out.push_str("No paid request is needed; nothing leaves this machine.\n");
+    } else {
+        let _ = writeln!(
+            out,
+            "quote: {} request{} for {} via {} (budget {}{})",
+            lines.len(),
+            if lines.len() == 1 { "" } else { "s" },
+            usd(&q["total_micro_usd"]),
+            s(&q["backend"]).unwrap_or("?"),
+            usd(&q["budget_micro_usd"]),
+            if q["within_budget"] == Value::Bool(false) {
+                ", over budget"
+            } else {
+                ""
+            },
+        );
+        for l in lines {
+            let req = &l["job"]["request"];
+            let sent: Vec<String> = req
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter(|(k, v)| *k != "kind" && !v.is_null())
+                .map(|(k, v)| format!("{k}={}", v.as_str().unwrap_or(&v.to_string())))
+                .collect();
+            let _ = writeln!(
+                out,
+                "  - {} {} (sends {})",
+                s(&req["kind"]).unwrap_or("?"),
+                usd(&l["micro_usd"]),
+                if sent.is_empty() {
+                    "nothing".to_string()
+                } else {
+                    sent.join(", ")
+                }
+            );
+        }
+    }
+    for sk in q["skipped"].as_array().into_iter().flatten() {
+        let _ = writeln!(
+            out,
+            "  skipped {}{}: {}",
+            s(&sk["op"]).unwrap_or("?"),
+            sk["person_id"]
+                .as_i64()
+                .map_or(String::new(), |p| format!(" for person {p}")),
+            s(&sk["reason"]).unwrap_or("?"),
+        );
+    }
+}
+
+/// Status, quote, receipt and notes of an `Outcome`.
+fn outcome_head(out: &mut String, v: &Value) {
+    let _ = writeln!(
+        out,
+        "{}: {}",
+        s(&v["playbook"]).unwrap_or("playbook"),
+        s(&v["status"]).unwrap_or("?")
+    );
+    quote_summary(out, &v["plan"]["quote"]);
+    let r = &v["receipt"];
+    if r["requests_sent"].as_u64().unwrap_or(0) > 0 {
+        let _ = writeln!(
+            out,
+            "spent {} on {} request(s) (run {})",
+            usd(&r["spent_micro_usd"]),
+            r["requests_sent"],
+            s(&r["run_id"]).unwrap_or("?")
+        );
+    }
+    for n in v["notes"].as_array().into_iter().flatten() {
+        if let Some(n) = s(n) {
+            let _ = writeln!(out, "note: {n}");
+        }
+    }
+    if v["status"] == "quote" {
+        out.push_str(
+            "Nothing was sent. Show the user this quote; call again with allow_egress=true only if they agree.\n",
+        );
+    }
+}
+
+/// `path_to`.
+pub fn path_to(v: &Value) -> String {
+    let mut out = String::new();
+    outcome_head(&mut out, v);
+    let r = &v["result"];
+    if r.is_null() {
+        return out;
+    }
+    let t = &r["target"];
+    let _ = writeln!(
+        out,
+        "target: {}{}",
+        headline(t),
+        if t["in_graph"] == Value::Bool(true) {
+            " (in the graph)"
+        } else {
+            " (not in the graph)"
+        }
+    );
+    let paths = r["paths"].as_array().map_or(&[][..], Vec::as_slice);
+    if paths.is_empty() {
+        out.push_str("No path found through the user's graph.\n");
+    }
+    for (i, p) in paths.iter().enumerate() {
+        let _ = writeln!(
+            out,
+            "{:>2}. via {} [id {}]: strength {} ({})",
+            i + 1,
+            headline(&p["via"]),
+            p["via"]["id"],
+            num(&p["strength"]),
+            s(&p["reason"]).unwrap_or("?"),
+        );
+        lines(&mut out, &p["evidence"], MAX_LINES);
+    }
+    if let Some(e) = s(&r["email"]["address"]) {
+        let _ = writeln!(
+            out,
+            "email: {e} ({})",
+            s(&r["email"]["status"]).unwrap_or("unverified")
+        );
+    }
+    out
+}
+
+/// `brief`: the markdown itself, after the status lines.
+pub fn brief(v: &Value) -> String {
+    let mut out = String::new();
+    outcome_head(&mut out, v);
+    if let Some(md) = s(&v["result"]["markdown"]) {
+        out.push('\n');
+        out.push_str(md);
+    }
+    out
+}
+
+/// `quote_enrich`.
+pub fn quote(v: &Value) -> String {
+    let mut out = String::new();
+    quote_summary(&mut out, v);
+    out.push_str("This is a price only; nothing was sent.\n");
+    out
+}
+
+/// `list_views`.
+pub fn views(v: &Value) -> String {
+    let all = v["views"].as_array().map_or(&[][..], Vec::as_slice);
+    if all.is_empty() {
+        return "No views.\n".into();
+    }
+    let mut out = String::new();
+    for w in all {
+        let _ = writeln!(
+            out,
+            "{} view {} [{}]: {} people, expires {}{}",
+            s(&w["direction"]).unwrap_or("?"),
+            s(&w["name"]).unwrap_or("?"),
+            s(&w["id"]).unwrap_or("not exported"),
+            w["rows"],
+            day(&w["expires_at"]).unwrap_or("never"),
+            s(&w["owner"]["label"])
+                .filter(|_| w["direction"] == "imported")
+                .map_or(String::new(), |l| format!(", from {l} (claimed)")),
+        );
+    }
+    out
+}
+
+/// `search_view`.
+pub fn view_search(v: &Value) -> String {
+    let all = v["results"].as_array().map_or(&[][..], Vec::as_slice);
+    if all.is_empty() {
+        return "No matching people in the imported views.\n".into();
+    }
+    let mut out = String::new();
+    for (i, r) in all.iter().take(MAX_RESULTS).enumerate() {
+        let p = &r["person"];
+        let _ = writeln!(
+            out,
+            "{:>2}. {} ({}, last contact {}) from view {} shared by {}",
+            i + 1,
+            headline(p),
+            s(&p["score_bucket"]).unwrap_or("?"),
+            s(&p["last_contact_month"]).unwrap_or("-"),
+            s(&r["view"]["name"]).unwrap_or("?"),
+            s(&r["view"]["owner"]["label"]).unwrap_or("unknown"),
+        );
+    }
+    if all.len() > MAX_RESULTS {
+        let _ = writeln!(
+            out,
+            "... {} more in the structured result",
+            all.len() - MAX_RESULTS
+        );
+    }
+    out
+}
+
 /// An error envelope.
 pub fn error(resp: &ErrorResponse) -> String {
     let e = &resp.error;

@@ -1,6 +1,5 @@
 ---
 source: crates/openstance-mcp/tests/tools.rs
-assertion_line: 153
 expression: tools
 ---
 [
@@ -158,6 +157,215 @@ expression: tools
     "annotations": {
       "readOnlyHint": true,
       "openWorldHint": false
+    }
+  },
+  {
+    "name": "path_to",
+    "description": "Find warm intro paths to a person, including people not in the graph. Local steps are free. Looking up a stranger's employers or email costs money: call with allow_egress=false first, show the user the quote, and only then call with allow_egress=true.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "target"
+      ],
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "name, email, linkedin url, or person id"
+        },
+        "company": {
+          "type": "string"
+        },
+        "linkedin": {
+          "type": "string"
+        },
+        "find_email": {
+          "type": "boolean",
+          "default": false
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3
+        },
+        "allow_egress": {
+          "type": "boolean",
+          "default": false
+        },
+        "max_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "plan_only": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "brief",
+    "description": "Write a short, fact-only intro brief about one person in the user's graph: who they are, how the user knows them, last contact, the best mutual and a suggested opener. Local and free unless web=true, which adds one paid web search: call with allow_egress=false first, show the user the quote, and only then call with allow_egress=true.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "person"
+      ],
+      "properties": {
+        "person": {
+          "type": "string"
+        },
+        "web": {
+          "type": "boolean",
+          "default": false,
+          "description": "one web search for recent public posts (costs money)"
+        },
+        "allow_egress": {
+          "type": "boolean",
+          "default": false
+        },
+        "max_usd": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_views",
+    "description": "List shared views (local, free): the user's own saved views and the encrypted views other people sent them. `direction` filters own, imported or all.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "enum": [
+            "own",
+            "imported",
+            "all"
+          ],
+          "default": "all"
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "search_view",
+    "description": "Search a view someone shared with the user (local, free). These people are not in the user's own graph; each result names the view and its claimed owner. Use '*' to search every imported, unexpired view.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "view"
+      ],
+      "properties": {
+        "view": {
+          "type": "string",
+          "description": "view name or id; '*' searches every imported, unexpired view"
+        },
+        "text": {
+          "type": "string"
+        },
+        "company": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "title": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "quote_enrich",
+    "description": "Price enrichment requests (profile, find_email, verify_email, company, web_search) with the configured backend. Never sends contact data and never spends; returns a Quote. People marked no_enrich come back under `skipped`.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "requests"
+      ],
+      "properties": {
+        "requests": {
+          "type": "array",
+          "maxItems": 500,
+          "items": {
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "profile",
+                  "find_email",
+                  "verify_email",
+                  "company",
+                  "web_search"
+                ]
+              },
+              "person_id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "company": {
+                "type": "string"
+              },
+              "linkedin": {
+                "type": "string"
+              },
+              "domain": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "query": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
     }
   }
 ]

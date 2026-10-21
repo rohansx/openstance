@@ -5,20 +5,36 @@
 //! function the CLI command uses, so `openstance search --json` and
 //! `search_people` return the same document for the same input and `now`.
 
+use openstance_core::egress::quote::quote_json;
+use openstance_core::egress::Surface;
+use openstance_core::enrich::{EnrichJob, EnrichRequest};
 use openstance_core::graphq::{self, HowOptions};
-use openstance_core::json::ErrorResponse;
+use openstance_core::json::{ErrorResponse, V};
+use openstance_core::playbook::{Outcome, RunOptions};
 use openstance_core::resolve::lookup::PersonKey;
 use openstance_core::search::person::DetailOptions;
 use openstance_core::search::rules::parse_date_arg;
 use openstance_core::search::{self, SearchRequest};
+use openstance_core::view::inbox::{self, ViewQuery};
+use openstance_core::view::{Direction, ViewList, ViewOwner, ViewSearchResponse};
 use openstance_core::{Config, Error, Graph, QueryPatch};
 use rmcp::model::JsonObject;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::schema::{GET_PERSON, HOW_CONNECTED, SEARCH_PEOPLE};
+use crate::schema::{
+    BRIEF, GET_PERSON, HOW_CONNECTED, LIST_VIEWS, PATH_TO, QUOTE_ENRICH, SEARCH_PEOPLE, SEARCH_VIEW,
+};
 use crate::text;
+use crate::ViewsContext;
+
+/// What the tools need besides the graph.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct ToolCtx {
+    /// Imported views and my owner identity (`None`: own views only).
+    pub views: Option<ViewsContext>,
+}
 
 /// What a tool call produced: the JSON shape and its plain-text rendering.
 #[derive(Debug, Clone, PartialEq)]
@@ -60,13 +76,29 @@ impl ToolOutput {
     }
 }
 
-/// Run tool `name`. `None` when no such tool is registered.
+/// Run tool `name` without a views context. `None` when no such tool is
+/// registered.
 pub fn call(graph: &Graph, name: &str, args: Option<JsonObject>) -> Option<ToolOutput> {
+    call_with(graph, &ToolCtx::default(), name, args)
+}
+
+/// Run tool `name`. `None` when no such tool is registered.
+pub fn call_with(
+    graph: &Graph,
+    ctx: &ToolCtx,
+    name: &str,
+    args: Option<JsonObject>,
+) -> Option<ToolOutput> {
     let args = Value::Object(args.unwrap_or_default());
     let out = match name {
         SEARCH_PEOPLE => search_people(graph, args),
         GET_PERSON => get_person(graph, args),
         HOW_CONNECTED => how_connected(graph, args),
+        PATH_TO => path_to(graph, args),
+        BRIEF => brief(graph, args),
+        LIST_VIEWS => list_views(graph, ctx, args),
+        SEARCH_VIEW => search_view(graph, ctx, args),
+        QUOTE_ENRICH => quote_enrich(graph, args),
         _ => return None,
     };
     Some(out.unwrap_or_else(|e| ToolOutput::error(&e)))
@@ -270,5 +302,311 @@ fn how_connected(graph: &Graph, args: Value) -> Result<ToolOutput, Error> {
     let r = graphq::how_connected(graph.conn(), &key, HowOptions { limit }, graph.now())?;
     let v = to_value(&r)?;
     let t = text::how(&v);
+    Ok(ToolOutput::ok(v, t))
+}
+
+// ---------------------------------------------------------------------------
+// Egress arguments shared by path_to and brief (interfaces.md 2, egress rule)
+// ---------------------------------------------------------------------------
+
+/// `max_usd` must be a finite, non-negative number.
+fn max_usd(tool: &str, v: Option<f64>) -> Result<Option<f64>, Error> {
+    match v {
+        Some(m) if !m.is_finite() || m < 0.0 => Err(bad(format!(
+            "{tool}: max_usd must be a number >= 0 (got {m})"
+        ))),
+        m => Ok(m),
+    }
+}
+
+/// The run options of an agent call. `allow_egress` defaults to
+/// `enrich.allow_egress_default` (false) and a read-only server never
+/// allows it. `max_usd` can only lower the configured budget
+/// ([`Surface::Agent`]).
+fn agent_run(
+    graph: &Graph,
+    tool: &str,
+    allow_egress: Option<bool>,
+    max: Option<f64>,
+    plan_only: bool,
+) -> Result<RunOptions, Error> {
+    let cfg = graph.config();
+    let allow = allow_egress.unwrap_or(cfg.enrich.allow_egress_default) && !cfg.mcp.read_only;
+    Ok(RunOptions {
+        allow_egress: allow,
+        max_usd: max_usd(tool, max)?,
+        surface: Surface::Agent,
+        plan_only,
+        run_id: None,
+    })
+}
+
+fn outcome(out: &Outcome, render: fn(&Value) -> String) -> Result<ToolOutput, Error> {
+    let v = to_value(out)?;
+    let t = render(&v);
+    Ok(ToolOutput::ok(v, t))
+}
+
+fn non_blank(tool: &str, field: &str, s: &str) -> Result<(), Error> {
+    if s.trim().is_empty() {
+        return Err(bad(format!("{tool}: {field} must not be empty")));
+    }
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// path_to (P3-MCP-01)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PathToArgs {
+    target: String,
+    company: Option<String>,
+    linkedin: Option<String>,
+    find_email: Option<bool>,
+    limit: Option<i64>,
+    allow_egress: Option<bool>,
+    max_usd: Option<f64>,
+    plan_only: Option<bool>,
+}
+
+fn path_to(graph: &Graph, args: Value) -> Result<ToolOutput, Error> {
+    let a: PathToArgs = parse_args(PATH_TO, args)?;
+    non_blank(PATH_TO, "target", &a.target)?;
+    let limit = int_in(PATH_TO, "limit", a.limit, 1, 10, 3)?;
+    let opts = agent_run(
+        graph,
+        PATH_TO,
+        a.allow_egress,
+        a.max_usd,
+        a.plan_only.unwrap_or(false),
+    )?;
+    // The same input object `openstance path` builds from its flags.
+    let input = serde_json::json!({
+        "target": a.target,
+        "company": a.company,
+        "linkedin": a.linkedin,
+        "find_email": a.find_email.unwrap_or(false),
+        "limit": limit,
+    });
+    let out = graph.run_playbook("path", &input, &opts)?;
+    outcome(&out, text::path_to)
+}
+
+// ---------------------------------------------------------------------------
+// brief (P3-MCP-02)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct BriefArgs {
+    person: String,
+    web: Option<bool>,
+    allow_egress: Option<bool>,
+    max_usd: Option<f64>,
+}
+
+fn brief(graph: &Graph, args: Value) -> Result<ToolOutput, Error> {
+    let a: BriefArgs = parse_args(BRIEF, args)?;
+    non_blank(BRIEF, "person", &a.person)?;
+    let opts = agent_run(graph, BRIEF, a.allow_egress, a.max_usd, false)?;
+    let input = serde_json::json!({ "person": a.person, "web": a.web.unwrap_or(false) });
+    let out = graph.run_playbook("brief", &input, &opts)?;
+    outcome(&out, text::brief)
+}
+
+// ---------------------------------------------------------------------------
+// quote_enrich (P3-MCP-03)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct QuoteEnrichArgs {
+    requests: Vec<QuoteRequestArg>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct QuoteRequestArg {
+    kind: String,
+    person_id: Option<i64>,
+    name: Option<String>,
+    company: Option<String>,
+    linkedin: Option<String>,
+    domain: Option<String>,
+    email: Option<String>,
+    query: Option<String>,
+}
+
+/// Most requests per `quote_enrich` call (the schema's `maxItems`).
+const MAX_QUOTE_REQUESTS: usize = 500;
+
+fn given(v: &Option<String>) -> Option<String> {
+    v.as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string)
+}
+
+impl QuoteRequestArg {
+    /// The enrich job, with `name` (and `company` for a profile) filled from
+    /// the graph when only `person_id` was given.
+    fn job(&self, graph: &Graph, i: usize) -> Result<EnrichJob, Error> {
+        let need = |field: &str, v: Option<String>| {
+            v.ok_or_else(|| {
+                bad(format!(
+                    "{QUOTE_ENRICH}: requests[{i}] ({}) needs {field}",
+                    self.kind
+                ))
+            })
+        };
+        let person = match self.person_id {
+            Some(id) => {
+                let key = PersonKey::Id(id);
+                let d = graphq::get_person(
+                    graph.conn(),
+                    graph.config(),
+                    &key,
+                    DetailOptions {
+                        interactions: 0,
+                        mutuals: 0,
+                    },
+                    graph.now(),
+                )?;
+                Some(d)
+            }
+            None => None,
+        };
+        let anchor = person.as_ref().map(|d| d.person.id).or(self.person_id);
+        let pname = person.as_ref().and_then(|d| d.person.display_name.clone());
+        let pcompany = person.as_ref().and_then(|d| d.person.company.clone());
+        let request = match self.kind.as_str() {
+            "profile" => EnrichRequest::Profile {
+                name: need("name", given(&self.name).or(pname))?,
+                company: given(&self.company).or(pcompany),
+                linkedin: given(&self.linkedin),
+            },
+            "find_email" => EnrichRequest::FindEmail {
+                name: need("name", given(&self.name).or(pname))?,
+                domain: need("domain", given(&self.domain))?,
+            },
+            "verify_email" => EnrichRequest::VerifyEmail {
+                email: need("email", given(&self.email))?,
+            },
+            "company" => EnrichRequest::Company {
+                domain: need("domain", given(&self.domain))?,
+            },
+            "web_search" => EnrichRequest::WebSearch {
+                query: need("query", given(&self.query))?,
+            },
+            other => {
+                return Err(bad(format!(
+                    "{QUOTE_ENRICH}: requests[{i}].kind {other:?} is not one of profile, find_email, verify_email, company, web_search"
+                )))
+            }
+        };
+        Ok(EnrichJob {
+            person_id: anchor,
+            request,
+        })
+    }
+}
+
+fn quote_enrich(graph: &Graph, args: Value) -> Result<ToolOutput, Error> {
+    let a: QuoteEnrichArgs = parse_args(QUOTE_ENRICH, args)?;
+    if a.requests.is_empty() || a.requests.len() > MAX_QUOTE_REQUESTS {
+        return Err(bad(format!(
+            "{QUOTE_ENRICH}: requests must hold 1 to {MAX_QUOTE_REQUESTS} items (got {})",
+            a.requests.len()
+        )));
+    }
+    let jobs = a
+        .requests
+        .iter()
+        .enumerate()
+        .map(|(i, r)| r.job(graph, i))
+        .collect::<Result<Vec<_>, _>>()?;
+    let q = graph.quote_enrich(jobs, None, Surface::Agent)?;
+    let v = quote_json(&q)?;
+    let t = text::quote(&v);
+    Ok(ToolOutput::ok(v, t))
+}
+
+// ---------------------------------------------------------------------------
+// list_views / search_view (P3-MCP-04)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ListViewsArgs {
+    direction: Option<String>,
+}
+
+fn list_views(graph: &Graph, ctx: &ToolCtx, args: Value) -> Result<ToolOutput, Error> {
+    let a: ListViewsArgs = parse_args(LIST_VIEWS, args)?;
+    let dir = match a.direction.as_deref() {
+        None => Direction::All,
+        Some(d) => Direction::parse(d).ok_or_else(|| {
+            bad(format!(
+                "{LIST_VIEWS}: direction must be own, imported or all (got {d:?})"
+            ))
+        })?,
+    };
+    let mut views = Vec::new();
+    if dir != Direction::Imported {
+        let owner = ctx.views.as_ref().map_or(
+            ViewOwner {
+                pubkey: None,
+                label: None,
+            },
+            |v| v.owner.clone(),
+        );
+        views.extend(graph.view_summaries(&owner)?);
+    }
+    if dir != Direction::Own {
+        if let Some(v) = &ctx.views {
+            views.extend(inbox::list(&v.dir, graph.now())?);
+        }
+    }
+    let v = to_value(&ViewList { v: V, views })?;
+    let t = text::views(&v);
+    Ok(ToolOutput::ok(v, t))
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SearchViewArgs {
+    view: String,
+    text: Option<String>,
+    company: Option<Vec<String>>,
+    title: Option<Vec<String>>,
+    limit: Option<i64>,
+}
+
+fn search_view(graph: &Graph, ctx: &ToolCtx, args: Value) -> Result<ToolOutput, Error> {
+    let a: SearchViewArgs = parse_args(SEARCH_VIEW, args)?;
+    non_blank(SEARCH_VIEW, "view", &a.view)?;
+    let limit = int_in(SEARCH_VIEW, "limit", a.limit, 1, 100, 20)?;
+    let resp = match &ctx.views {
+        Some(v) => inbox::search(
+            &v.dir,
+            &ViewQuery {
+                view: a.view,
+                text: a.text,
+                company: a.company.unwrap_or_default(),
+                title: a.title.unwrap_or_default(),
+                limit: Some(limit),
+            },
+            graph.now(),
+        )?,
+        None if a.view.trim() == "*" => ViewSearchResponse {
+            v: V,
+            results: Vec::new(),
+        },
+        None => return Err(Error::NotFound(format!("imported view {:?}", a.view))),
+    };
+    let v = to_value(&resp)?;
+    let t = text::view_search(&v);
     Ok(ToolOutput::ok(v, t))
 }

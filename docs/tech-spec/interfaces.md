@@ -308,7 +308,7 @@ A quote is **not** an error. When `allow_egress` is false, the response is `200`
 | `brief` | P3 | yes (optional web search) | openWorld | person, web, allow_egress, max_usd | `Outcome` (playbook `brief`) |
 | `list_views` | P3 | no | readOnly | direction filter | `{ views: ViewSummary[] }` |
 | `search_view` | P3 | no | readOnly | view name or `*`, text, filters | `{ results: ViewSearchResult[] }` |
-| `quote_enrich` | P3 | no (prices only) | readOnly | enrich requests | `Quote` |
+| `quote_enrich` | P3 | no (prices only) | readOnly, openWorld (asks the backend for prices; sends no contact data) | enrich requests | `Quote` |
 
 "Who knows someone at X" has no separate tool. Use `search_people` with `company: ["X"]`, then `how_connected` on the target if needed. The `accounts` and `reconnect` skills say so.
 
