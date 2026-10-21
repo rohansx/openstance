@@ -620,7 +620,44 @@ pub fn resolve(conn: &Connection, cfg: &Config) -> Result<Resolution> {
         }
     }
 
-    // Step 12: enrichment identities land in Phase 3.
+    // Step 12: enrichment identities (entity-resolution.md section 7). A
+    // handle joins the enriched person only while it is a singleton that
+    // nothing but enrichment knows about; a handle that already belongs to
+    // someone else is left alone (enrichment never merges two people), and
+    // `split_from` cannot-links still block the union.
+    let by_handle: BTreeMap<(&str, &str), IdentityId> = obs
+        .identities
+        .iter()
+        .map(|(id, (k, v))| ((k.as_str(), v.as_str()), *id))
+        .collect();
+    let mut multi: BTreeSet<IdentityId> = BTreeSet::new();
+    {
+        let mut seen: BTreeSet<IdentityId> = BTreeSet::new();
+        for &id in &ids {
+            let r = uf.find(id);
+            if !seen.insert(r) {
+                multi.insert(r);
+            }
+        }
+    }
+    let mut attached: BTreeSet<IdentityId> = BTreeSet::new();
+    for claim in crate::egress::facts::identity_claims(conn)? {
+        let Some(&h) = by_handle.get(&(claim.kind.as_str(), claim.value.as_str())) else {
+            continue;
+        };
+        if !exists(claim.person) || h == claim.person {
+            continue;
+        }
+        let enrichment_only = !attached.contains(&h)
+            && uf.find(h) == h
+            && !multi.contains(&h)
+            && !obs.observed.contains(&h)
+            && !obs.override_refs.contains(&h)
+            && !me.contains(&h);
+        if enrichment_only && uf.union(claim.person, h, MatchRule::Enrich, claim.confidence) {
+            attached.insert(h);
+        }
+    }
 
     // Step 13: dormant filter.
     let mut cluster: BTreeMap<IdentityId, Vec<IdentityId>> = BTreeMap::new();

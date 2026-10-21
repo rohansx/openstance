@@ -289,6 +289,25 @@ pub fn identities(conn: &Connection, id: PersonId) -> Result<Vec<Identity>> {
             })
         })?
         .collect::<rusqlite::Result<Vec<_>>>()?;
+    let mut v = v;
+    let emails: Vec<&str> = v
+        .iter()
+        .filter(|i| i.kind == "email")
+        .map(|i| i.value.as_str())
+        .collect();
+    let verdicts = crate::egress::facts::verifications(conn, &emails)?;
+    for i in v.iter_mut().filter(|i| i.kind == "email") {
+        if let Some(f) = verdicts.get(&i.value) {
+            i.verification = Some(crate::json::Verification {
+                status: serde_json::to_value(f.status)?
+                    .as_str()
+                    .unwrap_or("unknown")
+                    .to_string(),
+                at: crate::json::iso(f.at),
+                via: f.via.clone(),
+            });
+        }
+    }
     Ok(v)
 }
 

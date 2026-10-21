@@ -18,7 +18,8 @@
 //!    result is used, and the actual cost reported by the backend is kept;
 //! 6. results are committed ([`EgressGate::commit`]) under one
 //!    `source(kind = 'enrich:<backend>')` row and become field facts that
-//!    rank below overrides ([`facts`]).
+//!    rank below overrides ([`facts`]) and identities that resolution
+//!    attaches without ever merging two people.
 //!
 //! The gate is sync and only needs `&Graph`: log rows are single autocommit
 //! statements and [`EgressGate::commit`] opens its own `IMMEDIATE`
@@ -537,15 +538,23 @@ impl<'a> EgressGate<'a> {
     }
 
     /// Persist this run's successful results about people under one
-    /// `source(kind = 'enrich:<backend>')` row and recompute those people.
-    /// Overrides keep winning ([`facts`]); `rebuild` replays the same rows.
+    /// `source(kind = 'enrich:<backend>')` row: found emails and LinkedIn
+    /// URLs become identity rows under that source (normalized like an
+    /// importer's), and the people are re-resolved and recomputed. Person
+    /// fields come from [`facts`] and rank below overrides; identities attach
+    /// through resolution step 12, which never merges two people and obeys
+    /// `split_from`. A person flagged `no_enrich` (or `do_not_share` while
+    /// respected) by now gets nothing. `rebuild` replays the same rows.
     pub fn commit(&mut self) -> Result<CommitStats> {
-        let rows: Vec<(i64, PersonId)> = self
-            .done
-            .iter()
-            .filter_map(|(id, p)| p.map(|p| (*id, p)))
-            .collect();
+        let mut rows: Vec<(i64, PersonId)> = Vec::new();
+        for (id, p) in &self.done {
+            let Some(p) = *p else { continue };
+            if self.privacy_block(Some(p))?.is_none() {
+                rows.push((*id, p));
+            }
+        }
         if rows.is_empty() {
+            self.done.clear();
             return Ok(CommitStats::default());
         }
         let conn = self.g.conn();
@@ -560,27 +569,46 @@ impl<'a> EgressGate<'a> {
             ],
         )?;
         let source_id = tx.last_insert_rowid();
-        let mut people = Vec::new();
+        let mut touched = crate::ingest::Touched::default();
         for (log_id, person) in &rows {
             tx.execute(
                 "UPDATE enrich_log SET source_id = ?2 WHERE id = ?1",
                 params![log_id, source_id],
             )?;
-            let current = match resolve_person(&tx, &PersonKey::Id(*person)) {
-                Ok(r) => Some(r.person),
-                Err(Error::NotFound(_)) => None,
-                Err(e) => return Err(e),
+            touched.people.insert(*person);
+            let json: Option<String> = tx.query_row(
+                "SELECT response_json FROM enrich_log WHERE id = ?1",
+                [log_id],
+                |r| r.get(0),
+            )?;
+            let Some(data) = json.and_then(|j| serde_json::from_str::<EnrichData>(&j).ok()) else {
+                continue;
             };
-            if let Some(c) = current {
-                if !people.contains(&c) {
-                    people.push(c);
-                }
+            for (kind, value, _) in facts::handles_of(&data) {
+                tx.execute(
+                    "INSERT INTO identity(kind, value, source_id) VALUES (?1, ?2, ?3)
+                     ON CONFLICT(kind, value) DO NOTHING",
+                    params![kind.as_str(), value, source_id],
+                )?;
+                let ident: i64 = tx.query_row(
+                    "SELECT id FROM identity WHERE kind = ?1 AND value = ?2",
+                    params![kind.as_str(), value],
+                    |r| r.get(0),
+                )?;
+                touched.identities.insert(ident);
+            }
+        }
+        crate::rebuild::incremental(&tx, self.g.config(), &touched, now)?;
+        let mut people = Vec::new();
+        for person in &touched.people {
+            match resolve_person(&tx, &PersonKey::Id(*person)) {
+                Ok(r) => people.push(r.person),
+                Err(Error::NotFound(_)) => {}
+                Err(e) => return Err(e),
             }
         }
         people.sort_unstable();
-        if !people.is_empty() {
-            crate::rebuild::refresh_people(&tx, self.g.config(), &people, now)?;
-        }
+        people.dedup();
         tx.commit()?;
         self.done.clear();
         Ok(CommitStats {

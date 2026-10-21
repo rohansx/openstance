@@ -400,9 +400,9 @@ Results become source data, just as an import does:
 
 | `EnrichData` | Written as |
 | --- | --- |
-| `Profile` | `identity(kind='linkedin_url')` if present (confidence 0.95); field facts for `title`, `company`, `location`, `bio` (from `headline`, only if empty); `past_companies` and `schools` kept in `response_json` for `path` and `accounts` |
+| `Profile` | `identity(kind='linkedin_url')` if present (confidence 0.95, capped at 0.9 like every enrichment edge); field facts for `title`, `company`, `location`, `bio` (from `headline`, only if empty); `past_companies` and `schools` kept in `response_json` for `path` and `accounts` |
 | `Email` | `identity(kind='email', confidence = result confidence, capped at 0.9)` |
-| `Verification` | updates the verification status shown on that email identity (stored in `response_json`; surfaced in `get_person`) |
+| `Verification` | updates the verification status shown on that email identity (stored in `response_json`; `get_person` shows the newest committed verdict for that address as `identities[].verification`, `via` = the source kind) |
 | `Company` | company-name normalization map entry for that domain (used by resolution's company normalization) |
 | `WebHits` | not stored as person fields. Used only in the `brief` output, and kept in `enrich_log` |
 
@@ -413,6 +413,8 @@ Field precedence when (re)building a `person` row, from highest to lowest:
 3. Importer-derived values (LinkedIn CSV, signature parsing), newest first.
 
 An enrichment that would change an overridden field is still logged, and its value is kept in `response_json`, but it is not applied. `get_person` shows it as a suggestion (`"suggested": {"title": "VP Eng (enrich:treg, 2026-11-02)"}`), so the user can accept it with `openstance edit`.
+
+Handles are normalized exactly as importers normalize them (an email is lowercased, a LinkedIn URL becomes its slug) and inserted into `identity` with `source_id` = the run's `enrich:<backend>` source (an existing row keeps its first source). Only rows whose person is still allowed to be enriched at commit time are committed: a person flagged `no_enrich` (or `do_not_share` while it is respected) between the send and the commit gets nothing, and the uncommitted row is never replayed.
 
 Identities from enrichment go through normal entity resolution. Enrichment never merges people directly. An `enrich:` email that collides with another person's identity creates a flagged suggestion in `openstance review`, not an automatic merge.
 
