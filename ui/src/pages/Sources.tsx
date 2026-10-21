@@ -141,18 +141,24 @@ function ImportPanel({ onImported }: { onImported: () => void }) {
         }}
       >
         <div className="dropzone">
-          <label className="field">
+          <label className="field" htmlFor="import-files">
             Choose export files
-            <input
-              type="file"
-              multiple
-              onChange={(e) => {
-                setFiles(Array.from(e.target.files ?? []));
-                e.target.value = '';
-              }}
-            />
           </label>
-          {count > 0 && <small className="muted">{files.map((f) => f.name).join(', ')}</small>}
+          <input
+            id="import-files"
+            type="file"
+            multiple
+            aria-describedby="import-files-hint"
+            onChange={(e) => {
+              setFiles(Array.from(e.target.files ?? []));
+              e.target.value = '';
+            }}
+          />
+          <small className="muted" id="import-files-hint">
+            {count > 0
+              ? `Selected: ${files.map((f) => f.name).join(', ')}`
+              : 'LinkedIn Connections.csv, mail .mbox, calendar .ics, contacts .vcf or an X archive.'}
+          </small>
         </div>
         <label className="field">
           Format

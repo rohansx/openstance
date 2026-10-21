@@ -72,3 +72,15 @@ describe('Sources and import', () => {
     await waitFor(() => expect(within(panel).getByRole('alert')).toHaveTextContent('unrecognized file format'));
   });
 });
+
+describe('import file input accessibility (U6)', () => {
+  it('the file input has its own accessible name and description', async () => {
+    renderApp('#/sources');
+    const panel = await screen.findByRole('region', { name: /import your contacts/i });
+    const input = panel.querySelector('input[type="file"]')!;
+    expect(input).toHaveAttribute('id');
+    expect(panel.querySelector(`label[for="${input.id}"]`)).toHaveTextContent(/choose export files/i);
+    expect(input).toHaveAccessibleName('Choose export files');
+    expect(input).toHaveAccessibleDescription(/linkedin.*mbox.*ics.*vcf/i);
+  });
+});

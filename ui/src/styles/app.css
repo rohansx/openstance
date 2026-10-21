@@ -648,8 +648,13 @@ code {
   margin: 14px 0;
 }
 .dropzone input[type='file'] {
+  display: block;
   max-width: 100%;
   font-size: 11px;
+}
+.dropzone small {
+  display: block;
+  margin-top: 8px;
 }
 .import-form {
   display: grid;
