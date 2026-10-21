@@ -41,6 +41,7 @@ pub mod score;
 pub mod search;
 pub mod stats;
 pub mod view;
+pub mod workspace;
 
 pub use clock::{Clock, FixedClock, SystemClock};
 pub use config::{Config, Paths};

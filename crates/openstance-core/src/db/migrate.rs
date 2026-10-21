@@ -35,10 +35,15 @@ pub const MIGRATIONS: &[Migration] = &[
         name: "0003_enrich_log_status",
         sql: include_str!("../../migrations/0003_enrich_log_status.sql"),
     },
+    Migration {
+        version: 4,
+        name: "0004_workspace",
+        sql: include_str!("../../migrations/0004_workspace.sql"),
+    },
 ];
 
 /// Newest schema version this binary knows.
-pub const LATEST_VERSION: u32 = 3;
+pub const LATEST_VERSION: u32 = 4;
 
 /// What [`migrate`] did.
 #[derive(Debug, Clone, PartialEq, Eq)]

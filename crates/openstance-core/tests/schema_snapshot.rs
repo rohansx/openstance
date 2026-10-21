@@ -45,7 +45,7 @@ fn schema_matches_golden_snapshot() {
 }
 
 #[test]
-fn schema_has_the_nine_regular_tables_plus_meta_and_the_derived_indexes() {
+fn schema_has_the_regular_tables_plus_meta_and_the_derived_indexes() {
     let mut c = open_in_memory().unwrap();
     migrate(&mut c, None, 0).unwrap();
     let mut stmt = c
@@ -67,10 +67,12 @@ fn schema_has_the_nine_regular_tables_plus_meta_and_the_derived_indexes() {
             "identity",
             "interaction",
             "interaction_person",
+            "intro",
             "meta",
             "override",
             "person",
             "person_embed",
+            "shortlist",
             "source",
             "tie",
             "view"
