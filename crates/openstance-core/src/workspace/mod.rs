@@ -20,6 +20,8 @@ use crate::resolve::lookup::{resolve_person, PersonKey};
 use crate::search::person::person_ref;
 use crate::PersonId;
 
+pub mod edits;
+
 #[cfg(test)]
 mod tests;
 
