@@ -87,3 +87,18 @@ describe('Root: token handoff and shell', () => {
     expect(screen.getByLabelText('Breadcrumb')).toHaveTextContent('Review queue');
   });
 });
+
+describe('Shell: licence label', () => {
+  it('shows the licence declared in the workspace Cargo.toml', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { resolve } = await import('node:path');
+    const cargo = readFileSync(resolve(process.cwd(), '../Cargo.toml'), 'utf8');
+    const licence = /^license\s*=\s*"([^"]+)"/m.exec(cargo)?.[1];
+    expect(licence).toBeTruthy();
+    window.history.replaceState(null, '', '/#token=abc123');
+    mockApi(defaultRoutes());
+    render(<Root />);
+    await screen.findByRole('navigation', { name: 'Main navigation' });
+    expect(screen.getByText(new RegExp(`Open source · ${licence}`))).toBeInTheDocument();
+  });
+});

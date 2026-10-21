@@ -41,7 +41,7 @@
     }
   },
   "identities": [
-    { "id": 5531, "kind": "email", "value": "tom@stripe.com", "confidence": 1.0,
+    { "id": 5531, "kind": "email", "value": "tom@stripe.example", "confidence": 1.0,
       "source": { "id": 2, "kind": "mbox", "label": "work gmail" },
       "verification": { "status": "deliverable", "at": "2026-10-01T10:00:00Z", "via": "enrich:treg" } },
     { "id": 5600, "kind": "linkedin_url", "value": "in/tomokafor-example", "confidence": 0.85,

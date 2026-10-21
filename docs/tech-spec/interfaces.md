@@ -167,6 +167,7 @@ A tagged union. Every claim about a relationship carries at least one evidence i
 ```
 
 - `query` is the **parsed** query, so a user or agent can edit it and rerun it without a model.
+- In the `query` echo, `since`, `until` and `last_contact_before` are **unix seconds** (UTC midnight of the parsed date) or `null`, on every surface (CLI `--json`, MCP, HTTP). Inputs take the string forms in the `search_people` schema (`2025`, `2025-01`, `2025-01-01`, `90d`); the web UI turns the echoed seconds back into `YYYY-MM-DD` when it reruns an edited query.
 - `final = fused * (0.5 + 0.5 * person.score)`. See [search.md](search.md).
 - `reason` is a one-line prose explanation. It is set only when an API or local reranker that writes reasons is configured, and then `reason_source` is `"model:<id>"`. Otherwise both are `null` and the evidence is the explanation.
 - `relevance` is `null` in structured mode (no text). `matched` lists the matched fields ([search.md](search.md#8-step-6-evidence)).
@@ -525,9 +526,11 @@ The ops apply in one transaction (all or nothing: a bad op returns `400` and not
 $ TOKEN=$(cat ~/.openstance/api.token)
 $ curl -s -H "Authorization: Bearer $TOKEN" \
     'http://127.0.0.1:7411/people?q=fintech+founders&met=true&since=2025&limit=2'
-{ "v": 1, "query": { "text": "fintech founders", "title": ["founder"], "industry": ["fintech"],
-  "since": "2025-01-01T00:00:00Z", "met_in_person": true, "limit": 2, ... },
-  "parser": "rules", "total": 2, "took_ms": 37, "results": [ ... ] }
+{ "v": 1, "query": { "text": null, "title": ["founder"], "industry": ["fintech"],
+  "since": 1735689600, "met_in_person": true, "limit": 2, ... },
+  "query_source": { "parser": "rules", "fallback": null, "explicit": ["since", "met_in_person", "limit"] },
+  "rerun": "openstance search --title founder --industry fintech --since 2025-01-01 --met --limit 2",
+  "mode": "structured", "total": 2, "took_ms": 37, "results": [ ... ] }
 
 $ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
     -d '{"input":{"target":"Priya Raman","company":"Stripe"},"allow_egress":false}' \

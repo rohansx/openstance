@@ -194,7 +194,8 @@ export function createClient(opts: ClientOptions) {
     importView: (file: File) => {
       const form = new FormData();
       form.append('file', file, file.name);
-      return json<ViewSummary>('POST', '/views/import', form);
+      // `view import --json`: { v, status, view, path }
+      return json<{ status: string; view: ViewSummary; path: string }>('POST', '/views/import', form).then((r) => r.view);
     },
 
     sources: () => json<{ sources: SourceRow[] }>('GET', '/sources').then((r) => pick<SourceRow>(r, 'sources')),

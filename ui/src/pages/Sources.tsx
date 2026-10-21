@@ -28,8 +28,8 @@ const CATALOG: [string, string, string][] = [
 
 function sourceLine(s: SourceRow): string {
   if (s.kind.startsWith('enrich')) return `${s.kind} · enrichment results · ${shortDate(s.imported_at)}`;
-  const st = s.stats ?? {};
-  return `${s.kind} · imported ${shortDate(s.imported_at)} · ${n(st.interactions)} interactions · ${n(st.identities)} identities`;
+  const st = s.stats;
+  return `${s.kind} · imported ${shortDate(s.imported_at)} · ${n(st?.interactions_new)} interactions · ${n(st?.identities_new)} identities`;
 }
 
 export function Sources() {

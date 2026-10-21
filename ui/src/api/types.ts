@@ -465,6 +465,20 @@ export interface ReviewQueue {
 }
 
 // Import (`POST /import`)
+/** core `ImportStats` (interfaces.md 1.10), stored on each source row. */
+export interface ImportStats {
+  records_read: number;
+  interactions_new: number;
+  interactions_dup: number;
+  identities_new: number;
+  identities_seen: number;
+  /** reason -> count */
+  skipped: Record<string, number>;
+  bytes: number;
+  elapsed_ms: number;
+  self_candidates: string[];
+}
+
 export interface SourceImport {
   id: number;
   kind: string;
@@ -473,7 +487,7 @@ export interface SourceImport {
   identities: number;
   interactions: number;
   skipped_duplicate_file: boolean;
-  stats?: Record<string, unknown>;
+  stats?: ImportStats;
 }
 
 export interface ImportResponse {
@@ -496,8 +510,8 @@ export interface SourceRow {
   path: string | null;
   imported_at: Iso;
   importer_version?: number | null;
-  /** ImportStats; null for enrichment sources. */
-  stats?: Record<string, unknown> | null;
+  /** null for enrichment sources. */
+  stats?: ImportStats | null;
 }
 
 // Enrich log (`GET /enrich-log`)

@@ -84,7 +84,7 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
           </div>
           <span className="source-link">
             <span>
-              <Icon name="code" /> Open source · MIT
+              <Icon name="code" /> Open source · Apache-2.0
             </span>
           </span>
         </div>

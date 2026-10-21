@@ -74,7 +74,13 @@ describe('Saved views (P4-UI-05)', () => {
 
   it('imports a .ost file', async () => {
     const { api } = renderApp('#/views', {
-      'POST /views/import': { v: 1, id: '01JD', name: 'from-ana', direction: 'imported', owner: { pubkey: null, label: 'ana' }, created_at: '2026-10-21T00:00:00Z', expires_at: null, rows: 9, query: {} },
+      // the CLI's `view import --json` shape (interfaces.md 3.1)
+      'POST /views/import': {
+        v: 1,
+        status: 'imported',
+        view: { id: '01JD', name: 'from-ana', direction: 'imported', owner: { pubkey: null, label: 'ana' }, created_at: '2026-10-21T00:00:00Z', expires_at: null, rows: 9, query: {} },
+        path: '/home/u/.openstance/views/01JD.db',
+      },
     });
     await screen.findByRole('heading', { name: 'devtools-investors' });
     const file = new File(['age-encryption.org/v1'], 'from-ana.ost', { type: 'application/octet-stream' });
@@ -82,5 +88,6 @@ describe('Saved views (P4-UI-05)', () => {
     await waitFor(() => expect(api.callsTo('POST /views/import')).toHaveLength(1));
     const body = api.callsTo('POST /views/import')[0]!.body as FormData;
     expect((body.get('file') as File).name).toBe('from-ana.ost');
+    expect(await screen.findByText(/Imported “from-ana” · 9 people/)).toBeInTheDocument();
   });
 });

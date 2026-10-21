@@ -82,7 +82,7 @@ describe('Person page (P4-UI-03)', () => {
   it('lists identities with sources and splits selected identities off', async () => {
     const { api } = await openTom();
     const ids = screen.getByRole('region', { name: 'Identities' });
-    expect(within(ids).getByText('tom@stripe.com')).toBeInTheDocument();
+    expect(within(ids).getByText('tom@stripe.example')).toBeInTheDocument();
     expect(within(ids).getByText(/deliverable/)).toBeInTheDocument();
     expect(within(ids).getAllByText(/work gmail/).length).toBeGreaterThan(0);
     await userEvent.click(within(ids).getByRole('checkbox', { name: /select in\/tomokafor-example/i }));
