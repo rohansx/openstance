@@ -26,6 +26,7 @@
 
 pub mod facts;
 pub mod log;
+pub mod quote;
 
 use std::sync::atomic::{AtomicU64, Ordering};
 
