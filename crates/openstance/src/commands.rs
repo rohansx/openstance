@@ -52,7 +52,7 @@ impl Ctx {
 
     /// Providers for `cfg`: the configured embedder (loaded lazily) plus
     /// `importers`.
-    fn providers(
+    pub(crate) fn providers(
         &self,
         cfg: &Config,
         importers: Vec<Box<dyn openstance_import::Importer>>,
@@ -68,6 +68,12 @@ impl Ctx {
         let cfg = self.loaded.config.clone();
         let providers = self.providers(&cfg, Vec::new())?;
         self.open(cfg, providers)
+    }
+
+    /// `--now` was given (tests, reproducible reports).
+    #[cfg_attr(not(feature = "server"), allow(dead_code))]
+    pub(crate) fn fixed_now(&self) -> bool {
+        self.fixed_now
     }
 
     pub(crate) fn today(&self) -> i64 {
@@ -131,6 +137,7 @@ pub fn dispatch(cli: Cli) -> Result<()> {
         Command::Path(a) => crate::path::run(&ctx.open_default()?, ctx.json, a),
         Command::Brief(a) => crate::brief::run(&ctx.open_default()?, ctx.json, a),
         Command::Enrich(a) => crate::enrich::run(&ctx, a),
+        Command::Serve(a) => crate::serve::run(&ctx, a),
         Command::Mcp(a) => crate::mcp::run(
             ctx.loaded.config.clone(),
             &ctx.loaded.paths.db,
@@ -177,8 +184,16 @@ fn init(ctx: &Ctx, a: InitArgs) -> Result<()> {
     )?;
     // P3-CORE-09: new installs get their age key for views right away.
     let key = crate::view::ensure_key(ctx)?;
+    // P4-API-02: new installs get their api token for `serve` right away.
+    let token_created = crate::serve::ensure_token(ctx)?;
     if ctx.json {
         return print_json(&with_v(&r)?);
+    }
+    if token_created {
+        println!(
+            "created {} (api token for openstance serve)",
+            crate::serve::token_path(ctx).display()
+        );
     }
     if key.created {
         println!(
@@ -200,18 +215,28 @@ fn init(ctx: &Ctx, a: InitArgs) -> Result<()> {
     Ok(())
 }
 
-fn import(ctx: &Ctx, a: ImportArgs) -> Result<()> {
-    let cfg = ctx.loaded.config.clone();
-    let opts = ImportOptions {
-        email_bodies: a.bodies || cfg.import.email_bodies,
+/// The importers compiled into this binary, configured from `cfg`.
+#[cfg_attr(not(feature = "server"), allow(dead_code))]
+pub(crate) fn importers(cfg: &Config) -> Vec<Box<dyn openstance_import::Importer>> {
+    openstance_import::registry(&import_options(cfg, false))
+}
+
+fn import_options(cfg: &Config, bodies: bool) -> ImportOptions {
+    ImportOptions {
+        email_bodies: bodies || cfg.import.email_bodies,
         default_region: Some(cfg.import.default_region.trim().to_string())
             .filter(|r| !r.is_empty()),
-        tz: search::timezone(&cfg),
+        tz: search::timezone(cfg),
         max_message_bytes: u64::from(cfg.import.max_message_mb) * 1024 * 1024,
         ics_max_attendees: cfg.import.ics_max_attendees,
         me_identities: cfg.me.identities.clone(),
         ..ImportOptions::default()
-    };
+    }
+}
+
+fn import(ctx: &Ctx, a: ImportArgs) -> Result<()> {
+    let cfg = ctx.loaded.config.clone();
+    let opts = import_options(&cfg, a.bodies);
     let providers = ctx.providers(&cfg, openstance_import::registry(&opts))?;
     let mut g = ctx.open(cfg, providers)?;
     crate::embeddings::show_progress(&mut g, ctx.json);
@@ -798,17 +823,22 @@ fn config_cmd(ctx: &Ctx, a: ConfigArgs) -> Result<()> {
         }
         None => {
             if ctx.json {
-                return print_json(&serde_json::json!({
-                    "v": V,
-                    "config": l.config,
-                    "origins": l.origins,
-                    "warnings": l.warnings,
-                    "config_file": l.paths.config_file,
-                    "file_found": l.file_found,
-                }));
+                return print_json(&config_json(l));
             }
             print!("{}", render::annotated_config(&l.config, &l.origins));
             Ok(())
         }
     }
+}
+
+/// `openstance config --json` (also `GET /config`).
+pub(crate) fn config_json(l: &LoadedConfig) -> serde_json::Value {
+    serde_json::json!({
+        "v": V,
+        "config": l.config,
+        "origins": l.origins,
+        "warnings": l.warnings,
+        "config_file": l.paths.config_file,
+        "file_found": l.file_found,
+    })
 }

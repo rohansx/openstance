@@ -21,6 +21,7 @@ pub mod mcp;
 mod path;
 mod playbook;
 mod render;
+mod serve;
 mod view;
 mod who;
 
@@ -86,6 +87,8 @@ pub enum Command {
     Config(ConfigArgs),
     /// Run the MCP server on stdio (for Claude Code, Cursor, Claude Desktop).
     Mcp(mcp::McpArgs),
+    /// Serve the local HTTP API, MCP over HTTP and the web UI on 127.0.0.1.
+    Serve(serve::ServeArgs),
     /// Share slices of the graph: saved queries exported as encrypted .ost files.
     View(view::ViewArgs),
     /// My age key for views (`keys show`).

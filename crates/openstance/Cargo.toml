@@ -18,7 +18,7 @@ name = "ost"
 path = "src/bin/ost.rs"
 
 [features]
-default = ["importers-default", "models-local", "enrich-treg", "server"]
+default = ["importers-default", "models-local", "enrich-treg", "server", "ui"]
 importers-default = [
     "openstance-import/mbox",
     "openstance-import/linkedin",
