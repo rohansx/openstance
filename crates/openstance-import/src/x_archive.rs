@@ -215,7 +215,13 @@ fn dir_plan(dir: &Path) -> Plan {
 fn zip_plan(path: &Path) -> Option<Plan> {
     let f = File::open(path).ok()?;
     let z = zip::ZipArchive::new(f).ok()?;
-    let names: Vec<String> = z.file_names().map(str::to_string).collect();
+    let names: Vec<String> = z
+        .file_names()
+        .collect::<Result<Vec<_>, _>>()
+        .ok()?
+        .into_iter()
+        .map(|n| n.into_owned())
+        .collect();
     Some(plan_names(names.iter().map(String::as_str)))
 }
 
@@ -298,7 +304,14 @@ impl Importer for XArchiveImporter {
                     kind: "x_archive",
                     reason: format!("unreadable zip: {e}"),
                 })?;
-                let names: Vec<String> = z.file_names().map(str::to_string).collect();
+                let names: Vec<String> = z
+                    .file_names()
+                    .map(|n| n.map(|n| n.into_owned()))
+                    .collect::<Result<_, _>>()
+                    .map_err(|e| ImportError::WrongFormat {
+                        kind: "x_archive",
+                        reason: format!("unreadable zip entry name: {e}"),
+                    })?;
                 let plan = plan_names(names.iter().map(String::as_str));
                 if !is_archive_plan(&plan) {
                     return Err(ImportError::WrongFormat {

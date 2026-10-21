@@ -956,7 +956,7 @@ pub fn people() -> Vec<DemoPerson> {
         let title = if !founders_at.contains(&ci)
             && c.industry != "vc"
             && c.industry != "legal"
-            && ci % 3 == 0
+            && ci.is_multiple_of(3)
         {
             founders_at.insert(ci);
             if rng.below(2) == 0 {

@@ -165,7 +165,7 @@ impl Importer for LinkedinCsvImporter {
                 Ok(i) => sink.interaction(i),
                 Err(reason) => skip(sink, &mut stats, reason, row),
             }
-            if row % 1000 == 0 {
+            if row.is_multiple_of(1000) {
                 sink.progress(rdr.position().byte(), total);
             }
         }

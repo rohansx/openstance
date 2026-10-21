@@ -31,7 +31,7 @@ openstance reads the exports you can already download (a Google Takeout mbox, Li
 cargo install --git https://github.com/openstance/openstance openstance   # installs `openstance` and the short alias `ost`
 ```
 
-You need Rust stable (MSRV 1.85) and a C compiler, because SQLite is compiled in (Xcode Command Line Tools on macOS, `build-essential` on Linux). Prebuilt binaries, an install script and Homebrew arrive with v1.0.
+You need Rust stable (MSRV 1.92) and a C compiler, because SQLite is compiled in (Xcode Command Line Tools on macOS, `build-essential` on Linux). Prebuilt binaries, an install script and Homebrew arrive with v1.0.
 
 ## Quickstart
 

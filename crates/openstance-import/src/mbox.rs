@@ -196,7 +196,7 @@ impl Importer for MboxImporter {
                     stats.record_skip(reason);
                 }
             }
-            if msg_no % PROGRESS_EVERY == 0 {
+            if msg_no.is_multiple_of(PROGRESS_EVERY) {
                 sink.progress(lines.bytes, total);
             }
 

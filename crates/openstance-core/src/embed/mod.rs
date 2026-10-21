@@ -697,8 +697,8 @@ fn cosine_blob(q: &[f32], qn: f64, blob: &[u8]) -> Option<f64> {
         return None;
     }
     let (mut dot, mut bb) = (0.0f64, 0.0f64);
-    for (x, c) in q.iter().zip(blob.chunks_exact(4)) {
-        let y = f64::from(f32::from_le_bytes([c[0], c[1], c[2], c[3]]));
+    for (x, c) in q.iter().zip(blob.as_chunks::<4>().0) {
+        let y = f64::from(f32::from_le_bytes(*c));
         dot += f64::from(*x) * y;
         bb += y * y;
     }

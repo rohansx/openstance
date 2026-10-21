@@ -24,7 +24,7 @@ default-members = [
 [workspace.package]
 version = "0.2.0"
 edition = "2021"
-rust-version = "1.85"
+rust-version = "1.92"
 license = "Apache-2.0"
 repository = "https://github.com/openstance/openstance"
 publish = false
@@ -79,8 +79,8 @@ memchr = "2"
 csv = "1"
 quoted_printable = "0.5"
 rrule = { version = "0.14", default-features = false }
-zip = { version = "7.3", default-features = false, features = ["deflate-flate2-zlib-rs"] }
-lru = "0.12"
+zip = { version = "9.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+lru = "0.19"
 
 # CLI
 clap = { version = "4", features = ["derive", "env"] }

@@ -81,7 +81,7 @@ Notes:
 ### MSRV
 
 ```yaml
-- uses: dtolnay/rust-toolchain@1.85
+- uses: dtolnay/rust-toolchain@1.92
 - run: cargo check --workspace --all-features --locked
 ```
 
