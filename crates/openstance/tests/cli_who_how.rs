@@ -20,6 +20,10 @@ fn ost(home: &Path) -> Command {
         .env_remove("OPENSTANCE_CONFIG")
         .env_remove("OPENSTANCE_DB")
         .env_remove("OPENSTANCE_LOG")
+        // Offline: no model download (edit/import re-embed with the
+        // configured embedder).
+        .env("OPENSTANCE__MODEL__EMBEDDER", "none")
+        .env("OPENSTANCE_OFFLINE", "1")
         .env("NO_COLOR", "1");
     c
 }
