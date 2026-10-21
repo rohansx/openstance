@@ -32,6 +32,7 @@ import type {
   SourceRow,
   Stats,
   TieDetail,
+  ViewSearchResult,
   ViewSummary,
 } from './types';
 
@@ -113,7 +114,10 @@ export function createClient(opts: ClientOptions) {
   async function raw(method: string, path: string, body?: unknown, auth = true): Promise<Response> {
     const headers: Record<string, string> = { accept: 'application/json', ...(auth ? authHeaders() : {}) };
     const init: RequestInit = { method, headers, credentials: 'omit', cache: 'no-store' };
-    if (body !== undefined) {
+    if (body instanceof FormData) {
+      // the browser sets the multipart boundary
+      init.body = body;
+    } else if (body !== undefined) {
       headers['content-type'] = 'application/json';
       init.body = JSON.stringify(body);
     }
@@ -179,12 +183,18 @@ export function createClient(opts: ClientOptions) {
 
     createView: (req: CreateViewRequest) => json<ViewSummary>('POST', '/views', req),
 
-    searchView: (name: string, p: { q?: string; company?: string[]; limit?: number } = {}) =>
-      json<{ results: unknown[] }>('GET', `/views/${seg(name)}/search${toSearchParams(p)}`),
+    searchView: (name: string, p: { q?: string; company?: string[]; title?: string[]; limit?: number } = {}) =>
+      json<{ results: ViewSearchResult[] }>('GET', `/views/${seg(name)}/search${toSearchParams(p)}`),
 
     exportView: async (name: string, armor = false): Promise<Blob> => {
       const res = await raw('POST', `/views/${seg(name)}/export${toSearchParams({ armor: armor || undefined })}`);
       return res.blob();
+    },
+
+    importView: (file: File) => {
+      const form = new FormData();
+      form.append('file', file, file.name);
+      return json<ViewSummary>('POST', '/views/import', form);
     },
 
     sources: () => json<{ sources: SourceRow[] }>('GET', '/sources').then((r) => pick<SourceRow>(r, 'sources')),

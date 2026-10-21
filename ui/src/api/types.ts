@@ -365,6 +365,25 @@ export interface ViewSummary {
   exported_at?: Iso;
 }
 
+export interface ViewPerson {
+  display_name: string | null;
+  title: string | null;
+  company: string | null;
+  location: string | null;
+  score_bucket: 'strong' | 'medium' | 'weak' | string;
+  last_contact_month: string | null;
+  emails: string[];
+  linkedin: string | null;
+}
+
+export interface ViewSearchResult {
+  view: { id: string | null; name: string; owner: { label: string | null } };
+  /** Present when `view = "*"` merged rows from several views. */
+  views?: { id: string | null; name: string; owner: { label: string | null } }[];
+  person: ViewPerson;
+  relevance: number;
+}
+
 export interface CreateViewRequest {
   name: string;
   query: string | SearchRequest;
