@@ -11,6 +11,8 @@
 //!   `[embedder]` thresholds. That test needs the model files: it runs when
 //!   `OPENSTANCE_MODEL_DIR` points at a populated model cache and is
 //!   skipped (with a message) otherwise, so CI stays offline.
+//!   `OPENSTANCE_REQUIRE_MODEL=1` (the CI `eval` job) turns that skip into
+//!   a failure.
 //!
 //! `cargo test -p openstance-fixtures --test search_eval_tiers -- --nocapture`
 
@@ -303,6 +305,11 @@ fn model_dir() -> Option<PathBuf> {
 #[test]
 fn fastembed_tier_meets_the_embedder_thresholds() {
     let Some(dir) = model_dir() else {
+        // CI's eval job sets this so a missing cache fails instead of skipping.
+        assert!(
+            std::env::var_os("OPENSTANCE_REQUIRE_MODEL").is_none(),
+            "OPENSTANCE_REQUIRE_MODEL is set but OPENSTANCE_MODEL_DIR holds no model cache"
+        );
         println!("skipped: needs model download (set OPENSTANCE_MODEL_DIR to a populated cache)");
         return;
     };

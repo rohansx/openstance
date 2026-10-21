@@ -66,6 +66,38 @@ jobs:
       - name: Importers build without features
         run: cargo check -p openstance-import --no-default-features --locked
 
+  # P2-CORE-06: the 50-query search eval with the fastembed embedder
+  # (parser = rules, reranker = none), gated on the [embedder] thresholds in
+  # evals/search.toml. The model (about 33 MB) is downloaded once and cached
+  # between runs; the eval itself runs with downloads forbidden.
+  eval:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    env:
+      OPENSTANCE_MODEL_DIR: ${{ github.workspace }}/.models
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: eval
+      - name: Model cache
+        id: model-cache
+        uses: actions/cache@v4
+        with:
+          path: .models
+          key: model-fastembed-7.1.4-bge-small-en-v1.5-onnx-Q
+      - name: Download the model (cache miss only)
+        if: steps.model-cache.outputs.cache-hit != 'true'
+        run: >
+          cargo test --locked -p openstance-model --features fastembed
+          --test conformance -- --ignored fastembed_conforms_with_the_real_model
+      - name: Search eval, embedder tier (Recall@5 reported and gated)
+        env:
+          OPENSTANCE_OFFLINE: "1"
+          OPENSTANCE_REQUIRE_MODEL: "1"
+        run: cargo test --locked -p openstance-fixtures --test search_eval_tiers -- --nocapture
+
   # P2-CORE-07 latency gate: search benches on the 20k-person perf graph
   # (hash embedder). Fails when text search p50 > 300 ms, structured
   # search p50 > 50 ms, or either p50 is more than 20 % slower than the
