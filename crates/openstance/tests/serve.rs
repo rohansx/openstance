@@ -264,6 +264,32 @@ fn http_json_equals_cli_json() {
     assert_eq!(status, 200, "{}", String::from_utf8_lossy(&body));
     let out: Value = serde_json::from_slice(&body).unwrap();
     assert_eq!(out["receipt"]["requests_sent"], 0);
+
+    // Phase 4 playbooks: the same `result` from CLI --json and HTTP (the
+    // run id and quote time differ per run, the result does not).
+    let targets = h.join("targets.txt");
+    std::fs::write(&targets, "Contoso\nnorthwind.example\n").unwrap();
+    for (name, args, body) in [
+        (
+            "reconnect",
+            vec!["reconnect"],
+            r#"{"input":{}}"#.to_string(),
+        ),
+        (
+            "accounts",
+            vec!["accounts", targets.to_str().unwrap()],
+            r#"{"input":{"companies":["Contoso","northwind.example"],"one_hop":true}}"#.to_string(),
+        ),
+    ] {
+        let mut a = args.clone();
+        a.extend(["--json", "--now", NOW]);
+        let from_cli = cli(h, &a);
+        let (status, bytes) = s.request("POST", &format!("/playbooks/{name}"), Some(&body), true);
+        assert_eq!(status, 200, "{}", String::from_utf8_lossy(&bytes));
+        let from_http: Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(from_http["result"], from_cli["result"], "{name}");
+        assert_eq!(from_http["status"], from_cli["status"], "{name}");
+    }
 }
 
 #[test]

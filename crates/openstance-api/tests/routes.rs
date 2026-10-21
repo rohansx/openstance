@@ -190,7 +190,11 @@ async fn phase_4_playbooks_are_served_and_egress_defaults_off() {
         ("accounts", json!({ "companies": ["Contoso"] }), "done"),
         ("watch", json!({}), "done"),
         ("verify", json!({ "person": "Priya Raman" }), "quote"),
-        ("watch", json!({ "check_profiles": true, "top_n": 2 }), "quote"),
+        (
+            "watch",
+            json!({ "check_profiles": true, "top_n": 2 }),
+            "quote",
+        ),
     ] {
         let (code, v) = h
             .call(
