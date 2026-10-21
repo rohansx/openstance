@@ -450,3 +450,40 @@ mod facade {
         assert_eq!(g.sources().unwrap().sources.len(), 3);
     }
 }
+
+// --- tie evidence ------------------------------------------------------------
+
+#[test]
+fn tie_evidence_lists_tie_rows_and_shared_interactions() {
+    let c = conn();
+    c.execute(
+        "INSERT INTO tie(a, b, kind, weight, last_at, n_shared) VALUES (2, 3, 'email', 0.4, ?1, 1)",
+        [testkit::ago(60)],
+    )
+    .unwrap();
+    let r = tie_evidence(&c, 3, 2, 10, NOW).unwrap();
+    assert_eq!(r.v, V);
+    assert_eq!(r.person.id, 3);
+    assert_eq!(r.other.id, 2);
+    let t = r.tie.as_ref().unwrap();
+    assert_eq!(t.tie_kind, "email");
+    assert_eq!(t.n_shared, 1);
+    assert_eq!(r.ties.len(), 1);
+    assert_eq!(r.interactions.len(), 1, "only 'Board deck draft' has both");
+    let v = serde_json::to_value(&r).unwrap();
+    assert_eq!(v["interactions"][0]["subject"], "Board deck draft");
+    assert_eq!(v["tie"]["weight"], 0.4);
+}
+
+#[test]
+fn tie_evidence_without_a_tie_is_empty_not_an_error() {
+    let c = conn();
+    let r = tie_evidence(&c, 5, 6, 10, NOW).unwrap();
+    assert!(r.tie.is_none());
+    assert!(r.ties.is_empty());
+    assert!(r.interactions.is_empty());
+    assert!(matches!(
+        tie_evidence(&c, 5, 999, 10, NOW),
+        Err(Error::NotFound(_))
+    ));
+}

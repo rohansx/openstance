@@ -604,6 +604,76 @@ pub fn base_stats(conn: &Connection) -> Result<StatsResponse> {
 }
 
 // ---------------------------------------------------------------------------
+// Tie evidence (`GET /people/{id}/ties/{other}`)
+// ---------------------------------------------------------------------------
+
+/// One `tie` row between two people.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TieJson {
+    /// `email | meeting | dm | ...`.
+    pub tie_kind: String,
+    /// Shared interactions.
+    pub n_shared: u32,
+    /// Tie weight in `[0, 1]`.
+    pub weight: f64,
+    /// Most recent shared interaction.
+    pub last_at: String,
+}
+
+/// `GET /people/{id}/ties/{other}`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TieEvidenceResponse {
+    /// Schema version.
+    pub v: u32,
+    /// The first person.
+    pub person: PersonRef,
+    /// The second person.
+    pub other: PersonRef,
+    /// The strongest tie kind (null: no tie).
+    pub tie: Option<TieJson>,
+    /// Every tie kind, strongest first.
+    pub ties: Vec<TieJson>,
+    /// The interactions both are on, newest first (headers only).
+    pub interactions: Vec<crate::json::Evidence>,
+}
+
+/// The tie rows and shared interactions of two current people.
+pub fn tie_evidence(
+    conn: &Connection,
+    person: PersonId,
+    other: PersonId,
+    limit: usize,
+    now: i64,
+) -> Result<TieEvidenceResponse> {
+    let a = require_person(conn, person, "person")?;
+    let b = require_person(conn, other, "person")?;
+    let ties = conn
+        .prepare_cached(
+            "SELECT kind, n_shared, weight, last_at FROM tie
+             WHERE (a = ?1 AND b = ?2) OR (a = ?2 AND b = ?1)
+             ORDER BY weight DESC, kind",
+        )?
+        .query_map(params![person, other], |r| {
+            Ok(TieJson {
+                tie_kind: r.get(0)?,
+                n_shared: r.get(1)?,
+                weight: crate::json::round3(r.get(2)?),
+                last_at: iso(r.get(3)?),
+            })
+        })?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+    let interactions = crate::graphq::how::shared(conn, person, other, limit, now)?;
+    Ok(TieEvidenceResponse {
+        v: V,
+        person: a,
+        other: b,
+        tie: ties.first().cloned(),
+        ties,
+        interactions,
+    })
+}
+
+// ---------------------------------------------------------------------------
 // Graph facade
 // ---------------------------------------------------------------------------
 
@@ -641,6 +711,18 @@ fn resolve(conn: &Connection, key: &PersonKey) -> Result<PersonId> {
 }
 
 impl crate::Graph {
+    /// Tie evidence between two people (`GET /people/{id}/ties/{other}`).
+    pub fn tie_evidence(
+        &self,
+        person: &PersonKey,
+        other: &PersonKey,
+        limit: usize,
+    ) -> Result<TieEvidenceResponse> {
+        let conn = self.conn();
+        let (a, b) = (resolve(conn, person)?, resolve(conn, other)?);
+        tie_evidence(conn, a, b, limit.min(50), self.now())
+    }
+
     /// The shortlist.
     pub fn shortlist(&self) -> Result<ShortlistResponse> {
         shortlist(self.conn())
