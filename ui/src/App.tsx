@@ -42,7 +42,7 @@ export function App() {
       page = <Views />;
       break;
     case 'playbooks':
-      page = <Playbooks initial={route.playbook} />;
+      page = <Playbooks key={route.playbook ?? ''} selected={route.playbook} params={route.params ?? {}} />;
       break;
     case 'shortlist':
       page = <Shortlist />;

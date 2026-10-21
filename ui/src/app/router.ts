@@ -8,7 +8,7 @@ export type Route =
   | { name: 'people' }
   | { name: 'person'; id: string }
   | { name: 'views' }
-  | { name: 'playbooks'; playbook?: string }
+  | { name: 'playbooks'; playbook?: string; params?: Record<string, string> }
   | { name: 'shortlist' }
   | { name: 'intros' }
   | { name: 'sources' }
@@ -21,10 +21,13 @@ export type Route =
 const SIMPLE = ['discover', 'people', 'views', 'playbooks', 'shortlist', 'intros', 'sources', 'review', 'integrations', 'agents', 'egress', 'settings'] as const;
 
 export function parseHash(hash: string): Route {
-  const path = hash.replace(/^#\/?/, '').split('?')[0] ?? '';
+  const [path = '', search = ''] = hash.replace(/^#\/?/, '').split('?');
   const [head = '', second] = path.split('/').map((s) => decodeURIComponent(s));
   if (head === 'people' && second) return { name: 'person', id: second };
-  if (head === 'playbooks' && second) return { name: 'playbooks', playbook: second };
+  if (head === 'playbooks' && second) {
+    const params = Object.fromEntries(new URLSearchParams(search));
+    return { name: 'playbooks', playbook: second, params };
+  }
   if ((SIMPLE as readonly string[]).includes(head)) return { name: head } as Route;
   return { name: 'discover' };
 }
