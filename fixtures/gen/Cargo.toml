@@ -26,6 +26,12 @@ tempfile.workspace = true
 # The demo acceptance test imports fixtures/demo/ through the real pipeline.
 openstance-core.workspace = true
 openstance-import = { workspace = true, features = ["mbox", "linkedin", "vcf"] }
+# The search eval's embedder tiers (tests/search_eval_tiers.rs): hash:64
+# offline, fastembed when OPENSTANCE_MODEL_DIR holds the model.
+openstance-model = { workspace = true, features = ["fastembed"] }
+serde.workspace = true
+toml.workspace = true
+time.workspace = true
 
 [lints]
 workspace = true

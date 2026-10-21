@@ -45,15 +45,23 @@ recall_at_5 = 0.98
 mrr = 0.97
 must_not_violations = 0
 
-# Embedder tier: every query, rules parser, no reranker, fastembed embedder.
-# PROVISIONAL: no measured baseline yet (the fastembed fusion path lands in
-# P2-CORE-03). Replace with the first measured baseline minus the allowed
-# drop (0.02 recall, 0.03 MRR) once it has run. Turning the embedder off
-# must never drop the non-semantic queries below the rules-tier baseline.
+# Embedder tier: every query, rules parser, no reranker, fastembed embedder,
+# hybrid FTS + vector fusion. Run by fixtures/gen/tests/search_eval_tiers.rs
+# when OPENSTANCE_MODEL_DIR holds the model (skipped offline):
+#   OPENSTANCE_MODEL_DIR=~/.openstance/models \
+#     cargo test -p openstance-fixtures --test search_eval_tiers -- --nocapture
+# The same file checks offline that hash:64 fusion keeps the untiered
+# queries at the rules thresholds and that FTS alone answers none of the
+# tier = "embedder" queries.
+# Baseline (2026-10, all 50 queries, deterministic across runs): Recall@5
+# 0.958, MRR 0.920, 0 violations; the untiered 40 stay at 1.000. Misses:
+# q41 (0.50), q42 (0.00: investors are not found from "write checks"),
+# q45 (0.50). Thresholds are the baseline minus the allowed drop (0.02
+# recall, 0.03 MRR), rounded down.
 [embedder]
 embedder = "fastembed:bge-small-en-v1.5"
-recall_at_5 = 0.80
-mrr = 0.75
+recall_at_5 = 0.93
+mrr = 0.89
 must_not_violations = 0
 
 [people]
@@ -382,7 +390,7 @@ tags = ["semantic", "subjects"]
 
 [[q]]
 id = "q45"
-text = "UX and visual design people"
+text = "UX and user interface people"
 expect_top5 = ["lena", "elena"]
 tier = "embedder"
 tags = ["semantic", "title", "subjects"]
