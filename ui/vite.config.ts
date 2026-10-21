@@ -45,6 +45,8 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    // e2e/ holds the Playwright smoke tests (`npm run e2e`).
+    include: ['src/**/*.test.{ts,tsx}'],
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     css: false,
