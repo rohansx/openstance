@@ -65,3 +65,34 @@ jobs:
       - run: cargo test --workspace --locked --doc
       - name: Importers build without features
         run: cargo check -p openstance-import --no-default-features --locked
+
+  # P2-CORE-07 latency gate: search benches on the 20k-person perf graph
+  # (hash embedder). Fails when text search p50 > 300 ms, structured
+  # search p50 > 50 ms, or either p50 is more than 20 % slower than the
+  # base branch measured on the same runner.
+  bench:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: bench
+      - name: Baseline (base branch)
+        run: |
+          git worktree add "$RUNNER_TEMP/base" "origin/${{ github.base_ref }}"
+          if [ -f "$RUNNER_TEMP/base/crates/openstance-core/benches/search.rs" ]; then
+            cd "$RUNNER_TEMP/base"
+            # the base's own target check may fail; only its numbers matter here
+            OPENSTANCE_BENCH_SAVE="$RUNNER_TEMP/base.json" \
+              cargo bench --locked -p openstance-core --bench search -- --quick \
+              || echo "base branch missed a latency target (comparing anyway)"
+          fi
+      - name: Search latency gate
+        run: |
+          if [ -f "$RUNNER_TEMP/base.json" ]; then export OPENSTANCE_BENCH_COMPARE="$RUNNER_TEMP/base.json"; fi
+          cargo bench --locked -p openstance-core --bench search -- --quick

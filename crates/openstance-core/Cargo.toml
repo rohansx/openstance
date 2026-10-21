@@ -48,6 +48,12 @@ openstance-import = { workspace = true, features = ["mbox", "linkedin", "vcf"] }
 tempfile.workspace = true
 proptest.workspace = true
 insta.workspace = true
+criterion.workspace = true
+
+# P2-CORE-07 latency gate (criterion + p50 gate, see the file header).
+[[bench]]
+name = "search"
+harness = false
 
 # The workspace forbids unsafe code. Core denies it instead so that the one
 # sqlite-vec registration call in db/vec.rs can carry an explicit
