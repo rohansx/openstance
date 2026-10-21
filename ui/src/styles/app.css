@@ -52,7 +52,6 @@ body {
   height: 10px;
 }
 .brand {
-  position: relative;
   color: var(--ink, #233b2d);
 }
 .brand small {
