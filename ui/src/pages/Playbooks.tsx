@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
-import type { Outcome, PathJson, QuoteLine } from '../api/types';
+import type { Outcome, QuoteLine } from '../api/types';
 import { configValue, useApp } from '../app/context';
 import { href } from '../app/router';
 import { PageHead } from '../components/bits';
+import { PlaybookResult } from '../components/PlaybookResult';
 import { Icon, type IconName } from '../components/Icon';
-import { displayName, usd } from '../lib/format';
+import { usd } from '../lib/format';
 
 type FieldKind = 'text' | 'bool' | 'number' | 'lines';
 interface FieldSpec {
@@ -381,7 +382,6 @@ function Runner({ spec, params }: { spec: PlaybookSpec; params: Record<string, s
 
 function OutcomeView({ outcome }: { outcome: Outcome }) {
   const r = outcome.receipt;
-  const paths = (outcome.result as { paths?: PathJson[] } | null)?.paths;
   return (
     <div className="outcome">
       <h3 className="subtle-label">
@@ -416,25 +416,7 @@ function OutcomeView({ outcome }: { outcome: Outcome }) {
           ))}
         </ul>
       )}
-      {paths && paths.length > 0 && (
-        <div>
-          {paths.map((p) => (
-            <div className="path-row" key={p.via.id}>
-              <div>
-                via <a href={href({ name: 'person', id: String(p.via.id) })}>{displayName(p.via)}</a>
-                <small>{p.reason.replace(/_/g, ' ')}</small>
-              </div>
-              <span className="strength">{p.strength.toFixed(3)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-      {outcome.result !== null && outcome.result !== undefined && (
-        <details open={!paths}>
-          <summary className="subtle-label">Result</summary>
-          <pre className="result-json">{JSON.stringify(outcome.result, null, 2)}</pre>
-        </details>
-      )}
+      <PlaybookResult playbook={outcome.playbook} result={outcome.result} />
       <p className="receipt">
         <Icon name="shield" /> Requests sent: {r.requests_sent} · Spent: {usd(r.spent_micro_usd)} · Quoted:{' '}
         {usd(r.quoted_micro_usd)} · Budget: {usd(r.budget_micro_usd)} · run {r.run_id}
