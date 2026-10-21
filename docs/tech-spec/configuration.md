@@ -124,7 +124,7 @@ respect_do_not_share = true
 timeout_secs = 20
 
 [enrich.treg]
-endpoint = "https://api.treg.to"
+endpoint = "https://treg.to"
 token_env = "OPENSTANCE_TREG_TOKEN"
 
 [enrich.ownkeys]
@@ -312,7 +312,7 @@ See [models.md](models.md) and [../architecture/security-and-threat-model.md](..
 | `allow_egress_default` | bool | `false` | | the value of `allow_egress` when an MCP/HTTP caller omits it. The CLI still prompts unless `--yes` |
 | `respect_do_not_share` | bool | `true` | | also skip `do_not_share` people in enrichment. `no_enrich` is always respected and has no switch |
 | `timeout_secs` | int | `20` | 1 to 120 | per request |
-| `treg.endpoint` | url | `https://api.treg.to` | | point at a self-hosted treg router |
+| `treg.endpoint` | url | `https://treg.to` | | the router base URL; point it at a self-hosted router (for example `http://127.0.0.1:18790`) |
 | `treg.token_env` | string | `"OPENSTANCE_TREG_TOKEN"` | env var name | |
 | `ownkeys.order` | array | `["pdl","apollo","clearbit"]` | subset of those | preference when several keys can serve an op |
 | `ownkeys.prices.<op>` | int | unset | micro-USD | `profile`, `find_email`, `verify_email`, `company`, `web_search` |

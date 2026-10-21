@@ -388,7 +388,7 @@ pub struct TregSection {
 impl Default for TregSection {
     fn default() -> Self {
         TregSection {
-            endpoint: "https://api.treg.to".into(),
+            endpoint: "https://treg.to".into(),
             token_env: "OPENSTANCE_TREG_TOKEN".into(),
         }
     }
@@ -1337,6 +1337,9 @@ mod tests {
         assert_eq!(c.enrich.backend, "none");
         assert!(!c.enrich.allow_egress_default);
         assert_eq!(c.enrich.max_usd_per_run, 0.50);
+        // The hosted router (dev/treg/INTEGRATION.md); api.treg.to does not exist.
+        assert_eq!(c.enrich.treg.endpoint, "https://treg.to");
+        assert_eq!(c.enrich.treg.token_env, "OPENSTANCE_TREG_TOKEN");
         assert!(!c.import.email_bodies);
         assert_eq!(c.score.half_life_days, 180.0);
         assert_eq!(c.score.effective_preset(), "default");
