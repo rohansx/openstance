@@ -310,7 +310,8 @@ CREATE TABLE enrich_log (
   request_json     TEXT    NOT NULL,   -- exactly the outbound fields
   quoted_micro_usd INTEGER NOT NULL,
   cost_micro_usd   INTEGER,
-  status           TEXT    NOT NULL CHECK (status IN ('ok','not_found','error')),
+  status           TEXT    NOT NULL CHECK (status IN
+                     ('quoted','sent','ok','not_found','error','blocked')),  -- schema v3
   error            TEXT,
   source_id        INTEGER REFERENCES source(id),
   response_json    TEXT                -- normalized EnrichData; replayed by rebuild

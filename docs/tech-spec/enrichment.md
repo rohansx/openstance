@@ -369,7 +369,7 @@ CREATE TABLE enrich_log (
   request_json    TEXT    NOT NULL,              -- exactly the outbound fields, nothing else
   quoted_micro_usd INTEGER NOT NULL,
   cost_micro_usd  INTEGER,                       -- actual; NULL if the call never completed
-  status          TEXT    NOT NULL,              -- 'ok' | 'not_found' | 'error'
+  status          TEXT    NOT NULL,              -- 'quoted' | 'sent' | 'ok' | 'not_found' | 'error' | 'blocked'
   error           TEXT,
   source_id       INTEGER REFERENCES source(id), -- the enrich:<backend> source the result was stored under
   response_json   TEXT                           -- normalized EnrichData; replayed by rebuild
@@ -379,7 +379,7 @@ CREATE INDEX enrich_log_person ON enrich_log(person_id);
 CREATE INDEX enrich_log_at     ON enrich_log(at);
 ```
 
-- One row per request **sent**. Quotes that were never approved are not logged: nothing left the machine.
+- One row per priced job, written by `EgressGate::quote` with status `quoted` (nothing has left the machine yet), then moved to `sent` just before the request leaves and to `ok`, `not_found` or `error` when the backend answers. A job the gate refuses (no_enrich set after the quote, over budget, run stopped after an auth or payment error) ends `blocked`. Rows still `quoted` were never sent. A prompt-then-run in the CLI reuses the run's `quoted` rows (same run id), so each request has one row. Migration `0003_enrich_log_status` added these states (P3-CORE-01).
 - `request_json` records the outbound payload exactly as sent, so the user can audit precisely what left the machine. Auth headers are never stored.
 - `response_json` is the normalized `EnrichData`, not the raw provider body. It is the raw material that `openstance rebuild` replays (section 7). Like other source rows, it is kept until the user deletes it.
 - Users read it with `openstance enrich log [--run <id>] [--since 30d] [--json]` or `GET /enrich-log`. Totals per run and per month are shown at the bottom.
