@@ -136,6 +136,11 @@ pub fn dispatch(cli: Cli) -> Result<()> {
         Command::Keys(a) => crate::view::keys(&ctx, a),
         Command::Path(a) => crate::path::run(&ctx.open_default()?, ctx.json, a),
         Command::Brief(a) => crate::brief::run(&ctx.open_default()?, ctx.json, a),
+        Command::Reconnect(a) => crate::followup::reconnect(&ctx.open_default()?, ctx.json, a),
+        Command::Accounts(a) => crate::followup::accounts(&ctx.open_default()?, ctx.json, a),
+        Command::Refresh(a) => crate::followup::refresh(&ctx.open_default()?, ctx.json, a),
+        Command::Verify(a) => crate::followup::verify(&ctx.open_default()?, ctx.json, a),
+        Command::Watch(a) => crate::followup::watch(&ctx.open_default()?, ctx.json, a),
         Command::Enrich(a) => crate::enrich::run(&ctx, a),
         Command::Serve(a) => crate::serve::run(&ctx, a),
         Command::Mcp(a) => crate::mcp::run(

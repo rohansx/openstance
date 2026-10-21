@@ -448,3 +448,108 @@ fn enrich_log_is_empty_on_a_fresh_graph() {
     assert_eq!(code, 0);
     assert!(out.contains("nothing has left this machine"), "{out}");
 }
+
+// ---------------------------------------------------------------- P4-CLI-01
+
+#[test]
+fn reconnect_lists_lapsed_people_with_the_last_subject() {
+    let home = seeded();
+    let v = ok_json(ost(home.path()).args(["--now", NOW, "--json", "reconnect"]));
+    assert_eq!(v["playbook"], "reconnect");
+    assert_eq!(v["status"], "done");
+    assert_eq!(v["result"]["people"][0]["display_name"], "Sam Ito");
+    let (code, out, err) = run(ost(home.path()).args(["--now", NOW, "reconnect"]));
+    assert_eq!(code, 0, "{err}");
+    assert!(out.contains("was"), "{out}");
+    assert!(out.contains("Sam Ito"), "{out}");
+    assert!(out.contains("Q3 hiring plan"), "{out}");
+}
+
+#[test]
+fn accounts_reads_a_file_and_prints_table_json_and_csv() {
+    let home = seeded();
+    let file = home.path().join("targets.txt");
+    std::fs::write(&file, "# targets\nContoso\n\nnorthwind.example\nNowhere\n").unwrap();
+    let f = file.to_str().unwrap();
+    let v = ok_json(ost(home.path()).args(["--now", NOW, "--json", "accounts", f]));
+    let rows = v["result"]["companies"].as_array().unwrap();
+    assert_eq!(rows.len(), 3, "comments and blank lines are skipped");
+    assert_eq!(rows[1]["coverage"], "warm");
+    let (code, out, err) = run(ost(home.path()).args(["--now", NOW, "accounts", f]));
+    assert_eq!(code, 0, "{err}");
+    let header = out.lines().next().unwrap();
+    assert!(
+        header.contains("coverage") && header.contains("best contact"),
+        "{out}"
+    );
+    assert!(out.contains("Priya Raman (0.80)"), "{out}");
+    let (code, csv, err) = run(ost(home.path()).args(["--now", NOW, "accounts", f, "--csv"]));
+    assert_eq!(code, 0, "{err}");
+    let mut lines = csv.lines();
+    assert_eq!(
+        lines.next().unwrap(),
+        "company,domain,current,alumni,one_hop,coverage,best_id,best_contact,best_score"
+    );
+    assert!(
+        lines.any(|l| l.starts_with("Northwind,northwind.example,1,0,0,warm,2,Priya Raman,0.8")),
+        "{csv}"
+    );
+}
+
+#[test]
+fn refresh_and_watch_run_locally_with_the_default_config() {
+    let home = seeded();
+    let conn = db!(home.path());
+    conn.execute("UPDATE person SET n_interactions = 9 WHERE id = 7", [])
+        .unwrap();
+    drop(conn);
+    let v = ok_json(ost(home.path()).args(["--now", NOW, "--json", "refresh", "--yes"]));
+    assert_eq!(v["playbook"], "refresh");
+    assert_eq!(v["receipt"]["requests_sent"], 0);
+    assert_eq!(v["plan"]["steps"][2]["will_run"], "skip_no_enricher");
+    let (code, out, err) = run(ost(home.path()).args(["--now", NOW, "watch"]));
+    assert_eq!(code, 0, "{err}");
+    assert!(err.contains("two Connections.csv exports"), "{err}");
+    assert!(out.contains("No changes"), "{out}");
+    let v = ok_json(ost(home.path()).args([
+        "--now",
+        NOW,
+        "--json",
+        "watch",
+        "--targets",
+        "Anthropic,OpenAI",
+    ]));
+    assert_eq!(v["result"]["targets"], json!(["Anthropic", "OpenAI"]));
+    let log = ok_json(ost(home.path()).args(["--json", "enrich", "log"]));
+    assert_eq!(log["rows"], json!([]));
+}
+
+#[test]
+fn verify_quotes_first_then_spends_with_yes() {
+    let home = seeded();
+    let server = Server::start();
+    use_treg(home.path(), &server.base);
+    let (code, out, _) =
+        run(ost(home.path()).args(["--now", NOW, "--json", "verify", "Priya Raman"]));
+    assert_eq!(code, 3, "quote without --yes exits 3: {out}");
+    let v: Value = serde_json::from_str(&out).unwrap();
+    assert_eq!(v["status"], "quote");
+    assert_eq!(v["result"]["email"], "priya@northwind.example");
+    assert_eq!(v["result"]["status"], "unverified");
+    assert!(
+        server.requests().iter().all(|(m, _, _)| m == "GET"),
+        "nothing paid yet"
+    );
+
+    let (code, out, err) =
+        run(ost(home.path()).args(["--now", NOW, "verify", "Priya Raman", "--yes"]));
+    assert_eq!(code, 0, "{err}");
+    assert!(
+        out.contains("priya@northwind.example  deliverable"),
+        "{out}"
+    );
+    assert!(server
+        .requests()
+        .iter()
+        .any(|(m, p, _)| m == "POST" && p == "/call/treg.people.email.verify"));
+}

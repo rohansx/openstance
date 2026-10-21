@@ -16,6 +16,7 @@ mod brief;
 mod commands;
 mod embeddings;
 mod enrich;
+mod followup;
 mod how;
 pub mod mcp;
 mod path;
@@ -99,6 +100,16 @@ pub enum Command {
     Brief(brief::BriefArgs),
     /// Enrichment audit: `enrich log` lists what left the machine and its cost.
     Enrich(enrich::EnrichArgs),
+    /// People you used to talk to and have lost touch with (no egress).
+    Reconnect(followup::ReconnectArgs),
+    /// Warm coverage of target companies from a file, one per line (no egress).
+    Accounts(followup::AccountsArgs),
+    /// Fill missing titles and companies through the enricher (quote first).
+    Refresh(followup::RefreshArgs),
+    /// Verify someone's best email before you send, plus the freshest mutual.
+    Verify(followup::VerifyArgs),
+    /// Job changes from your LinkedIn exports, optionally checked (quote first).
+    Watch(followup::WatchArgs),
 }
 
 /// `openstance init`.
