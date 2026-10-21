@@ -6,7 +6,7 @@ Draft of the launch post and the first comment, following [launch.md](launch.md#
 
 ## Title
 
-Pick one. Each one is 80 characters or fewer and has no superlatives.
+Pick one that is 80 characters or fewer, with no superlatives. Options 1 and 2 are the launch.md titles, kept for reference.
 
 1. `Show HN: Openstance – your network as a SQLite file, free search, works in Claude Code` (86 characters, **too long**)
 2. `Show HN: Openstance – search your own network locally, from the CLI or Claude Code` (82 characters, **too long**)
