@@ -1,0 +1,12 @@
+{ "v": 1, "views": [
+  { "id": "01JC50ZZZZZZZZ", "name": "devtools-investors", "direction": "imported",
+    "owner": { "pubkey": "age1qzexamplepubkey", "label": "rohan" }, "created_at": "2026-10-01T00:00:00Z",
+    "expires_at": "2026-10-31T00:00:00Z", "rows": 42,
+    "query": { "text": "devtools investor", "company": [], "title": [], "location": [], "industry": [], "tags": [],
+               "since": null, "until": null, "last_contact_before": null, "met_in_person": null, "replied": null,
+               "min_score": null, "lost_touch": null, "include_bulk": false, "limit": 30 } },
+  { "id": null, "name": "fintech-founders", "direction": "own",
+    "owner": { "pubkey": "age1qzmine", "label": null }, "created_at": "2026-10-05T00:00:00Z",
+    "expires_at": null, "rows": 12, "query": { "text": "fintech founders" },
+    "recipients": ["age1qzfriend"], "excluded_do_not_share": 3 }
+] }

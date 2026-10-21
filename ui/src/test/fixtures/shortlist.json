@@ -1,0 +1,4 @@
+{ "v": 1, "shortlist": [
+  { "person_id": 812, "note": "ask about platform hiring", "added_at": "2026-10-12T10:00:00Z",
+    "person": { "id": 812, "display_name": "Tom Okafor", "title": "Engineering Manager", "company": "Stripe", "score": 0.78 } }
+] }

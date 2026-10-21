@@ -1,0 +1,83 @@
+{
+  "v": 1,
+  "query": {
+    "text": "devtools dinner",
+    "company": [], "title": [], "location": [], "industry": [], "tags": [],
+    "since": null, "until": null, "last_contact_before": null,
+    "met_in_person": true, "replied": null,
+    "min_score": null, "lost_touch": null, "include_bulk": false, "limit": 30
+  },
+  "query_source": { "parser": "rules", "fallback": null, "explicit": [] },
+  "rerun": "openstance search \"devtools dinner\" --met --no-parse",
+  "mode": "text",
+  "models": { "parser": "rules", "embedder": "fastembed:bge-small-en-v1.5", "reranker": "none" },
+  "total": 2,
+  "took_ms": 41,
+  "results": [
+    {
+      "rank": 1,
+      "person": {
+        "id": 812,
+        "display_name": "Tom Okafor",
+        "title": "Engineering Manager",
+        "company": "Stripe",
+        "location": "San Francisco, CA",
+        "bio": null,
+        "tags": ["devtools", "investor-intro"],
+        "first_seen": "2024-02-03T09:12:00Z",
+        "last_contact": "2026-09-14T16:02:00Z",
+        "score": 0.78,
+        "components": {
+          "recency": 0.870, "frequency": 0.683, "reciprocity": 0.765, "meetings": 0.736, "breadth": 0.750,
+          "weights": { "recency": 0.35, "frequency": 0.20, "reciprocity": 0.25, "meetings": 0.15, "breadth": 0.05 },
+          "preset": "default", "half_life_days": 180, "raw": null
+        },
+        "is_bulk": false,
+        "do_not_share": false,
+        "no_enrich": false,
+        "field_sources": { "display_name": "mbox:work gmail", "title": "override", "company": "linkedin_csv:linkedin 2026-10", "location": "enrich:treg" }
+      },
+      "relevance": { "fts": 0.82, "vector": 0.71, "fused": 0.765, "final": 0.681 },
+      "matched": [ { "field": "subjects", "matched": "devtools dinner", "snippet": "devtools dinner" } ],
+      "evidence": [
+        { "kind": "interaction", "interaction_id": 99120, "type": "meeting", "direction": "mutual",
+          "at": "2026-09-14T16:02:00Z", "subject": "devtools dinner", "role": "attendee",
+          "source": { "id": 4, "kind": "ics", "label": "work calendar" } }
+      ],
+      "reason": null,
+      "reason_source": null
+    },
+    {
+      "rank": 2,
+      "person": {
+        "id": 1203,
+        "display_name": "Kai Wu",
+        "title": null,
+        "company": "Ramp",
+        "location": null,
+        "bio": null,
+        "tags": [],
+        "first_seen": "2023-11-02T10:00:00Z",
+        "last_contact": "2024-01-11T00:00:00Z",
+        "score": 0.12,
+        "components": {
+          "recency": 0.04, "frequency": 0.2, "reciprocity": 0.1, "meetings": 0.3, "breadth": 0.25,
+          "weights": { "recency": 0.35, "frequency": 0.20, "reciprocity": 0.25, "meetings": 0.15, "breadth": 0.05 },
+          "preset": "default", "half_life_days": 180, "raw": null
+        },
+        "is_bulk": false,
+        "do_not_share": true,
+        "no_enrich": false,
+        "field_sources": { "display_name": "ics:work calendar", "title": null, "company": "ics:work calendar", "location": null }
+      },
+      "relevance": { "fts": 0.4, "vector": null, "fused": 0.4, "final": 0.224 },
+      "matched": [ { "field": "met_in_person", "value": true, "via": "1 meeting" } ],
+      "evidence": [],
+      "reason": null,
+      "reason_source": null
+    }
+  ],
+  "warnings": [],
+  "suggestions": [],
+  "timings_ms": null
+}

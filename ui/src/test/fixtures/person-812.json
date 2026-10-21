@@ -1,0 +1,63 @@
+{
+  "v": 1,
+  "person": {
+    "id": 812,
+    "display_name": "Tom Okafor",
+    "title": "Engineering Manager",
+    "company": "Stripe",
+    "location": "San Francisco, CA",
+    "bio": null,
+    "tags": ["devtools", "investor-intro"],
+    "first_seen": "2024-02-03T09:12:00Z",
+    "last_contact": "2026-09-14T16:02:00Z",
+    "score": 0.78,
+    "components": {
+      "recency": 0.870,
+      "frequency": 0.683,
+      "reciprocity": 0.765,
+      "meetings": 0.736,
+      "breadth": 0.750,
+      "weights": { "recency": 0.35, "frequency": 0.20, "reciprocity": 0.25, "meetings": 0.15, "breadth": 0.05 },
+      "preset": "default",
+      "half_life_days": 180,
+      "raw": {
+        "days_since_last": 36,
+        "n_interactions": 23,
+        "messages_from_you": 17,
+        "replies_from_them": 13,
+        "threads_they_started": 0,
+        "n_meetings": 4,
+        "channels": ["email", "calendar", "linkedin_dm"]
+      }
+    },
+    "is_bulk": false,
+    "do_not_share": false,
+    "no_enrich": false,
+    "field_sources": {
+      "display_name": "mbox:work gmail",
+      "title": "override",
+      "company": "linkedin_csv:linkedin 2026-10",
+      "location": "enrich:treg"
+    }
+  },
+  "identities": [
+    { "id": 5531, "kind": "email", "value": "tom@stripe.com", "confidence": 1.0,
+      "source": { "id": 2, "kind": "mbox", "label": "work gmail" },
+      "verification": { "status": "deliverable", "at": "2026-10-01T10:00:00Z", "via": "enrich:treg" } },
+    { "id": 5600, "kind": "linkedin_url", "value": "in/tomokafor-example", "confidence": 0.85,
+      "source": { "id": 7, "kind": "linkedin_csv", "label": "linkedin 2026-10" } }
+  ],
+  "recent_interactions": [
+    { "kind": "interaction", "interaction_id": 99120, "type": "meeting", "direction": "mutual",
+      "at": "2026-09-14T16:02:00Z", "subject": "devtools dinner", "role": "attendee",
+      "source": { "id": 4, "kind": "ics", "label": "work calendar" } },
+    { "kind": "interaction", "interaction_id": 99001, "type": "email", "direction": "in",
+      "at": "2026-08-30T08:15:00Z", "subject": "Re: platform hiring notes", "role": "from",
+      "source": { "id": 2, "kind": "mbox", "label": "work gmail" } }
+  ],
+  "mutuals": [ { "person": { "id": 77, "display_name": "Ana Lee", "title": "Partner", "company": "Foo Ventures", "score": 0.66 }, "tie_kind": "email", "n_shared": 9, "weight": 0.52 } ],
+  "overrides": [ { "field": "title", "value": "Engineering Manager", "set_at": "2026-10-02T11:00:00Z" } ],
+  "notes": [ { "value": "prefers short asks", "set_at": "2026-08-01T00:00:00Z" } ],
+  "suggested": { "title": { "value": "Sr. EM", "from": "enrich:treg", "at": "2026-10-19T12:00:00Z" } },
+  "merge": { "merged_from": [97], "flagged": false, "confidence": 1.0 }
+}

@@ -1,0 +1,5 @@
+{ "v": 1, "sources": [
+  { "id": 2, "kind": "mbox", "label": "work gmail", "path": "~/exports/work.mbox", "imported_at": "2026-10-01T09:00:00Z" },
+  { "id": 4, "kind": "ics", "label": "work calendar", "path": "~/exports/work.ics", "imported_at": "2026-10-01T09:05:00Z" },
+  { "id": 7, "kind": "linkedin_csv", "label": "linkedin 2026-10", "path": "~/exports/Connections.csv", "imported_at": "2026-10-10T18:00:00Z" }
+] }
