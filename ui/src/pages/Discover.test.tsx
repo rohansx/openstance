@@ -35,7 +35,7 @@ describe('Search page (P4-UI-02)', () => {
     const kai = (await screen.findByRole('heading', { name: 'Kai Wu' })).closest('article')!;
     expect(within(kai).getByText(/do not share/i)).toBeInTheDocument();
     expect(within(kai).getByText(/no interactions in evidence/i)).toBeInTheDocument();
-    expect(screen.getByText(/2 people/)).toBeInTheDocument();
+    expect(screen.getByText(/2 matches/)).toBeInTheDocument();
   });
 
   it('shows the parsed filters as chips and removing one reruns without the parser', async () => {
@@ -134,5 +134,49 @@ describe('Save view from a search', () => {
       ttl: '30d',
       to: ['self'],
     });
+  });
+});
+
+describe('Results heading (U2)', () => {
+  const heading = () => within(screen.getByRole('region', { name: /search results/i })).getAllByRole('heading', { level: 2 })[0]!;
+
+  it('says "Your strongest relationships" only for the empty query', async () => {
+    renderApp('#/discover');
+    await screen.findByRole('heading', { name: 'Tom Okafor' });
+    expect(heading()).toHaveTextContent(/your strongest relationships/i);
+  });
+
+  it('shows a results heading with the match count when a text query is active', async () => {
+    renderApp('#/discover');
+    await search('devtools dinner');
+    await waitFor(() => expect(heading()).toHaveTextContent('Results for “devtools dinner”'));
+    expect(heading()).not.toHaveTextContent(/strongest/i);
+    expect(heading()).toHaveTextContent(/2 matches/);
+  });
+
+  it('shows a results heading for a filter-only rerun and goes back for an empty search', async () => {
+    const filtersOnly = withQuery({ text: null, title: ['founder'], met_in_person: true });
+    const { api } = renderApp('#/discover', {
+      'POST /search': (c: { body: unknown }) => ((c.body as { text?: string; title?: string[] }).text || (c.body as { title?: string[] }).title ? filtersOnly : fx.search()),
+    });
+    await search('founders I met');
+    await waitFor(() => expect(heading()).toHaveTextContent('Results for “founders I met”'));
+    const chips = await screen.findByRole('group', { name: /parsed filters/i });
+    await userEvent.click(within(chips).getByRole('button', { name: /remove filter met in person/i }));
+    await waitFor(() => expect(api.callsTo('POST /search').length).toBe(3));
+    await waitFor(() => expect(heading()).toHaveTextContent('Results for “title: founder”'));
+
+    const box = screen.getByRole('searchbox', { name: /search your network/i });
+    await userEvent.clear(box);
+    await userEvent.click(screen.getByRole('button', { name: /find people/i }));
+    await waitFor(() => expect(heading()).toHaveTextContent(/your strongest relationships/i));
+  });
+
+  it('People page: "Everyone" for the empty query, a results heading when searching', async () => {
+    renderApp('#/people');
+    await screen.findByRole('heading', { name: 'Tom Okafor' });
+    expect(heading()).toHaveTextContent(/^Everyone/);
+    await search('devtools dinner');
+    await waitFor(() => expect(heading()).toHaveTextContent('Results for “devtools dinner”'));
   });
 });

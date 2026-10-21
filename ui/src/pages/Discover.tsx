@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { emptyQuery, queryToRequest } from '../api/query';
+import { chipsFromQuery, emptyQuery, queryToRequest } from '../api/query';
 import type { Query, SearchRequest, SearchResponse } from '../api/types';
 import { useApp } from '../app/context';
 import { Empty, ErrorNote, Loading, PageHead } from '../components/bits';
@@ -22,18 +22,24 @@ export function Discover({ mode }: { mode: 'discover' | 'people' }) {
   const shortlist = useShortlist();
   const [text, setText] = useState('');
   const [res, setRes] = useState<SearchResponse | undefined>();
+  // What the shown results answer: the typed text or the edited filters;
+  // null for the empty query (strongest relationships first).
+  const [label, setLabel] = useState<string | null>(null);
   const [error, setError] = useState<Error | undefined>();
   const [busy, setBusy] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const seq = useRef(0);
 
-  async function run(req: SearchRequest) {
+  async function run(req: SearchRequest, what: string | null = null) {
     const mine = ++seq.current;
     setBusy(true);
     setError(undefined);
     try {
       const r = await api.search(req);
-      if (mine === seq.current) setRes(r);
+      if (mine === seq.current) {
+        setRes(r);
+        setLabel(what);
+      }
     } catch (e) {
       if (mine === seq.current) setError(e as Error);
     } finally {
@@ -57,13 +63,12 @@ export function Discover({ mode }: { mode: 'discover' | 'people' }) {
       void run(queryToRequest({ ...emptyQuery(), limit: 30 }));
       return;
     }
-    void run({ text: t.trim(), parse: true, limit: 30 });
+    void run({ text: t.trim(), parse: true, limit: 30 }, t.trim());
   };
 
-  const rerun = (q: Query) => void run(queryToRequest(q, false));
+  const rerun = (q: Query) => void run(queryToRequest(q, false), queryLabel(q));
 
   const results = res?.results ?? [];
-  const isText = res?.mode === 'text';
 
   return (
     <>
@@ -141,9 +146,13 @@ export function Discover({ mode }: { mode: 'discover' | 'people' }) {
         <section aria-label="Search results">
           <div className="result-header">
             <h2>
-              {isText ? 'Your next connection' : mode === 'people' ? 'Everyone' : 'Your strongest relationships'}{' '}
+              {label !== null ? `Results for “${label}”` : mode === 'people' ? 'Everyone' : 'Your strongest relationships'}{' '}
               <small>
-                {res ? `${res.total} ${res.total === 1 ? 'person' : 'people'} · ${res.took_ms} ms` : ''}
+                {res
+                  ? label !== null
+                    ? `${res.total} ${res.total === 1 ? 'match' : 'matches'} · ${res.took_ms} ms`
+                    : `${res.total} ${res.total === 1 ? 'person' : 'people'} · ${res.took_ms} ms`
+                  : ''}
               </small>
             </h2>
             <div className="result-actions">
@@ -219,6 +228,12 @@ export function Discover({ mode }: { mode: 'discover' | 'people' }) {
       )}
     </>
   );
+}
+
+/** A short description of an edited query for the results heading; null when it is empty. */
+function queryLabel(q: Query): string | null {
+  const parts = [q.text?.trim() ?? '', ...chipsFromQuery(q).map((c) => c.label)].filter(Boolean);
+  return parts.length ? parts.join(' · ') : null;
 }
 
 function Insights({ results }: { results: SearchResponse | undefined }) {
