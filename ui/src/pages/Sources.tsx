@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ImportResponse, SourceRow } from '../api/types';
-import { useApp } from '../app/context';
+import { dbPath, useApp } from '../app/context';
 import { Empty, ErrorNote, Loading, PageHead } from '../components/bits';
 import { Icon } from '../components/Icon';
 import { shortDate } from '../lib/format';
@@ -96,7 +96,8 @@ export function Sources() {
 }
 
 function ImportPanel({ onImported }: { onImported: () => void }) {
-  const { api, toast, refreshStats } = useApp();
+  const { api, toast, refreshStats, config } = useApp();
+  const db = dbPath(config);
   const [files, setFiles] = useState<File[]>([]);
   const [kind, setKind] = useState('');
   const [label, setLabel] = useState('');
@@ -225,7 +226,16 @@ function ImportPanel({ onImported }: { onImported: () => void }) {
               {s.skipped_duplicate_file ? <span className="tag warn">already imported · skipped</span> : <span className="tag">imported</span>}
             </div>
           ))}
-          <p className="note">Took {n(result.took_ms)} ms. Everything stays in ~/.openstance/graph.db.</p>
+          <p className="note">
+            Took {n(result.took_ms)} ms.{' '}
+            {db ? (
+              <>
+                Everything stays in <code>{db}</code>.
+              </>
+            ) : (
+              'Everything stays in your local graph.db on this device.'
+            )}
+          </p>
         </section>
       )}
     </section>

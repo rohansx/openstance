@@ -1,4 +1,4 @@
-import { configValue, useApp } from '../app/context';
+import { configValue, dbPath, useApp } from '../app/context';
 import { PageHead } from '../components/bits';
 import { Icon } from '../components/Icon';
 import { shortDate, usd } from '../lib/format';
@@ -19,6 +19,7 @@ export function Settings() {
   const origins = (config?.origins ?? {}) as Record<string, string>;
   const parser = String(configValue(config, 'model.parser') ?? 'rules');
   const backend = String(configValue(config, 'enrich.backend') ?? 'none');
+  const db = dbPath(config);
 
   return (
     <>
@@ -27,8 +28,15 @@ export function Settings() {
         <section className="panel">
           <h2>On this device</h2>
           <p>
-            Your graph lives in <code>~/.openstance/graph.db</code>. This page talks to <code>openstance serve</code> on
-            loopback with a bearer token kept in this tab’s session storage.
+            {db ? (
+              <>
+                Your graph lives in <code>{db}</code>.
+              </>
+            ) : (
+              <>Your graph lives in one local file, graph.db, in your openstance home.</>
+            )}{' '}
+            This page talks to <code>openstance serve</code> on loopback with a bearer token kept in this tab’s session
+            storage.
           </p>
           <div className="source-row">
             <span>openstance</span>

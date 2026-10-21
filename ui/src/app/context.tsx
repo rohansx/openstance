@@ -73,6 +73,20 @@ export function useApp(): AppCtx {
   return v;
 }
 
+/**
+ * The resolved database file, when `GET /config` exposes it (`db_path`, or
+ * `paths.db`). Not `config.db.path`: that is the unexpanded setting, which
+ * reads `~/.openstance/graph.db` even when OPENSTANCE_HOME relocates it.
+ */
+export function dbPath(cfg: ConfigJson | undefined): string | null {
+  if (!cfg) return null;
+  const direct = cfg.db_path;
+  if (typeof direct === 'string' && direct) return direct;
+  const paths = cfg.paths as Record<string, unknown> | undefined;
+  if (paths && typeof paths.db === 'string' && paths.db) return paths.db;
+  return null;
+}
+
 /** Read a dotted key from the effective config (`enrich.backend`). */
 export function configValue(cfg: ConfigJson | undefined, key: string): unknown {
   // `GET /config` wraps the effective config: { v, config, origins, ... }

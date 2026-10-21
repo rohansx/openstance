@@ -618,5 +618,7 @@ export interface ConfigJson {
   warnings?: string[];
   config_file?: string | null;
   file_found?: boolean;
+  /** Resolved database file (absolute). Not exposed by every server build; see `dbPath`. */
+  db_path?: string;
   [extra: string]: unknown;
 }
