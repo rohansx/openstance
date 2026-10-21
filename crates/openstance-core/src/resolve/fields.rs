@@ -1,5 +1,5 @@
 //! Step 15: person fields from importer hints (by source priority), enrich
-//! facts (Phase 3) and scalar overrides (LWW; NULL tombstone falls back;
+//! facts (Phase 3, `egress::facts`) and scalar overrides (LWW; NULL tombstone falls back;
 //! privacy flags OR'd per anchor). Spec: `docs/tech-spec/data-model.md`
 //! section 4.5 and `entity-resolution.md` section 4.
 //!
@@ -279,11 +279,17 @@ pub fn materialize_fields(conn: &Connection, people: Option<&[PersonId]>) -> Res
         }
         let cluster: Vec<IdentityId> = ids.iter().map(|(i, _, _)| *i).collect();
         let base = derived(conn, &data, p, &ids)?;
+        // Phase 3: committed enrichment facts rank between overrides and
+        // importer hints (enrichment.md section 7).
+        let enriched = crate::egress::facts::profile_facts(conn, &cluster)?;
         let mut vals: Vec<Option<String>> = Vec::with_capacity(FIELDS.len());
         for f in FIELDS {
             let v = match overrides::scalar(conn, &cluster, field_of(f))? {
                 Some(v) => Some(v),
-                None => base[f].as_ref().map(|(v, _)| v.clone()),
+                None => match enriched.get(f) {
+                    Some(fact) if f != "bio" || base[f].is_none() => Some(fact.value.clone()),
+                    _ => base[f].as_ref().map(|(v, _)| v.clone()),
+                },
             };
             vals.push(v);
         }
@@ -312,12 +318,16 @@ pub fn field_sources(
         ids.iter().map(|(i, _, _)| *i).collect()
     };
     let base = derived(conn, &data, person, &ids)?;
+    let enriched = crate::egress::facts::profile_facts(conn, &cluster)?;
     let mut out = BTreeMap::new();
     for f in FIELDS {
         let src = if overrides::scalar(conn, &cluster, field_of(f))?.is_some() {
             Some("override".to_string())
         } else {
-            base[f].as_ref().map(|(_, s)| s.clone())
+            match enriched.get(f) {
+                Some(fact) if f != "bio" || base[f].is_none() => Some(fact.provenance.clone()),
+                _ => base[f].as_ref().map(|(_, s)| s.clone()),
+            }
         };
         out.insert(f.to_string(), src);
     }

@@ -126,6 +126,7 @@ pub fn field_sources(
     values: &[(&str, Option<&str>)],
 ) -> Result<BTreeMap<String, Option<String>>> {
     let mut out = BTreeMap::new();
+    let mut enriched = None;
     for (field, hint_col) in SOURCED {
         let value = values
             .iter()
@@ -134,32 +135,55 @@ pub fn field_sources(
         let src = match (value, latest_scalar(conn, id, field)?) {
             (None, _) => None,
             (Some(_), Some(Some(_))) => Some("override".to_string()),
-            (Some(v), _) => match hint_col {
-                Some(col) => {
-                    let sql = format!(
-                        "SELECT s.kind, s.label FROM interaction_person ip
+            (Some(v), _) => match enrich_source(conn, id, &mut enriched, field, v)? {
+                Some(src) => Some(src),
+                None => match hint_col {
+                    Some(col) => {
+                        let sql = format!(
+                            "SELECT s.kind, s.label FROM interaction_person ip
                          JOIN interaction i ON i.id = ip.interaction_id
                          JOIN source s ON s.id = i.source_id
                          WHERE ip.person_id = ?1 AND ip.{col} = ?2
                          ORDER BY ip.person_id DESC, ip.interaction_id DESC LIMIT 1"
-                    );
-                    conn.prepare_cached(&sql)?
-                        .query_row(params![id, v], |r| {
-                            let kind: String = r.get(0)?;
-                            let label: Option<String> = r.get(1)?;
-                            Ok(match label {
-                                Some(l) => format!("{kind}:{l}"),
-                                None => kind,
+                        );
+                        conn.prepare_cached(&sql)?
+                            .query_row(params![id, v], |r| {
+                                let kind: String = r.get(0)?;
+                                let label: Option<String> = r.get(1)?;
+                                Ok(match label {
+                                    Some(l) => format!("{kind}:{l}"),
+                                    None => kind,
+                                })
                             })
-                        })
-                        .optional()?
-                }
-                None => None,
+                            .optional()?
+                    }
+                    None => None,
+                },
             },
         };
         out.insert((*field).to_string(), src);
     }
     Ok(out)
+}
+
+/// Provenance of `value` when a committed enrichment fact supplied it
+/// (`egress::facts`, loaded once per person).
+fn enrich_source(
+    conn: &Connection,
+    id: PersonId,
+    cache: &mut Option<BTreeMap<&'static str, crate::egress::facts::Fact>>,
+    field: &str,
+    value: &str,
+) -> Result<Option<String>> {
+    if cache.is_none() {
+        let cluster = crate::overrides::cluster(conn, id)?;
+        *cache = Some(crate::egress::facts::profile_facts(conn, &cluster)?);
+    }
+    Ok(cache
+        .as_ref()
+        .and_then(|m| m.get(field))
+        .filter(|f| f.value == value)
+        .map(|f| f.provenance.clone()))
 }
 
 fn score_config(cfg: &Config) -> Result<ScoreConfig> {

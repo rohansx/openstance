@@ -69,20 +69,21 @@ CREATE UNIQUE INDEX source_file_hash ON source(file_hash) WHERE file_hash IS NOT
 CREATE INDEX tie_b ON tie(b);
 
 -- table enrich_log on enrich_log
-CREATE TABLE enrich_log (
+CREATE TABLE "enrich_log" (
   id               INTEGER PRIMARY KEY,
   run_id           TEXT    NOT NULL,   -- ULID, one per playbook invocation
-  at               INTEGER NOT NULL,
+  at               INTEGER NOT NULL,   -- quote time, then send time
   backend          TEXT    NOT NULL,   -- 'treg' | 'ownkeys' | 'mock' | 'model:<provider>'
   provider         TEXT,
-  playbook         TEXT,               -- 'path' | 'refresh' | ... | 'quote_enrich'
-  person_id        INTEGER,            -- NULL for company / web search
+  playbook         TEXT,               -- 'path' | 'brief' | ... | 'quote_enrich'
+  person_id        INTEGER,            -- anchor identity id; NULL for company / web search
   op               TEXT    NOT NULL,   -- 'profile' | 'find_email' | 'verify_email' | 'company' | 'web_search'
                                        -- | 'parse' | 'rerank' | 'embed' (hosted model calls)
   request_json     TEXT    NOT NULL,   -- exactly the outbound fields
   quoted_micro_usd INTEGER NOT NULL,
-  cost_micro_usd   INTEGER,
-  status           TEXT    NOT NULL CHECK (status IN ('ok','not_found','error')),
+  cost_micro_usd   INTEGER,            -- actual; NULL until the backend answered
+  status           TEXT    NOT NULL CHECK (status IN
+                     ('quoted','sent','ok','not_found','error','blocked')),
   error            TEXT,
   source_id        INTEGER REFERENCES source(id),
   response_json    TEXT                -- normalized EnrichData; replayed by rebuild

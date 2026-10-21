@@ -25,6 +25,7 @@ use rusqlite::{Connection, TransactionBehavior};
 pub mod clock;
 pub mod config;
 pub mod db;
+pub mod egress;
 pub mod embed;
 pub mod error;
 pub mod export;

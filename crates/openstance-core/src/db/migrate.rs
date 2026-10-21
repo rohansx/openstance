@@ -30,10 +30,15 @@ pub const MIGRATIONS: &[Migration] = &[
         name: "0002_person_vec",
         sql: include_str!("../../migrations/0002_person_vec.sql"),
     },
+    Migration {
+        version: 3,
+        name: "0003_enrich_log_status",
+        sql: include_str!("../../migrations/0003_enrich_log_status.sql"),
+    },
 ];
 
 /// Newest schema version this binary knows.
-pub const LATEST_VERSION: u32 = 2;
+pub const LATEST_VERSION: u32 = 3;
 
 /// What [`migrate`] did.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -220,7 +225,10 @@ mod tests {
         assert_eq!(r.to, LATEST_VERSION);
         assert_eq!(
             r.applied,
-            vec!["0001_init".to_string(), "0002_person_vec".to_string()]
+            MIGRATIONS
+                .iter()
+                .map(|m| m.name.to_string())
+                .collect::<Vec<_>>()
         );
         assert_eq!(r.backup, None);
         assert_eq!(schema_version(&c).unwrap(), LATEST_VERSION);
@@ -342,7 +350,7 @@ mod tests {
                VALUES (10, 'email', 'a@example.com', 1, 10);",
         )
         .unwrap();
-        let r = migrate(&mut c, Some(&path), 2).unwrap();
+        let r = migrate_with(&mut c, Some(&path), &MIGRATIONS[..2], 2).unwrap();
         assert_eq!(r.applied, vec!["0002_person_vec".to_string()]);
         assert!(r.backup.is_some());
         let name: String = c
@@ -366,6 +374,34 @@ mod tests {
             )
             .unwrap();
         assert!(d.abs() < 1e-6);
+    }
+
+    /// P3-CORE-01: a schema-2 database keeps its `enrich_log` rows and then
+    /// accepts the egress gate's lifecycle statuses.
+    #[test]
+    fn v2_enrich_log_upgrades_to_gate_statuses() {
+        let mut c = open_in_memory().unwrap();
+        migrate_with(&mut c, None, &MIGRATIONS[..2], 1).unwrap();
+        let insert = |c: &Connection, id: i64, status: &str| {
+            c.execute(
+                "INSERT INTO enrich_log(id, run_id, at, backend, op, request_json,
+                    quoted_micro_usd, status) VALUES (?1, 'r', 1, 'mock', 'profile', '{}', 5, ?2)",
+                rusqlite::params![id, status],
+            )
+        };
+        insert(&c, 1, "ok").unwrap();
+        assert!(insert(&c, 2, "quoted").is_err());
+        migrate(&mut c, None, 2).unwrap();
+        let kept: String = c
+            .query_row("SELECT status FROM enrich_log WHERE id = 1", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(kept, "ok");
+        for (id, st) in [(2, "quoted"), (3, "sent"), (4, "blocked"), (5, "not_found")] {
+            insert(&c, id, st).unwrap();
+        }
+        assert!(insert(&c, 9, "bogus").is_err());
     }
 
     #[test]

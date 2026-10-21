@@ -124,7 +124,7 @@ fn init_creates_home_and_is_idempotent() {
     assert!(second.contains(&dir.path().join("graph.db").display().to_string()));
     let v = json(ost(dir.path()).args(["init", "--json"]));
     assert_eq!(v["created_db"], false);
-    assert_eq!(v["schema_version"], 2);
+    assert_eq!(v["schema_version"], 3);
 }
 
 // --- P1-CLI-07: config -----------------------------------------------------
