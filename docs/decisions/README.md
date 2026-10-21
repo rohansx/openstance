@@ -18,13 +18,14 @@ This folder records the decisions that shape openstance: what was decided, why, 
 | [0010](0010-email-headers-only-by-default.md) | Email headers only by default; bodies opt-in | Accepted (default may be revisited) | 1 |
 | [0011](0011-one-json-shape-across-surfaces.md) | CLI, MCP and HTTP share one JSON shape | Accepted | 1 to 2 |
 | [0012](0012-spec-corrections.md) | Corrections to the original tech spec (a to g and other reconciliations) | Accepted | 1 |
+| [0013](0013-react-vite-web-ui-and-workspace.md) | Web UI in Vite + React + TypeScript; shortlist and introductions stored in the graph | Accepted | 4 |
 
 ### Pending decisions without an ADR yet
 
 These are tracked in [risks-and-open-questions.md](../risks-and-open-questions.md) and get an ADR number when decided:
 
 - Licence for the Rust core: MIT (as the prototype) vs Apache-2.0.
-- Whether v1 ships the web UI at all (Phase 4) or stays CLI + MCP.
+- ~~Whether v1 ships the web UI at all (Phase 4) or stays CLI + MCP.~~ Decided: it ships, see ADR-0013.
 - Enrichment wallet margin for a future cloud tier.
 - Whether email bodies ever become default-on (follows from Phase 2 evals; see ADR-0010).
 - The definition of a "meaningful Show HN response" for the park criterion (Q12; proposal in [plan/launch.md](../plan/launch.md#park-criterion)).
@@ -43,6 +44,7 @@ flowchart TD
   A6 --> A11[0011 One JSON shape]
   A7[0007 Enricher + egress off] --> A11
   A8[0008 Views as age files] --> A11
+  A11 --> A13[0013 React UI + workspace tables]
   A1[0001 Name - open] -.-> A8
 ```
 

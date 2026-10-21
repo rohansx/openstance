@@ -22,8 +22,12 @@ npm run lint
 npm run typecheck
 npm test           # Vitest + Testing Library, no network
 npm run build      # writes dist/
+npm run size       # gzipped size of dist/, fails above 300 KB (uses ../ui/scripts/size.mjs)
 npm run preview    # serves dist/ on http://localhost:4173
 ```
+
+Requires Node 22.12 or newer. CI runs lint, typecheck, test, build and size in the `node` job
+(`.github/workflows/ci.yml`).
 
 Tests cover the hero, the required sections, the CLI/MCP/WEB tabs (click and arrow keys), honest
 status labels, and a scan of `index.html`, `src/` and `public/` for anything the browser would fetch

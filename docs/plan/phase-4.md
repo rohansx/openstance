@@ -33,29 +33,32 @@ Out of scope: sync, federation, OAuth, live IMAP, the Phase 5 importers, any hos
 
 ### `openstance-api`
 
-- [ ] **P4-API-01 axum server skeleton.** `openstance serve [--port 7411]` binds **only** to `127.0.0.1`, and refuses a non-loopback `--host` unless `--i-understand-this-exposes-my-graph` is also given on the command line (config alone is not enough), which prints a warning. It runs tokio inside this crate only. Core calls run on `spawn_blocking` with a connection pool (one writer, N readers).
+- [x] **P4-API-01 axum server skeleton.** `openstance serve [--port 7411]` binds **only** to `127.0.0.1`, and refuses a non-loopback `--host` unless `--i-understand-this-exposes-my-graph` is also given on the command line (config alone is not enough), which prints a warning. It runs tokio inside this crate only. Core calls run on `spawn_blocking` with a connection pool (one writer, N readers).
   - *Acceptance:* `GET /health` returns `{ "ok": true, "version": ..., "schema_version": ... }`. Binding to a non-loopback address without the flag fails.
-- [ ] **P4-API-02 Bearer token.** A random 256-bit token is generated at `init` (or on the first `serve` for older installs) and stored at `~/.openstance/api.token` with mode 0600. Every route except `/health` needs `Authorization: Bearer <token>`. No cookies.
+- [x] **P4-API-02 Bearer token.** A random 256-bit token is generated at `init` (or on the first `serve` for older installs) and stored at `~/.openstance/api.token` with mode 0600. Every route except `/health` needs `Authorization: Bearer <token>`. No cookies.
   - *Acceptance:* a missing or wrong token returns 401, and the comparison runs in constant time. The token never appears in logs.
-- [ ] **P4-API-03 Routes.** `GET /people?q=&company=&title=&since=&met=&replied=&limit=` (search), `GET /people/{id}` (who), `POST /playbooks/{name}` (body = playbook input including `allow_egress` and `max_usd`), `POST /edits` (override operations, merge, split), `GET /views`, `POST /import` (multipart, streamed to a temp file and then run through the normal importer), `GET /health`. The JSON is the same as CLI `--json` and MCP.
+- [x] **P4-API-03 Routes.** `GET /people?q=&company=&title=&since=&met=&replied=&limit=` (search), `GET /people/{id}` (who), `POST /playbooks/{name}` (body = playbook input including `allow_egress` and `max_usd`), `POST /edits` (override operations, merge, split), `GET /views`, `POST /import` (multipart, streamed to a temp file and then run through the normal importer), `GET /health`. The JSON is the same as CLI `--json` and MCP.
   - *Acceptance:* contract tests run the same fixtures through CLI, MCP, and HTTP and diff the JSON (it must match byte for byte, apart from the transport envelope). `POST /playbooks/path` with the default `allow_egress` returns the quote only.
-- [ ] **P4-API-04 CORS and origin policy.** CORS is off: the embedded UI is same-origin and needs none, and only origins listed in `serve.cors_origins` (empty by default; Vite dev server during development) get CORS headers. `Host` header validation defends against DNS rebinding.
+- [x] **P4-API-04 CORS and origin policy.** CORS is off: the embedded UI is same-origin and needs none, and only origins listed in `serve.cors_origins` (empty by default; Vite dev server during development) get CORS headers. `Host` header validation defends against DNS rebinding.
   - *Acceptance:* tests show that a request with `Origin: https://evil.example` is refused, and that a `Host: attacker.example` header is refused. See [security and threat model](../architecture/security-and-threat-model.md).
-- [ ] **P4-API-05 MCP over HTTP.** Serve the same 8 tools through rmcp's streamable HTTP transport at `/mcp`, behind the same bearer token, for local clients that speak HTTP MCP. Remote connectors (claude.ai, ChatGPT) cannot reach a loopback address. The docs say so plainly and point to the hosted endpoint idea in [pricing and cloud](../product/pricing-and-cloud.md). No tunnel is shipped.
+- [x] **P4-API-05 MCP over HTTP.** Serve the same 8 tools through rmcp's streamable HTTP transport at `/mcp`, behind the same bearer token, for local clients that speak HTTP MCP. Remote connectors (claude.ai, ChatGPT) cannot reach a loopback address. The docs say so plainly and point to the hosted endpoint idea in [pricing and cloud](../product/pricing-and-cloud.md). No tunnel is shipped.
   - *Acceptance:* the MCP inspector over HTTP lists 8 tools with the same schemas as stdio.
-- [ ] **P4-API-06 Embedded UI serving.** Embed the built `ui/dist` with `rust-embed` (or `include_dir`). The `ui` feature is on by default. `--no-default-features` builds a binary without the UI.
+  - *Done:* checked by in-process JSON-RPC tests (`tools/list` over HTTP equals `openstance_mcp::schema::tools()`, tool output equals stdio) rather than a manual inspector run. People marked `do_not_share` are removed from `/mcp` results.
+- [x] **P4-API-06 Embedded UI serving.** Embed the built `ui/dist` with `rust-embed` (or `include_dir`). The `ui` feature is on by default. `--no-default-features` builds a binary without the UI.
   - *Acceptance:* `openstance serve` prints `http://127.0.0.1:7411/#token=...`. The UI keeps the token in sessionStorage only.
 
 ### `ui/` (TypeScript + Vite)
 
-- [ ] **P4-UI-01 Scaffold.** Vite + TypeScript with no heavy framework requirement (a small library such as Preact or Solid is fine), and a typed API client generated from or checked against the JSON schemas.
+- [x] **P4-UI-01 Scaffold.** Vite + TypeScript with no heavy framework requirement (a small library such as Preact or Solid is fine), and a typed API client generated from or checked against the JSON schemas.
   - *Acceptance:* the bundle is under 300 KB gzipped. `npm run build` output is reproducible in CI.
-- [ ] **P4-UI-02 Search page.** A query box. The parsed filters appear as editable chips, so the user can rerun without a model. Results show the score bar and evidence lines.
-- [ ] **P4-UI-03 Person page.** Fields with provenance and inline edit (each edit is an override), tags, notes, `do_not_share` / `no_enrich` toggles, identities, recent interactions, mutuals, and a "how connected" panel.
-- [ ] **P4-UI-04 Review queue.** Flagged merges and suggestions with confidence and the matching rule. Confirm, split, and bulk actions.
-- [ ] **P4-UI-05 Views and egress log.** List and export views, and a read-only `enrich_log` table with totals.
-- [ ] **P4-UI-06 Playbook runner with quote gate.** Shows the plan and quote. The "Spend $0.0xx" button is the only way to send `allow_egress=true`.
+  - *Done:* Vite + React + TypeScript, the maintainer's choice ([ADR-0013](../decisions/0013-react-vite-web-ui-and-workspace.md)); about 105 KB gzipped, checked by `npm run size` in the CI `node` job. The client types are hand-written from interfaces.md and checked against a running server on the demo dataset.
+- [x] **P4-UI-02 Search page.** A query box. The parsed filters appear as editable chips, so the user can rerun without a model. Results show the score bar and evidence lines.
+- [x] **P4-UI-03 Person page.** Fields with provenance and inline edit (each edit is an override), tags, notes, `do_not_share` / `no_enrich` toggles, identities, recent interactions, mutuals, and a "how connected" panel.
+- [x] **P4-UI-04 Review queue.** Flagged merges and suggestions with confidence and the matching rule. Confirm, split, and bulk actions.
+- [x] **P4-UI-05 Views and egress log.** List and export views, and a read-only `enrich_log` table with totals.
+- [x] **P4-UI-06 Playbook runner with quote gate.** Shows the plan and quote. The "Spend $0.0xx" button is the only way to send `allow_egress=true`.
   - *Acceptance (UI):* Playwright smoke tests against `serve` on the fixtures: search, edit title and see it persist after a rebuild, confirm a merge, and run `path` (Mock or Null) and see the quote. The UI works at 375 px width. Basic keyboard navigation works.
+  - *Done:* `ui/e2e/smoke.spec.ts` (run by `npm run e2e` and the CI `ui-release` job against the release binary). The `path` run uses `enrich.backend = "treg"` with `OPENSTANCE_OFFLINE=1`: the binary has no Mock backend, and the null backend never quotes, so the treg price estimate gives a real non-zero quote while nothing can leave the machine. Also covered: shortlist, introductions, and token enforcement. Beyond the plan, the UI adds a shortlist and an introductions board backed by schema v4 (ADR-0013).
 
 ### `openstance-core` (playbooks)
 

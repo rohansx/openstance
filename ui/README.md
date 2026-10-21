@@ -11,7 +11,7 @@ how connected), Saved views, Playbooks (with the quote gate), Shortlist,
 Introductions, Sources (import), Review queue, Integrations, Agent access,
 Egress log, Settings.
 
-The visual design is ported from the v0.3 browser prototype (MIT): its CSS
+The visual design is ported from the maintainer's v0.3 browser prototype: its CSS
 lives in `src/styles/prototype-*.css` with the landing-page rules removed;
 `src/styles/app.css` adds the new components. Fonts are system fonts only
 (Georgia for display, the system sans for text, SFMono/Consolas for data):
@@ -43,6 +43,22 @@ Without a graph, `node scripts/mock-api.mjs` serves the fictional test
 fixtures on `127.0.0.1:7499`; run `OPENSTANCE_API=http://127.0.0.1:7499 npm run dev`
 and open `http://localhost:5173/#token=dev`. It is a dev aid only.
 
+## In the binary
+
+`openstance-api` embeds `ui/dist` with `rust-embed` (feature `ui`, on by
+default, in debug and release builds alike). Build the UI first, then the
+binary:
+
+```sh
+(cd ui && npm ci && npm run build)
+cargo build -p openstance            # or --release
+openstance serve                     # open the printed web ui link once
+```
+
+Without `ui/dist/index.html` the binary still builds and `/` shows a page
+asking you to run `npm run build`. `--no-default-features` builds no UI at all.
+After changing the UI, rebuild the binary so it embeds the new `dist/`.
+
 ## Token handoff
 
 `openstance serve` prints `http://127.0.0.1:7411/#token=...`. On load the UI
@@ -65,6 +81,29 @@ npm run size        # gzipped size of dist/, fails above 300 KB
 Tests never touch the network: `src/test/mockApi.ts` stubs `fetch`, and
 `src/test/fakeXhr.ts` stubs the upload. All fixture people are fictional.
 
+Requires Node 22.12 or newer. CI runs these in the `node` job.
+
+## Smoke tests against a real server (Playwright)
+
+```sh
+npm run build && cargo build -p openstance   # the binary must embed this dist/
+npx playwright install chromium              # once
+OPENSTANCE_BIN=../target/debug/openstance npm run e2e
+```
+
+`e2e/global-setup.ts` creates a throwaway `OPENSTANCE_HOME`, imports the
+fictional `fixtures/demo` dataset, and starts `openstance serve --port 0 --json`
+with `OPENSTANCE_OFFLINE=1`, no embedder, and `enrich.backend = "treg"` with a
+$2 run budget, so the `path` playbook returns a real (estimated, local) quote
+while nothing can leave the machine. `OPENSTANCE_BIN` defaults to
+`../target/debug/openstance`, then `../target/release/openstance`.
+`e2e/smoke.spec.ts` covers search chips, opening a person, a title edit that
+survives `openstance rebuild`, confirming a review merge, the quote gate (Spend
+shown within budget, withdrawn under a lower cap, zero requests sent),
+shortlist and introductions, 375 px overflow on every page, keyboard
+navigation, and token enforcement. CI runs them in the `ui-release` job
+against the release binary.
+
 ## The quote gate
 
 A playbook run always posts `allow_egress: false` first and shows the plan and
@@ -84,8 +123,9 @@ Chrome at 375 px (no horizontal document overflow).
 
 ## Contract notes
 
-Types in `src/api/types.ts` follow interfaces.md sections 1 and 3.4 and the
-Rust serializers. Two spec/implementation differences the client tolerates:
-`Query.since/until/last_contact_before` serialize as unix seconds from Rust but
-ISO strings in the spec (both are read, strings are sent), and the review
-confirm/reject actions use the `confirm` and `reject` edit ops.
+Types in `src/api/types.ts` follow interfaces.md sections 1 and 3.4 and were
+checked against the JSON of a running `openstance serve` on the demo dataset.
+`Query.since/until/last_contact_before` come back as unix seconds (documented
+in interfaces.md 1.6); the UI reads them and sends `YYYY-MM-DD` strings.
+`POST /views/import` returns `{ v, status, view, path }` and the client reads
+`.view`. Review confirm and reject use the `confirm` and `reject` edit ops.

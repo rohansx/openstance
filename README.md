@@ -176,6 +176,33 @@ claude mcp add openstance -- openstance mcp
 
 Then ask: *"Who do I know at Lumen Pay, and who's my warmest way in to their CTO?"* The agent skills in [`playbooks/`](playbooks/README.md) tell an agent which tool to use when, to quote evidence lines rather than paraphrase them, and, for `path_to` and `brief`, to show you the quote and wait for your explicit yes before spending. Per-client details and troubleshooting: [docs/guides/mcp-clients.md](docs/guides/mcp-clients.md).
 
+## The web dashboard
+
+`openstance serve` runs a local HTTP API, MCP over HTTP and a web dashboard, all on `127.0.0.1`:
+
+```console
+$ openstance serve
+openstance api  http://127.0.0.1:7411   (bearer token in ~/.openstance/api.token)
+web ui          http://127.0.0.1:7411/#token=...   (open this link once)
+mcp             http://127.0.0.1:7411/mcp
+```
+
+Open the `web ui` link once. The page moves the token into the tab's `sessionStorage` and removes it from the address bar; a new tab or browser needs the link again (or `openstance serve --print-token`). The dashboard has search with editable filter chips, person pages with provenance and inline edits (each edit is an override, like `openstance edit`), the review queue, saved views, the egress log, the playbook runner (it always shows the plan and quote first; a "Spend $X" button is the only way to send a paid request), a shortlist and an introductions board, and import with upload progress. Every screen reads the same graph through the same JSON as the CLI and MCP.
+
+- It binds to loopback only. `--host` with anything else exits unless you also pass `--i-understand-this-exposes-my-graph`.
+- Every route except `/health` needs `Authorization: Bearer <token>`. Requests with a foreign `Origin` or `Host` are refused (DNS-rebinding defence); there are no cookies.
+- Flags: `--port` (`0` picks a free port), `--no-ui`, `--mcp-only`, `--rotate-token`, `--print-token`, `--json` (one machine-readable ready line).
+- HTTP MCP clients on this machine can use `http://127.0.0.1:7411/mcp` with the bearer token. Hosted connectors (claude.ai, ChatGPT) cannot reach a loopback address.
+
+The dashboard is built into release binaries. From a source checkout, build it before the binary (Node 22.12 or newer):
+
+```sh
+(cd ui && npm ci && npm run build)
+cargo build --release -p openstance      # embeds ui/dist; without it, / shows a "build the UI" page
+```
+
+UI development (Vite dev server with a proxy to `serve`, a mock API, tests): [ui/README.md](ui/README.md). Routes and JSON: [interfaces.md section 3](docs/tech-spec/interfaces.md#3-http-api-p4).
+
 ## Privacy and what costs money
 
 openstance has no telemetry and never phones home. Nothing leaves your machine unless you turn on an enricher or a hosted model, and then every call is quoted first and logged.
@@ -227,9 +254,11 @@ Newsletters and no-reply senders are detected and scored 0 (`edit <p> --not-bulk
 - `enrich log`: every outbound request, the exact fields sent, quoted and actual cost.
 - Shareable views: `view create|show|list|export|import|search|rm` and `keys show`. A view exports an age-encrypted `.ost` slice (names, titles, companies, a score bucket, last-contact month, email and LinkedIn; never interactions, notes or exact scores; never `do_not_share` people) that a colleague imports and searches without it touching their own graph.
 - The MCP server with eight tools (above) and the skills in `playbooks/`; edits, merges and splits that survive re-import and rebuild; CSV, JSON and vCard export.
-- With the default config no command opens a network socket (checked in CI by running every command with the network blocked).
+- With the default config no command makes an outbound connection (checked in CI by running every command with the network blocked). `openstance serve` listens on `127.0.0.1` only.
 
-**Then (Phase 4, v1.0):** installers and Homebrew, a local web UI, bring-your-own local or hosted models for parsing and reranking.
+**In progress (Phase 4, on the `build/phase-4-ui` branch):** `openstance serve` with the local web dashboard, HTTP API and MCP over HTTP (above).
+
+**Then (Phase 4, v1.0):** installers and Homebrew, the `reconnect`, `accounts`, `watch`, `refresh` and `verify` playbooks, bring-your-own local or hosted models for parsing and reranking.
 
 **Known limits:**
 
