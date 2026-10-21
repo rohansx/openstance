@@ -2546,6 +2546,7 @@ dependencies = [
  "http-body-util",
  "openstance-core",
  "openstance-enrich",
+ "openstance-import",
  "openstance-mcp",
  "rmcp",
  "rust-embed",

@@ -487,3 +487,16 @@ fn tie_evidence_without_a_tie_is_empty_not_an_error() {
         Err(Error::NotFound(_))
     ));
 }
+
+#[test]
+fn set_source_path_replaces_the_display_path() {
+    let c = conn();
+    set_source_path(&c, 2, "Connections.csv").unwrap();
+    let r = sources(&c).unwrap();
+    let s = r.sources.iter().find(|s| s.id == 2).unwrap();
+    assert_eq!(s.path.as_deref(), Some("Connections.csv"));
+    assert!(matches!(
+        set_source_path(&c, 99, "x"),
+        Err(Error::NotFound(_))
+    ));
+}

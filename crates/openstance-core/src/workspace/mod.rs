@@ -528,6 +528,19 @@ pub fn sources(conn: &Connection) -> Result<SourcesResponse> {
     Ok(SourcesResponse { v: V, sources })
 }
 
+/// Replace a source's display path (`POST /import` stores the uploaded
+/// file name instead of its temp path).
+pub fn set_source_path(conn: &Connection, id: i64, path: &str) -> Result<()> {
+    if conn.execute(
+        "UPDATE source SET path = ?2 WHERE id = ?1",
+        params![id, path],
+    )? == 0
+    {
+        return Err(Error::NotFound(format!("source {id}")));
+    }
+    Ok(())
+}
+
 /// The review numbers on the dashboard.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ReviewCounts {
@@ -808,6 +821,11 @@ impl crate::Graph {
     /// Every source (`GET /sources`).
     pub fn sources(&self) -> Result<SourcesResponse> {
         sources(self.conn())
+    }
+
+    /// Replace a source's display path.
+    pub fn set_source_path(&mut self, id: i64, path: &str) -> Result<()> {
+        self.write(|tx, _| set_source_path(tx, id, path))
     }
 
     /// The dashboard numbers (`GET /stats`).
