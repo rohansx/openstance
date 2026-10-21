@@ -177,6 +177,47 @@ async fn playbook_path_with_default_egress_returns_the_quote_only() {
 }
 
 #[tokio::test]
+async fn phase_4_playbooks_are_served_and_egress_defaults_off() {
+    let h = harness_with(
+        openstance_core::Config::default(),
+        openstance_core::Providers {
+            enricher: Box::new(openstance_enrich::mock::MockEnricher::default()),
+            ..openstance_core::Providers::null()
+        },
+    );
+    for (name, input, status) in [
+        ("reconnect", json!({}), "done"),
+        ("accounts", json!({ "companies": ["Contoso"] }), "done"),
+        ("watch", json!({}), "done"),
+        ("verify", json!({ "person": "Priya Raman" }), "quote"),
+        ("watch", json!({ "check_profiles": true, "top_n": 2 }), "quote"),
+    ] {
+        let (code, v) = h
+            .call(
+                Method::POST,
+                &format!("/playbooks/{name}"),
+                Some(json!({ "input": input })),
+            )
+            .await;
+        assert_eq!(code, StatusCode::OK, "{name}: {v}");
+        assert_eq!(v["playbook"], name);
+        assert_eq!(v["status"], status, "{name}: {v}");
+        assert_eq!(v["receipt"]["requests_sent"], 0, "{name}");
+        assert!(v["result"].is_object(), "{name}: {v}");
+    }
+    let (code, v) = h
+        .call(
+            Method::POST,
+            "/playbooks/verify",
+            Some(json!({ "input": { "person": "Priya Raman" }, "plan_only": true })),
+        )
+        .await;
+    assert_eq!(code, StatusCode::OK, "{v}");
+    assert_eq!(v["result"], Value::Null);
+    assert_eq!(v["plan"]["steps"][1]["egress"], "verify_email");
+}
+
+#[tokio::test]
 async fn playbook_errors() {
     let h = harness();
     let (status, v) = h
