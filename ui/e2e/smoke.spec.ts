@@ -117,20 +117,22 @@ test('shortlist and introductions: save a person, track an intro, add one with a
 
   await page.getByRole('button', { name: /new introduction/i }).click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByRole('textbox', { name: /who do you want to meet/i }).fill('Elif Kaya');
+  // Maya Chen has warm paths through other people (Elif Kaya's only path was
+  // the mailbox owner, who is now adopted as "you" and never a connector).
+  await dialog.getByRole('textbox', { name: /who do you want to meet/i }).fill('Maya Chen');
   await dialog.getByRole('button', { name: /suggest connectors/i }).click();
   const connector = dialog.getByRole('combobox', { name: /connector/i });
   await expect(connector.locator('option').nth(1)).toBeAttached();
   await connector.selectOption({ index: 1 });
   await dialog.getByRole('button', { name: /save to introductions/i }).click();
-  await expect(page.getByRole('region', { name: /^draft/i }).getByText('Elif Kaya')).toBeVisible();
+  await expect(page.getByRole('region', { name: /^draft/i }).getByText('Maya Chen')).toBeVisible();
 
   const intros = await api<{ intros: { person: { display_name: string }; connector: { id: number } | null }[] }>(
     request,
     '/intros',
   );
-  const elif = intros.intros.find((i) => i.person.display_name === 'Elif Kaya');
-  expect(elif?.connector).not.toBeNull();
+  const maya = intros.intros.find((i) => i.person.display_name === 'Maya Chen');
+  expect(maya?.connector).not.toBeNull();
 });
 
 const ROUTES = ['discover', 'people', 'people/69', 'review', 'playbooks', 'playbooks/path', 'shortlist', 'intros', 'sources', 'views', 'egress', 'integrations', 'agents', 'settings'];
