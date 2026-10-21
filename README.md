@@ -138,12 +138,15 @@ Search uses SQLite FTS5 plus local embeddings (bge-small-en-v1.5 on your CPU), s
 | **LinkedIn** | Settings, Data privacy, **Get a copy of your data**. Choose "Connections" (and "Messages" if you like) or the full archive. Unzip and import `Connections.csv` (and `messages.csv`, `Invitations.csv`) | about 10 minutes for connections only; up to 24 hours for the full archive |
 | **Apple Contacts** | Contacts app: select all (Cmd-A), then File, Export, **Export vCard** | immediate |
 | **Google Contacts** | [contacts.google.com](https://contacts.google.com): select all, Export, **vCard (for iOS Contacts)** | immediate |
+| **Google Calendar** | Calendar settings, **Import & export**, Export. Unzip and import the `.ics` files. Only times, titles and attendees are read (descriptions and locations never are) | immediate |
+| **Apple Calendar** | Calendar app: select a calendar, then File, Export, **Export...** to an `.ics` file | immediate |
+| **X (Twitter)** | Settings, Your account, **Download an archive of your data**. Import the `.zip` as it is. Only follows and direct-message metadata are read (message text and tweets never are) | about a day |
 
-Zipped exports are not read directly yet: unzip first. Calendar (`.ics`) and X archives arrive in the next release.
+The X archive is read straight from its `.zip`; other zipped exports need unzipping first.
 
 ## Use from an agent
 
-The same binary is an MCP server. It is local, read-only and free: the tools read your graph file and make no network calls.
+The same binary is an MCP server. Five of its eight tools are local, read-only and free. Two (`path_to`, `brief`) can look people up outside your graph, but only after showing a price, and never with the default config.
 
 **Claude Code**
 
@@ -166,8 +169,12 @@ claude mcp add openstance -- openstance mcp
 | `search_people` | "who do I know at Lumen Pay", "fintech founders I've emailed since 2025", "who have I lost touch with". Returns the parsed filters and the same JSON as `openstance search --json` |
 | `get_person` | everything about one person (the `who` view): fields and where they came from, score components, identities, recent interactions, mutuals |
 | `how_connected` | the top three warm paths to someone already in your graph, each with the threads behind it |
+| `list_views`, `search_view` | your saved views and the encrypted views colleagues sent you |
+| `path_to` | warm paths to anyone, including people not in your graph. Without `allow_egress: true` it returns the plan and a quote and sends nothing |
+| `brief` | a short fact-only brief on one person, optionally with one paid web search (same quote-first rule) |
+| `quote_enrich` | the price of enrichment requests; never spends |
 
-Then ask: *"Who do I know at Lumen Pay, and who's my warmest way in to their CTO?"* The agent skill [`playbooks/openstance-search.md`](playbooks/openstance-search.md) tells an agent which tool to use when and to quote evidence lines rather than paraphrase them. Per-client details and troubleshooting: [docs/guides/mcp-clients.md](docs/guides/mcp-clients.md).
+Then ask: *"Who do I know at Lumen Pay, and who's my warmest way in to their CTO?"* The agent skills in [`playbooks/`](playbooks/README.md) tell an agent which tool to use when, to quote evidence lines rather than paraphrase them, and, for `path_to` and `brief`, to show you the quote and wait for your explicit yes before spending. Per-client details and troubleshooting: [docs/guides/mcp-clients.md](docs/guides/mcp-clients.md).
 
 ## Privacy and what costs money
 
@@ -176,7 +183,7 @@ openstance has no telemetry and never phones home. Nothing leaves your machine u
 | Path out of your machine | Default | What is sent | When it costs money | How to audit |
 |---|---|---|---|---|
 | Embedding model download | once, on first semantic search or import | nothing about you: a one-time download of the bge-small-en-v1.5 model (about 33 MB) from Hugging Face into `~/.openstance/models/` | never | set `model.embedder = "none"` to skip it entirely |
-| Enrichment (people outside your graph) | **off**, arrives in the next release | the name and company of the person you asked about, to the enricher you configure | per call, priced before it runs | `openstance enrich log` (with the enrichment release) |
+| Enrichment (people outside your graph) | **off** (`enrich.backend = "none"`); turn on with `enrich.backend = "treg"` and a token in `OPENSTANCE_TREG_TOKEN` | the name and company (or LinkedIn) of the person you asked about, and for an email lookup the name and company domain, to the enricher you configure. People marked `no_enrich` are never sent | per call, quoted before it runs and capped by `enrich.max_usd_per_run` (default $0.50) | `openstance enrich log` shows every request, exactly what was sent and what it cost |
 | Hosted models (query parsing, reranking) | **off** | your query text, to the provider you configure | per call, at that provider's price | the same log |
 
 What is read from your exports: email **headers only** (From, To, Cc, Date, Subject, Message-ID, threading and list headers; bodies are never read or stored), LinkedIn names, profile URLs, companies, positions and dates (message text is never read), and vCard names, emails, phones, organisation, title and locality. Searching, scoring, `who`, `how-connected` and the MCP server are free and offline.
@@ -211,9 +218,16 @@ Newsletters and no-reply senders are detected and scored 0 (`edit <p> --not-bulk
 
 ## Status and limits
 
-**Works today (v0.3.0):** importers for Takeout mbox, LinkedIn CSV and vCard; conservative entity resolution with a review queue; explained scores; keyword plus semantic search with evidence lines; `who`; `how-connected` for people already in your graph; the MCP server with three tools; edits, merges and splits that survive re-import and rebuild; CSV and JSON export.
+**Works today (Phase 3, v0.4.0 candidate, not yet tagged):**
 
-**Next (Phase 3):** a path to someone *outside* your graph through optional, per-call enrichment (quoted first, logged); the intro brief; encrypted shareable views of a slice of your graph; calendar (`.ics`) and X archive importers.
+- Importers for Takeout mbox, LinkedIn CSV, vCard, calendar `.ics` (Google and Apple, recurring meetings expanded for the past only) and the X archive `.zip` (follows and DM metadata).
+- Conservative entity resolution with a review queue; explained scores, now with meetings; keyword plus semantic search with evidence lines; `who`; `how`.
+- `path "<name>" [--company X] [--find-email]`: warm paths to anyone. People already in your graph cost nothing. For a stranger it shows a plan with per-step prices and spends only with `--allow-egress` (or a "y" at the prompt), within the budget.
+- `brief <person> [--web]`: a ten-line, fact-only brief in markdown, every line traceable to an interaction or a logged lookup.
+- `enrich log`: every outbound request, the exact fields sent, quoted and actual cost.
+- Shareable views: `view create|show|list|export|import|search|rm` and `keys show`. A view exports an age-encrypted `.ost` slice (names, titles, companies, a score bucket, last-contact month, email and LinkedIn; never interactions, notes or exact scores; never `do_not_share` people) that a colleague imports and searches without it touching their own graph.
+- The MCP server with eight tools (above) and the skills in `playbooks/`; edits, merges and splits that survive re-import and rebuild; CSV, JSON and vCard export.
+- With the default config no command opens a network socket (checked in CI by running every command with the network blocked).
 
 **Then (Phase 4, v1.0):** installers and Homebrew, a local web UI, bring-your-own local or hosted models for parsing and reranking.
 
@@ -222,8 +236,10 @@ Newsletters and no-reply senders are detected and scored 0 (`edit <p> --not-bulk
 - Merges are deliberately conservative: some duplicates stay separate until you merge them, and uncertain merges wait in `review`.
 - Email bodies are never read, so search knows subjects and people, not what was said.
 - No live sync: re-import a fresh export to update.
-- Until the calendar importer lands, `M` (meetings) is 0 for everyone and "people I've met" finds no one.
-- Zipped exports must be unzipped first.
+- Zipped exports other than the X archive must be unzipped first.
+- Enrichment can fill a stranger's current role and company, but treg's profile output carries no past employers or schools today, so `path` matches strangers mainly on their current company.
+- Enrichment results update person fields only; found emails and LinkedIn URLs are shown in the result but not yet stored as identities.
+- A profile looked up by company name costs two routed calls (company, then person). At treg's current worst-case prices that quote (about $0.76) is above the default $0.50 budget, so the run stops before sending; give a LinkedIn URL, or raise the budget for one run with `--max-usd`.
 
 ## The file
 
