@@ -242,6 +242,10 @@ fn http_json_equals_cli_json() {
     // config
     let cli_config = cli(h, &["config", "--json"]);
     assert_eq!(s.get("/config"), cli_config);
+    let served = s.get("/config");
+    let db = served["db_path"].as_str().expect("GET /config carries db_path");
+    assert!(db.ends_with("graph.db") && !db.starts_with('~'), "{db}");
+    assert!(served["home"].is_string());
 
     // view list
     let cli_views = cli(h, &["view", "list", "--json", "--now", NOW]);

@@ -840,5 +840,9 @@ pub(crate) fn config_json(l: &LoadedConfig) -> serde_json::Value {
         "warnings": l.warnings,
         "config_file": l.paths.config_file,
         "file_found": l.file_found,
+        // Resolved locations (`$OPENSTANCE_HOME`, `--db`), unlike the
+        // `config.db.path` literal.
+        "home": l.paths.home,
+        "db_path": l.paths.db,
     })
 }

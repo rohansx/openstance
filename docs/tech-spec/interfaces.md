@@ -477,7 +477,7 @@ Remote connectors (claude.ai, ChatGPT) need a publicly reachable HTTPS URL. `127
 | `POST /import` | P4 | `import` | multipart `file` (repeatable), `kind?`, `label?`, `bodies?` | `ImportStats` |
 | `GET /sources` | P4 | `source list` | - | `{ "v": 1, "sources": [Source...] }` (section 3.4) |
 | `GET /enrich-log` | P4 | `enrich log` | `?run=&since=&person=` | `{ "v": 1, "rows": [...], "totals": { "requests_sent", "spent_micro_usd", "quoted_only", "blocked" } }` (same as `enrich log --json`) |
-| `GET /config` | P4 | `config` | - | `{ "v": 1, "config", "origins", "warnings", "config_file", "file_found" }` (same as `config --json`; the file holds env var names, never secret values) |
+| `GET /config` | P4 | `config` | - | `{ "v": 1, "config", "origins", "warnings", "config_file", "file_found", "home", "db_path" }` (same as `config --json`; the file holds env var names, never secret values). `home` and `db_path` are the resolved locations after `$OPENSTANCE_HOME` and `--db`; `config.db.path` stays the configured literal (default `~/.openstance/graph.db`), so the UI shows `db_path` |
 | `GET /stats` | P4 | dashboard | - | `Stats` (section 3.4) |
 | `GET /shortlist` | P4 | shortlist | - | `{ "v": 1, "shortlist": ShortlistEntry[] }` newest first |
 | `POST /shortlist` | P4 | shortlist | `{ "person": <ref>, "note": null }` | `{ "v": 1, "entry": ShortlistEntry }` (idempotent) |

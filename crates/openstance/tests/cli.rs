@@ -152,6 +152,27 @@ fn config_prints_effective_toml_with_origins() {
     let v = json(ost(dir.path()).args(["config", "--json"]));
     assert_eq!(v["config"]["search"]["default_limit"], 7);
     assert_eq!(v["origins"]["search.default_limit"], "file");
+    // The resolved locations, not the `db.path` default literal
+    // ("~/.openstance/graph.db") when OPENSTANCE_HOME points elsewhere.
+    let home = dir.path().canonicalize().unwrap();
+    let got_home = std::path::PathBuf::from(v["home"].as_str().expect("home"));
+    assert_eq!(got_home.canonicalize().unwrap(), home);
+    let db = v["db_path"].as_str().expect("db_path");
+    assert!(!db.starts_with('~'), "{db}");
+    assert_eq!(std::path::Path::new(db), got_home.join("graph.db"));
+}
+
+#[test]
+fn config_json_db_path_follows_the_db_flag() {
+    let dir = tempfile::tempdir().unwrap();
+    let other = dir.path().join("elsewhere.db");
+    let v = json(
+        ost(dir.path())
+            .args(["--db"])
+            .arg(&other)
+            .args(["config", "--json"]),
+    );
+    assert_eq!(v["db_path"].as_str().unwrap(), other.display().to_string());
 }
 
 // --- P1-CLI-04: search -----------------------------------------------------
