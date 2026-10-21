@@ -93,6 +93,9 @@ rmcp = { version = "1.7", default-features = false, features = ["server", "trans
 sqlite-vec = "=0.1.6"
 fastembed = { version = "=7.1.4", default-features = false, features = ["ort-download-binaries-rustls-tls", "hf-hub-rustls-tls"] }
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+# views and keys (Phase 3): age-encrypted .ost files, ULID view ids
+age = { version = "0.12", default-features = false, features = ["armor"] }
+ulid = "1"
 # dev / test
 tempfile = "3"
 proptest = "1"

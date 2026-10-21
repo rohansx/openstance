@@ -74,6 +74,10 @@ pub enum Error {
     /// JSON (de)serialization failure.
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
+    /// A view is past `expires_at`, or a `.ost` file is not addressed to
+    /// my key (both exit 7, sharing-and-views.md section 4.4).
+    #[error("{0}")]
+    ViewExpired(String),
     /// A bug. The message is safe to show.
     #[error("internal error: {0}")]
     Internal(String),
@@ -105,6 +109,7 @@ impl Error {
             Error::Config { .. } | Error::BadRequest(_) | Error::Detect(_) => ErrorCode::BadRequest,
             Error::NotFound(_) => ErrorCode::NotFound,
             Error::Ambiguous { .. } => ErrorCode::Ambiguous,
+            Error::ViewExpired(_) => ErrorCode::ViewExpired,
             _ => ErrorCode::Internal,
         }
     }

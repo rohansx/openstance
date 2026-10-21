@@ -20,6 +20,8 @@ use crate::search::person::{self, DetailOptions};
 use crate::search::{filters, fts, fuse};
 use crate::PersonId;
 
+mod vcf;
+
 /// Output format.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExportFormat {
@@ -27,6 +29,8 @@ pub enum ExportFormat {
     Csv,
     /// `{"v": 1, "people": [PersonDetail-like objects]}`.
     Json,
+    /// vCard 3.0, one card per person (P3-CLI-05).
+    Vcf,
 }
 
 impl ExportFormat {
@@ -35,6 +39,7 @@ impl ExportFormat {
         match s.trim().to_ascii_lowercase().as_str() {
             "csv" => Some(ExportFormat::Csv),
             "json" => Some(ExportFormat::Json),
+            "vcf" | "vcard" => Some(ExportFormat::Vcf),
             _ => None,
         }
     }
@@ -92,7 +97,11 @@ struct JsonExport<'a> {
 }
 
 /// The people to export, in structured order (or text relevance order).
-fn select(conn: &Connection, cfg: &Config, opts: &ExportOptions) -> Result<Vec<PersonId>> {
+pub(crate) fn select(
+    conn: &Connection,
+    cfg: &Config,
+    opts: &ExportOptions,
+) -> Result<Vec<PersonId>> {
     let mut q = opts.query.clone().unwrap_or_default();
     q.include_bulk = q.include_bulk || opts.include_bulk;
     let allowed = filters::allowed_ids(conn, &q)?;
@@ -161,6 +170,12 @@ pub fn export(
                 },
             )?;
             out.write_all(b"\n").map_err(io)?;
+        }
+        ExportFormat::Vcf => {
+            for d in &details {
+                vcf::write_card(&mut *out, d)?;
+            }
+            out.flush().map_err(io)?;
         }
         ExportFormat::Csv => {
             let mut w = csv::Writer::from_writer(&mut *out);

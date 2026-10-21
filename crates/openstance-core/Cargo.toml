@@ -39,6 +39,9 @@ chrono-tz.workspace = true
 csv.workspace = true
 lru.workspace = true
 sqlite-vec.workspace = true
+age.workspace = true
+ulid.workspace = true
+tempfile.workspace = true
 
 [dev-dependencies]
 # Integration tests import the real fixture files, so they enable the

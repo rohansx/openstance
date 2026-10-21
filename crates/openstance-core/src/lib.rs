@@ -31,12 +31,14 @@ pub mod export;
 pub mod graphq;
 pub mod ingest;
 pub mod json;
+pub mod keys;
 pub mod overrides;
 pub mod rebuild;
 pub mod resolve;
 pub mod score;
 pub mod search;
 pub mod stats;
+pub mod view;
 
 pub use clock::{Clock, FixedClock, SystemClock};
 pub use config::{Config, Paths};
