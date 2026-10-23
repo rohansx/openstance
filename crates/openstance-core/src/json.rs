@@ -621,6 +621,11 @@ pub struct SourceImport {
     pub skipped_duplicate_file: bool,
     /// Full importer stats.
     pub stats: openstance_import::ImportStats,
+    /// Self candidates this import adopted as "me" because `[me]
+    /// identities` is empty and they were unambiguous (`kind:value`).
+    /// Omitted when none.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub self_adopted: Vec<String>,
 }
 
 /// Resolution summary after an import.

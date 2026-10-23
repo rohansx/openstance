@@ -262,7 +262,7 @@ fn path(conn: &Connection, t: &Target, m: Mutual, now: i64) -> Result<PathJson> 
 /// The `n` most recent `email/meeting/dm` interactions (at or before `now`)
 /// that `via` and `target` are both on, as interaction evidence carrying the
 /// target's role.
-fn shared(
+pub(crate) fn shared(
     conn: &Connection,
     via: PersonId,
     target: PersonId,

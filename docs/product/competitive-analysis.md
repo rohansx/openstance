@@ -1,6 +1,6 @@
 # Competitive analysis
 
-> Status: working document. Owner: product. Last reviewed: 2026-10-20.
+> Status: working document. Owner: product. Last reviewed: 2026-10-21.
 > Sources: the v0.1 research (`dist/research.md`, cited vendor pages retrieved October 2026) and the product overview (Happenstance figures "from their own compare page and MCP docs as of Sep 2026"). **Where the two disagree, this document follows the research**, which was checked against vendor pages and is more cautious.
 
 ## Ground rules for anything we publish
@@ -104,6 +104,20 @@ Prices for adjacent products are not verified in our research. The overview grou
 | **Contrack** | Described in the overview as the closest prior attempt at a local, file-based contact graph, without an agent story (not re-checked) | Local file, ownership | Unknown; verify before citing | Verify existence, license and current status before referencing publicly |
 | **Boomerang** | Cited in the overview as where intro orchestration happens for some Happenstance users (not re-checked) | Follow-through after the search | Email workflow tooling | We generate briefs; we do not send email |
 
+## Open-source references
+
+These are design references, not competitors we measure against. Full notes, licence caveats and the gap analysis are in [github-inspiration.md](github-inspiration.md) (repository snapshot of 2026-10-21; the projects were not run). No code from any of them is in openstance. Do not copy code from the AGPL projects (Monica, Relaticle, most of Twenty); Orbit's licence is unclear.
+
+| Project | What it is | Licence | What we take (ideas only) |
+|---|---|---|---|
+| [Lean Intros](https://github.com/draftboardco/lean-intros) | Self-hosted Python/SQLite warm-intro app | MIT | Target-to-introduction flow; an explanation per path. Its overlap score is a heuristic, which we label as such rather than copy |
+| [Orbit](https://github.com/moritzWa/orbit) | Local SQLite relationship manager with merge redirects | Unclear (README says MIT; no licence file) | Merges that survive reimport, tested through real importers |
+| [Relationship Substrate](https://github.com/dbmcco/relationship-substrate) | Relationship backend with typed source categories and evidence references | MIT | Evidence classes ([ADR-0014](../decisions/0014-evidence-classes-and-claim-provenance.md), proposed) |
+| [Twenty](https://github.com/twentyhq/twenty) | Extensible open-source CRM | Mixed: mostly AGPLv3, some commercial, some MIT packages | Consistent saved views and discoverable actions |
+| [Monica](https://github.com/monicahq/monica) | Personal relationship manager (see the table above) | AGPLv3 | A daily follow-up screen; commitments and reminders |
+| [Relaticle](https://github.com/relaticle/relaticle) | CRM with an MCP server | AGPLv3 | Small, explicit agent tools; drafting kept apart from sending |
+| [Happenstance CLI](https://github.com/happenstance-ai/happenstance-cli) | Open-source CLI for the hosted Happenstance service; needs Happenstance credentials | Open source (see repo) | Interface ideas only. It is not a self-hosted replacement for the service |
+
 ## Positioning statement
 
 For founders, job seekers, recruiters, sellers and community managers who live on warm introductions and are uneasy putting their whole relationship graph in someone else's cloud, **openstance** is a local-first people-search engine that turns the exports they already have into one SQLite file they can search for free from the terminal or any agent. Unlike hosted network-search services, the graph never leaves the machine unless the user exports a slice or approves a quoted lookup, every result shows the facts behind it, and every field can be corrected.
@@ -122,4 +136,5 @@ Tracked in [../risks-and-open-questions.md](../risks-and-open-questions.md).
 ## Related documents
 
 - [vision.md](vision.md), [personas-and-use-cases.md](personas-and-use-cases.md), [pricing-and-cloud.md](pricing-and-cloud.md)
+- [github-inspiration.md](github-inspiration.md) (open-source references, licences and the gap analysis)
 - [../prototype-v0.1.md](../prototype-v0.1.md) (where the research came from)

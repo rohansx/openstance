@@ -24,6 +24,7 @@ pub mod clusters;
 pub mod commands;
 pub mod fields;
 pub mod lookup;
+pub mod me;
 pub mod normalize;
 pub mod review;
 pub mod rules;

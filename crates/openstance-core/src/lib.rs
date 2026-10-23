@@ -41,6 +41,7 @@ pub mod score;
 pub mod search;
 pub mod stats;
 pub mod view;
+pub mod workspace;
 
 pub use clock::{Clock, FixedClock, SystemClock};
 pub use config::{Config, Paths};
@@ -323,13 +324,23 @@ impl Graph {
             let now = clock.now();
             let entry = write_tx(conn, |tx| {
                 let outcome = ingest::stage_file(tx, importer, path, req, cfg, now)?;
+                let mut adopted = Vec::new();
                 if let StageOutcome::Staged(st) = &outcome {
+                    adopted = resolve::me::adopt_from_import(
+                        tx,
+                        cfg,
+                        importer.kind(),
+                        st.source_id,
+                        &st.stats,
+                    )?;
                     if !req.no_resolve {
                         rebuild::incremental(tx, cfg, &st.touched, now)?;
                     }
                     ingest::finish_source(tx, st.source_id, &st.stats)?;
                 }
-                Ok(source_import(path, importer.kind(), &outcome))
+                let mut entry = source_import(path, importer.kind(), &outcome);
+                entry.self_adopted = adopted;
+                Ok(entry)
             })?;
             checkpoint(conn)?;
             sources.push(entry);
@@ -491,6 +502,7 @@ fn source_import(path: &Path, kind: &str, outcome: &StageOutcome) -> SourceImpor
             interactions: 0,
             skipped_duplicate_file: true,
             stats: Default::default(),
+            self_adopted: Vec::new(),
         },
         StageOutcome::Staged(st) => SourceImport {
             id: st.source_id,
@@ -501,6 +513,7 @@ fn source_import(path: &Path, kind: &str, outcome: &StageOutcome) -> SourceImpor
             interactions: st.stats.interactions_new,
             skipped_duplicate_file: false,
             stats: st.stats.clone(),
+            self_adopted: Vec::new(),
         },
     }
 }

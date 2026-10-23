@@ -204,6 +204,8 @@ The prices above are illustrative. Real numbers come from the backend's quote.
 
 `coverage` is `warm` if any current contact has a score of at least `0.6`, `known` if anyone is found, else `none`.
 
+Implementation notes (P4): a company may be a name or a domain; a domain matches the company whose key is its first label (or the bundled domain map). A name target learns its domains from the work addresses of the current people it finds (freemail never counts). Current also includes people with no company and a work address at such a domain. Each alumnus carries `seen_in`: `linkedin_csv` (an older `Connections.csv` export; `left_seen` is the `YYYY-MM` of the first later export that shows them elsewhere), `enrich` (a committed profile's past employers) or `email_domain` (an old work address while their company is now something else). Each row also has `counts` (`current`, `alumni`, `one_hop`, before `limit_per_company`) and `best_score`. The CLI prints the table, or CSV with `--csv` (`company,domain,current,alumni,one_hop,coverage,best_id,best_contact,best_score`).
+
 ```console
 $ openstance accounts targets.txt
 company     current  alumni  one-hop  coverage  best contact
@@ -227,7 +229,7 @@ Ramp              0       0        0  none      -
 
 **Egress max:** `limit` profiles, capped by budget.
 
-**Output:** `{ "updated": [{ "id": 31, "fields": { "title": "Head of Data", "company": "Ramp" } }], "not_found": [44], "skipped": [...] }`
+**Output:** `{ "updated": [{ "id": 31, "fields": { "title": "Head of Data", "company": "Ramp" }, "enrich_log_id": 9 }], "unchanged": [], "not_found": [44], "failed": [], "skipped": [...] }`. `fields` lists only the fields that were empty and the profile filled; `unchanged` are answers that filled nothing; `skipped` is the receipt's list (`over_budget`, `no_enrich`).
 
 ```console
 $ openstance refresh --limit 40
@@ -252,11 +254,32 @@ Send 40 requests for $0.40? [y/N]
 
 **Output:** `{ "moves": [{ "id": 77, "display_name": "Ana Lee", "from": "Stripe", "to": "Anthropic", "detected_by": "linkedin_diff", "target_hit": true }], "checked": 0 }`
 
+The full result also has `title_changes` (same company, new title), `new_connections` and `removed_connections` (in only one of the two exports), `targets` and `sources` (`previous`, `latest`: the two exports compared). Each move also carries `from_title`, `to_title`, `seen_between`, `score`, `evidence` (both export rows) or `enrich_log_id` (profile checks). Only `Connections.csv` sources count as exports (`messages.csv` and `Invitations.csv` share the `linkedin_csv` kind); they are ordered by import time. With fewer than two exports the diff is empty and a note says so.
+
 "Weekly" is up to the user. The OSS build has no scheduler, so use cron:
 
 ```cron
 # every Monday 08:00, diff-only (free), JSON to a file
 0 8 * * 1  openstance watch --json > ~/.openstance/reports/watch-$(date +\%F).json
+```
+
+On macOS, a launchd agent does the same (`~/Library/LaunchAgents/dev.openstance.watch.plist`, then `launchctl load` it):
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>dev.openstance.watch</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string><string>-c</string>
+    <string>openstance watch --json &gt; "$HOME/.openstance/reports/watch-$(date +%F).json"</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+</dict>
+</plist>
 ```
 
 ---
@@ -299,7 +322,7 @@ $ openstance brief "Tom Okafor"
 2. Sort by **past score**: the score evaluated with `R = 1`, which approximates how strong the relationship was at its last contact.
 3. Top `limit`, each with the last subject and date.
 
-**Output:** `{ "people": [{ "id": 5, "display_name": "...", "past_score": 0.74, "score": 0.41, "last_contact": "2025-10-02", "last_subject": "Re: seed round notes" }] }`
+**Output:** `{ "people": [{ "id": 5, "display_name": "...", "title": null, "company": null, "past_score": 0.74, "score": 0.41, "last_contact": "2025-10-02T09:00:00Z", "last_subject": "Re: seed round notes", "last_interaction_id": 1203 }] }`. The components are the stored ones (the numbers `who` and search show); the last subject is the latest past interaction of any kind except `contact`.
 
 ```console
 $ openstance reconnect
@@ -322,7 +345,7 @@ $ openstance reconnect
 
 **Egress max:** 1 `verify_email`. If the person has no email identity, the result is `status: "nothing_to_do"` with the note `"no email in graph; try path --find-email"`.
 
-**Output:** `{ "email": "priya@stripe.com", "status": "deliverable", "verified_at": "...", "mutual": { "id": 812, "display_name": "Tom Okafor", "last_reply": "2026-08-30" } }`
+**Output:** `{ "person_id": 31, "email": "priya@stripe.com", "status": "deliverable", "verified_at": "...", "source": "enrich:treg", "enrich_log_id": 12, "mutual": { "id": 812, "display_name": "Tom Okafor", "last_reply": "2026-08-30T10:02:00Z", "last_subject": "Re: infra hiring", "interaction_id": 4410 } }`. `status` is `deliverable | undeliverable | risky | unknown`, or `unverified` without egress. The verdict is committed under `enrich:<backend>`; a committed verdict within `fresh_days` is reused (step 2 `skip_local_sufficient`, no request). `last_reply` is the mutual's latest inbound message, or the tie's last shared interaction when there is none.
 
 ```console
 $ openstance verify "Priya Raman" --yes
@@ -398,9 +421,9 @@ CI lints every file in `playbooks/`. It checks the frontmatter, checks that the 
 ## 11. Acceptance criteria
 
 - [ ] All seven playbooks implement `Playbook`. CLI, MCP (`path_to`, `brief`) and HTTP (`POST /playbooks/{name}`) produce byte-identical `result` JSON for the same input and `now`.
-- [ ] `plan()` for every playbook sends nothing. A test runs it with a `MockEnricher` and asserts that `calls` is empty.
-- [ ] With `enrich.backend = "none"`, every playbook completes. Egress steps show `skip_no_enricher`, and the notes say why.
+- [x] `plan()` for every playbook sends nothing. A test runs it with a `MockEnricher` and asserts that `calls` is empty.
+- [x] With `enrich.backend = "none"`, every playbook completes. Egress steps show `skip_no_enricher`, and the notes say why.
 - [ ] `path` against a target in the graph makes zero egress calls, even with `allow_egress: true`.
-- [ ] `accounts`, `reconnect` and `watch` (without `--check-profiles`) make zero egress calls in all configurations.
-- [ ] Golden tests: fixed fixture graph plus `now = 2026-10-20T00:00:00Z` gives a fixed `reconnect` top 10 and a fixed `brief` markdown.
+- [x] `accounts`, `reconnect` and `watch` (without `--check-profiles`) make zero egress calls in all configurations.
+- [x] Golden tests: fixed fixture graph plus `now = 2026-10-20T00:00:00Z` gives a fixed `reconnect` top 10 and a fixed `brief` markdown.
 - [ ] The `playbooks/*.md` lint passes in CI.

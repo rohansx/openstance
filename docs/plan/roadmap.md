@@ -164,6 +164,52 @@ The outcome is one of: (1) build the cloud tier as scoped in [pricing and cloud]
 
 ---
 
+## Research backlog (2026-10-21)
+
+A review of open-source relationship tools ([product/github-inspiration.md](../product/github-inspiration.md)) produced five improvements, in the maintainer's priority order. The goal behind all five is one loop: find a useful connection, see why it matters, and follow through. More integrations or a larger graph are not the goal.
+
+| Priority | Theme | What it means | Where |
+|---|---|---|---|
+| 1 | Reliable imports | Preview duplicates and merges before writing; reviewed merges and corrections survive reimports, tested through the real importers | Phase 4 remainder: P4-IMP-01, P4-IMP-02 |
+| 2 | Explainable warm paths | "You → Priya → target" with evidence and dates per hop; observed relationships kept apart from possible overlaps; "no path" stated plainly | Phase 4 remainder: P4-PATH-01, P4-PATH-02. Phase 4.x: P4X-CORE-01, P4X-UI-01 |
+| 3 | Introduction tracking | Stages extended with requested, accepted, introduced, declined; a next action and a follow-up due list | Phase 4.x: P4X-INTRO-01..03, P4X-MCP-01 |
+| 4 | Relationship memory | Commitments with due date, snooze and done; model-extracted ones only as suggestions | Phase 5 WP6: P5-MEM-01..03 |
+| 5 | Provider-backed research | Exa (through treg) and treg results as sourced context under one evidence contract; Boardy stays a labelled handoff | Phase 5 WP7: P5-RES-01..03 |
+
+**Phase 4 remainder** means before the v1.0 tag. **Phase 4.x** means v1.x point releases after v1.0, pulled only while they serve the three validation tasks in [vision.md](../product/vision.md#success-measures) and stopped if Gate B fails. Phase 5 items follow that phase's entry conditions.
+
+**Intended location.** The Phase 4 and 4.x tasks below belong in [phase-4.md](phase-4.md), and their contracts in [interfaces.md](../tech-spec/interfaces.md) and [playbooks.md](../tech-spec/playbooks.md). Those files are being edited in parallel, so the tasks are recorded here for now and should be moved there (with these IDs) once that work lands. The new task areas (`IMP`, `PATH`, and the `P4X-` prefix for 4.x) avoid clashing with IDs already used in phase-4.md.
+
+### Phase 4 remainder
+
+- [ ] **P4-IMP-01 Import preview (`import --dry-run`).** The flag is specified in [interfaces.md](../tech-spec/interfaces.md) section 5 and [ingestion.md](../tech-spec/ingestion.md) section 9 but is not implemented (the CLI has no `--dry-run`). Implement it as a full preview: stage the files, run incremental resolution, report, then roll back. Same JSON from CLI `--json` and from `POST /import` with a dry-run flag; the UI Sources page shows the preview before the user commits.
+  - *Acceptance:* the database is unchanged after a preview (counts and `meta` identical). The report lists: files already imported (by hash), new identities, new people, existing people that would gain identities (with rule and confidence), new flagged merges and suggestions, and interactions skipped as duplicates. Previewing then importing gives the same counts as importing directly.
+- [ ] **P4-IMP-02 Reimport keeps merges and corrections, tested through the real importers.** Today ER-14, ER-15 and the property tests write rows through the `Sink` or helpers. Add tests that call `Graph::import` on fixture pairs (an export and a newer, overlapping export with different bytes) for `mbox`, `linkedin_csv`, `vcf`, `ics` and `x_archive`.
+  - *Acceptance:* after confirming a flagged merge, merging two people, splitting one and editing a title, importing the newer export keeps all four, keeps every anchor id, and creates no duplicate people. Reimporting either file again is a no-op. Decide and test how repeated LinkedIn `connection` rows count: today each export adds one more `connection` interaction per person, which counts again in F (read from `score/load.rs`); the proposed rule is one connection event per person across LinkedIn sources, with the per-export rows kept for `watch`.
+- [ ] **P4-PATH-01 Observed vs possible overlap.** Add `basis: "observed" | "possible_overlap"` to each path from `how_connected` and `path` (`tie` → observed; `same_company`, `past_company`, `school` → possible overlap), per [ADR-0014](../decisions/0014-evidence-classes-and-claim-provenance.md) once accepted. CLI and UI list possible overlaps after observed paths under their own heading.
+  - *Acceptance:* no surface calls a possible overlap "warm" or shows `strength` as a percentage or probability; a golden test on the demo dataset shows both kinds labelled; MCP snapshots updated.
+- [ ] **P4-PATH-02 "No path" stated honestly.** When there is no path, the JSON says why (for example no mutual shares a thread or meeting with the target; the target is not in the graph and no enricher is configured; the profile lookup was not approved), not only an empty array. The CLI already prints a sentence for `how` and `path`; the UI and the playbook skills use the same reason.
+  - *Acceptance:* every empty `paths` response carries a reason; the UI shows it; the `path` skill tells agents to report it rather than suggest an unsupported route.
+
+### Phase 4.x (v1.x)
+
+- [ ] **P4X-CORE-01 Evidence class on every evidence item.** `class` on each `Evidence` item in search, `who`, `how_connected`, `path` and `brief`, derived from existing columns as in [ADR-0014](../decisions/0014-evidence-classes-and-claim-provenance.md). No migration.
+  - *Acceptance:* a test fails when a `source.kind` or `interaction.kind` has no class; enrichment items always carry the `enrich_log` id.
+- [ ] **P4X-UI-01 Evidence drawer.** On every suggested connection, a drawer that shows the route ("You → Priya → target") and, per hop: whose relationship it is, the evidence class, first and last dates, number of shared interactions, source labels and up to three evidence lines. Missing evidence is shown as missing ("no shared thread or meeting; employer overlap only").
+  - *Acceptance:* uses existing routes only; every hop on the demo dataset shows at least one dated item or an explicit "missing" row; Playwright test.
+- [ ] **P4X-INTRO-01 Intro stages.** Migration `0005` rebuilds `intro` with stages `draft, requested, accepted, introduced, met, declined, closed` (`asked` → `requested`, `intro_made` → `introduced`; existing rows kept). Changing the stage list in [ADR-0013](../decisions/0013-react-vite-web-ui-and-workspace.md) needs a short superseding ADR. Stages stay user-moved; nothing is sent.
+  - *Acceptance:* migration test on a v4 database with rows in every old stage; `declined` and `closed` drop out of the active board; the UI board shows the new lanes.
+- [ ] **P4X-INTRO-02 Next action and follow-up due.** Add `next_action` (short text) to `intro`; `GET /intros?due=<date>` and a sidebar count list rows whose `follow_up` is on or before the date and whose stage is not `declined` or `closed`; CLI `openstance intros [--due]`.
+  - *Acceptance:* the due list is identical from CLI `--json` and HTTP; dates are local calendar dates as today.
+- [ ] **P4X-INTRO-03 Draft a request from a path.** From a path, "Draft request" creates an intro row (stage `draft`, connector set) and shows a `brief` the user copies.
+  - *Acceptance:* no network call in the no-network test; creating a draft never sends a message.
+- [ ] **P4X-MCP-01 Intro tools for agents.** `list_intros` (read-only) and `create_intro_draft` (local write, a `draft` row only). `get_evidence` and `list_intro_paths` from the research are not added: `get_person`, `how_connected` and `path_to` already return evidence and paths ([ADR-0011](../decisions/0011-one-json-shape-across-surfaces.md) rejected duplicate tools). No send tool, ever.
+  - *Acceptance:* tool count and schema snapshots updated in interfaces.md; the tools follow the existing privacy rule (MCP over HTTP excludes `do_not_share` people, stdio returns them as local search does, [interfaces.md](../tech-spec/interfaces.md) section 2), and nothing leaves the machine.
+
+Phase 5 items (P5-MEM-*, P5-RES-*) are in [phase-5-and-beyond.md](phase-5-and-beyond.md#wp6-relationship-memory-openstance-core-ui).
+
+---
+
 ## Cross-cutting rules for every phase
 
 1. **The graph is a pure function of sources plus overrides.** Any feature that writes derived data outside `rebuild` needs an ADR.

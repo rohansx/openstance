@@ -158,7 +158,7 @@ fn plan_never_calls_enrich() {
 fn unknown_playbook_is_not_found() {
     let g = graph();
     let err = g
-        .run_playbook_with(&NullEnricher, "watch", &json!({}), &opts(false))
+        .run_playbook_with(&NullEnricher, "teleport", &json!({}), &opts(false))
         .unwrap_err();
     assert!(matches!(err, Error::NotFound(_)));
 }

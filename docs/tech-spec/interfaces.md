@@ -167,6 +167,7 @@ A tagged union. Every claim about a relationship carries at least one evidence i
 ```
 
 - `query` is the **parsed** query, so a user or agent can edit it and rerun it without a model.
+- In the `query` echo, `since`, `until` and `last_contact_before` are **unix seconds** (UTC midnight of the parsed date) or `null`, on every surface (CLI `--json`, MCP, HTTP). Inputs take the string forms in the `search_people` schema (`2025`, `2025-01`, `2025-01-01`, `90d`); the web UI turns the echoed seconds back into `YYYY-MM-DD` when it reruns an edited query.
 - `final = fused * (0.5 + 0.5 * person.score)`. See [search.md](search.md).
 - `reason` is a one-line prose explanation. It is set only when an API or local reranker that writes reasons is configured, and then `reason_source` is `"model:<id>"`. Otherwise both are `null` and the evidence is the explanation.
 - `relevance` is `null` in structured mode (no text). `matched` lists the matched fields ([search.md](search.md#8-step-6-evidence)).
@@ -274,7 +275,7 @@ See [sharing-and-views.md](sharing-and-views.md#4-the-ost-file-format).
 
 | `code` | HTTP | CLI exit | Meaning |
 | --- | --- | --- | --- |
-| `bad_request` | 400 | 2 | invalid input or flags |
+| `bad_request` | 400 | 2 | invalid input or flags, or an import file in the wrong format (a LinkedIn Basic export, an unreadable zip) |
 | `unauthorized` | 401 | - | missing or wrong bearer token |
 | `not_found` | 404 | 5 | no such person, view or playbook |
 | `ambiguous` | 409 | 6 | the person reference matched several people; see `candidates` |
@@ -284,6 +285,10 @@ See [sharing-and-views.md](sharing-and-views.md#4-the-ost-file-format).
 | `db_busy` | 503 | 10 | the database is locked by another writer; retry |
 | `schema_too_new` | 503 | 10 | `graph.db` was written by a newer openstance; upgrade the binary (older databases are migrated automatically on open, after a backup) |
 | `internal` | 500 | 1 | bug; message is safe to show, details in the log |
+| `forbidden` | 403 | - | HTTP only: a cross-origin request from an origin not in `serve.cors_origins` |
+| `misdirected` | 421 | - | HTTP only: the `Host` header is not a loopback address with the server's port |
+| `payload_too_large` | 413 | - | HTTP only: the body is over 1 MB (uploads: `serve.max_upload_mb`) |
+| `method_not_allowed` | 405 | - | HTTP only: the route exists but not with this method |
 
 A quote is **not** an error. When `allow_egress` is false, the response is `200` with `status: "quote"`.
 
@@ -442,35 +447,46 @@ Remote connectors (claude.ai, ChatGPT) need a publicly reachable HTTPS URL. `127
 
 - **Bind:** `127.0.0.1:7411` by default (`serve.host`, `serve.port`). Binding a non-loopback address requires `--host 0.0.0.0 --i-understand-this-exposes-my-graph`.
 - **Auth:** `Authorization: Bearer <token>` on every route except `GET /health` and the static UI files. The token is 32 random bytes, base64url, generated at `openstance init` and stored in `~/.openstance/api.token` (mode 0600). `openstance serve --rotate-token` replaces it.
-- **Host check:** requests whose `Host` header is not `127.0.0.1:<port>` or `localhost:<port>` are rejected with 421. This defends against DNS rebinding.
-- **CORS:** off. No `Access-Control-*` headers are sent, except for origins listed in `serve.cors_origins` (empty by default; use `http://localhost:5173` for UI development with Vite). The embedded UI is same-origin and needs no CORS. No cookies are used.
+- **Host check:** requests whose `Host` header is not `127.0.0.1:<port>`, `localhost:<port>` or `[::1]:<port>` are rejected with 421 (`misdirected`). This defends against DNS rebinding. With `--i-understand-this-exposes-my-graph`, the bound address is accepted too.
+- **CORS:** off. No `Access-Control-*` headers are sent, except for origins listed in `serve.cors_origins` (empty by default; use `http://localhost:5173` for UI development with Vite), which get `Access-Control-Allow-Origin` (never `-Credentials`) and preflight answers. A request carrying any other cross-site `Origin` is refused with 403 (`forbidden`), preflights included. The embedded UI is same-origin and needs no CORS. No cookies are used.
+- **Headers:** every response carries `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY` and `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'` (inline style attributes and `data:` images are allowed for the UI; scripts never). API responses add `Cache-Control: no-store`. At most 64 requests are handled at once.
 - **UI token handoff:** `openstance serve` prints `http://127.0.0.1:7411/#token=<token>`. The UI reads the fragment, which browsers never send to a server, keeps the token in `sessionStorage`, and strips it from the address bar.
 - **Content type:** `application/json; charset=utf-8`, except for uploads (multipart) and view export (`application/octet-stream`).
-- **Limits:** request body 1 MB, except `POST /import` and `POST /views/import` (`serve.max_upload_mb`, default 2048).
+- **Limits:** request body 1 MB, except `POST /import` and `POST /views/import` (`serve.max_upload_mb`, default 2048). `POST /import` streams each file into a private temp directory (0700, files 0600) under its uploaded file name (directory parts stripped), runs the normal importer, records the file name (never the temp path) as `source.path`, and deletes the directory.
+- **Connections:** core is synchronous; every call runs on tokio's blocking pool. Writes (edits, imports, playbooks, quotes, the shortlist and introductions, MCP tool calls) share one writer connection; reads use a pool of 4 reader connections, so browsing keeps working during a long import.
 
 ### 3.1 Endpoint table
 
 | Method and path | Phase | Maps to | Body / query | Response |
 | --- | --- | --- | --- | --- |
-| `GET /health` | P4 | - | - | `{ "ok": true, "version": "0.4.0", "schema_version": 3 }` (no auth) |
+| `GET /health` | P4 | - | - | `{ "ok": true, "version": "0.4.0", "schema_version": 4 }` (no auth) |
 | `GET /people` | P4 | `search_people` | `?q=&company=&title=&location=&industry=&since=&until=&met=&replied=&min_score=&lost_touch=&include_bulk=&limit=&parse=` (repeat a key for arrays) | `SearchResponse` |
 | `POST /search` | P4 | `search_people` | `Query` JSON (same fields as the MCP input) | `SearchResponse` |
 | `GET /people/{id}` | P4 | `get_person` | `?interactions=10&mutuals=10` | `PersonDetail` |
-| `GET /people/{id}/ties/{other}` | P4 | tie evidence | - | `{ "tie": {...}, "interactions": Evidence[] }` |
+| `GET /people/{id}/ties/{other}` | P4 | tie evidence | `?limit=10` | `{ "v": 1, "person": PersonRef, "other": PersonRef, "tie": Tie \| null, "ties": Tie[], "interactions": Evidence[] }` (section 3.4) |
 | `GET /connections` | P4 | `how_connected` | `?target=<ref>&limit=3` | `HowConnected` |
 | `POST /playbooks/{name}` | P4 | any playbook | `{ "input": {...}, "allow_egress": false, "max_usd": null, "plan_only": false }` | `Outcome` |
 | `POST /quote` | P4 | `quote_enrich` | `{ "requests": [...] }` | `Quote` |
-| `POST /edits` | P4 | edit, merge, split, review | `{ "ops": [Edit...] }` | `{ "applied": n, "people": PersonRef[] }` |
-| `GET /review` | P4 | `review --list` | `?min_confidence=` | `{ "flagged": [...] }` |
+| `POST /edits` | P4 | edit, merge, split, review | `{ "ops": [Edit...] }` (section 3.2) | `{ "v": 1, "applied": n, "people": PersonRef[] }` |
+| `GET /review` | P4 | `review --list` | `?min_confidence=` | `{ "v": 1, "flagged": [...], "suggestions": [...], "info": [...] }` (same as `review --list --json`) |
 | `GET /views` | P4 | `list_views` | `?direction=` | `{ "views": ViewSummary[] }` |
-| `POST /views` | P4 | `view create` | `{ "name", "query", "ttl", "to": [pubkeys] }` | `ViewSummary` |
-| `GET /views/{name}/search` | P4 | `search_view` | `?q=&company=&limit=` | `{ "results": [...] }` |
-| `POST /views/{name}/export` | P4 | `view export` | - | `.ost` bytes |
-| `POST /views/import` | P4 | `view import` | multipart `file` | `ViewSummary` |
+| `POST /views` | P4 | `view create` | `{ "name", "query": "text" \| Query \| search input, "ttl": "30d", "to": [pubkeys, aliases or "self"], "yes": false }` (`yes`, alias `replace`, replaces an existing view and allows `ttl: "never"`, like `--yes`; a `POST /search`-style object has its text parsed and its filters laid over it like the CLI's flags, while the full echoed `Query` shape is stored as is) | `ViewSummary` (with `"v": 1`) |
+| `GET /views/{name}/search` | P4 | `search_view` | `?q=&company=&title=&limit=` | `{ "v": 1, "results": [...] }` |
+| `POST /views/{name}/export` | P4 | `view export` | `?armor=true` | `.ost` bytes (`application/octet-stream`) |
+| `POST /views/import` | P4 | `view import` | multipart `file` | `{ "v": 1, "status": "imported" \| "replaced" \| "kept_newer", "view": ViewSummary, "path": "..." }` (same as `view import --json`) |
 | `POST /import` | P4 | `import` | multipart `file` (repeatable), `kind?`, `label?`, `bodies?` | `ImportStats` |
-| `GET /sources` | P4 | `source list` | - | `{ "sources": [...] }` |
-| `GET /enrich-log` | P4 | `enrich log` | `?run=&since=&person=` | `{ "rows": [...], "total_micro_usd": n }` |
-| `GET /config` | P4 | `config` | - | effective config, secrets redacted |
+| `GET /sources` | P4 | `source list` | - | `{ "v": 1, "sources": [Source...] }` (section 3.4) |
+| `GET /enrich-log` | P4 | `enrich log` | `?run=&since=&person=` | `{ "v": 1, "rows": [...], "totals": { "requests_sent", "spent_micro_usd", "quoted_only", "blocked" } }` (same as `enrich log --json`) |
+| `GET /config` | P4 | `config` | - | `{ "v": 1, "config", "origins", "warnings", "config_file", "file_found", "home", "db_path" }` (same as `config --json`; the file holds env var names, never secret values). `home` and `db_path` are the resolved locations after `$OPENSTANCE_HOME` and `--db`; `config.db.path` stays the configured literal (default `~/.openstance/graph.db`), so the UI shows `db_path` |
+| `GET /stats` | P4 | dashboard | - | `Stats` (section 3.4) |
+| `GET /shortlist` | P4 | shortlist | - | `{ "v": 1, "shortlist": ShortlistEntry[] }` newest first |
+| `POST /shortlist` | P4 | shortlist | `{ "person": <ref>, "note": null }` | `{ "v": 1, "entry": ShortlistEntry }` (idempotent) |
+| `PATCH /shortlist/{person}` | P4 | shortlist | `{ "note": "..." \| null }` | `{ "v": 1, "entry": ShortlistEntry }` |
+| `DELETE /shortlist/{person}` | P4 | shortlist | - | `{ "v": 1, "removed": true }` |
+| `GET /intros` | P4 | introductions | `?stage=` | `{ "v": 1, "intros": Intro[] }` in board order |
+| `POST /intros` | P4 | introductions | `{ "person": <ref>, "connector": <ref> \| null, "stage": "draft", "note": null, "follow_up": "YYYY-MM-DD" \| null }` | `{ "v": 1, "intro": Intro }` |
+| `PATCH /intros/{id}` | P4 | introductions | any of `stage`, `connector`, `note`, `follow_up` (`null` clears) | `{ "v": 1, "intro": Intro }` |
+| `DELETE /intros/{id}` | P4 | introductions | - | `{ "v": 1, "removed": true }` |
 | `POST /mcp`, `GET /mcp` | P4 | MCP streamable HTTP | MCP JSON-RPC | MCP |
 | `GET /`, `GET /assets/*` | P4 | embedded UI | - | static files (absent with `--no-ui`) |
 
@@ -488,9 +504,13 @@ There are no write endpoints for raw sources other than `POST /import`, and no e
   { "op": "flag",   "person": 42, "field": "do_not_share", "value": true },
   { "op": "merge",  "a": 42, "b": 97 },
   { "op": "split",  "person": 42, "identities": [5531] },
-  { "op": "unmerge","a": 42, "b": 97 }
+  { "op": "unmerge","a": 42, "b": 97 },
+  { "op": "confirm","person": 42 },
+  { "op": "reject", "a": 42, "b": 97 }
 ] }
 ```
+
+`person`, `a` and `b` take a person id or any person reference string (email, LinkedIn slug, `@handle`, name). `set` / `unset` fields: `display_name` (alias `name`), `title`, `company`, `location`, `bio`. `flag` fields: `do_not_share`, `no_enrich`, `is_bulk`. `confirm` accepts a flagged merge (`review --confirm`); `reject` keeps a suggested pair apart (`review --reject`); to split a flagged merge, send `split` with the `flagged_identities` ids from `GET /review`. A batch holds 1 to 500 ops.
 
 Each op becomes `override` rows exactly as described in [data-model.md](data-model.md):
 
@@ -498,7 +518,7 @@ Each op becomes `override` rows exactly as described in [data-model.md](data-mod
 - `tag`/`note` add a row. `untag` deletes the row.
 - `merge` writes `merged_into`. `split` writes `split_from`.
 
-The ops apply in one transaction, followed by an incremental re-resolve and re-score of the affected people.
+The ops apply in one transaction (all or nothing: a bad op returns `400` and nothing is written), each followed by the same incremental re-resolve and re-score the matching CLI command runs. The response lists every touched person after the change.
 
 ### 3.3 Examples
 
@@ -506,9 +526,11 @@ The ops apply in one transaction, followed by an incremental re-resolve and re-s
 $ TOKEN=$(cat ~/.openstance/api.token)
 $ curl -s -H "Authorization: Bearer $TOKEN" \
     'http://127.0.0.1:7411/people?q=fintech+founders&met=true&since=2025&limit=2'
-{ "v": 1, "query": { "text": "fintech founders", "title": ["founder"], "industry": ["fintech"],
-  "since": "2025-01-01T00:00:00Z", "met_in_person": true, "limit": 2, ... },
-  "parser": "rules", "total": 2, "took_ms": 37, "results": [ ... ] }
+{ "v": 1, "query": { "text": null, "title": ["founder"], "industry": ["fintech"],
+  "since": 1735689600, "met_in_person": true, "limit": 2, ... },
+  "query_source": { "parser": "rules", "fallback": null, "explicit": ["since", "met_in_person", "limit"] },
+  "rerun": "openstance search --title founder --industry fintech --since 2025-01-01 --met --limit 2",
+  "mode": "structured", "total": 2, "took_ms": 37, "results": [ ... ] }
 
 $ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
     -d '{"input":{"target":"Priya Raman","company":"Stripe"},"allow_egress":false}' \
@@ -525,6 +547,45 @@ $ curl -s -X POST -H "Authorization: Bearer $TOKEN" -F file=@Connections.csv -F 
 $ curl -s http://127.0.0.1:7411/people
 { "v": 1, "error": { "code": "unauthorized", "message": "missing bearer token" } }
 ```
+
+### 3.4 Workspace, dashboard and source shapes (P4)
+
+The web UI's Shortlist and Introductions pages are backed by two user-authored tables ([data-model.md](data-model.md#411-shortlist-edit-schema-v4)). They are local bookkeeping only: openstance never sends a message, and these rows never appear in views, exports, enrichment requests or MCP results. `<ref>` is a person id or any person reference string; `{person}` in a path is a person id (a merged-away id still resolves). `stage` is one of `draft | asked | intro_made | met | closed`.
+
+```json
+{ "person_id": 812, "person": { "...": "PersonRef" }, "note": "ask about the seed round",
+  "added_at": "2026-10-20T12:00:00Z" }
+```
+`ShortlistEntry`. `person` is `null` only when the person no longer exists (for example after their source was removed).
+
+```json
+{ "id": 3, "person_id": 1203, "person": { "...": "PersonRef" },
+  "connector": { "id": 812, "display_name": "Tom Okafor", "title": "Engineering Manager", "company": "Stripe", "score": 0.78 },
+  "stage": "asked", "note": "warm: same YC batch", "follow_up": "2026-11-02",
+  "created_at": "2026-10-20T12:00:00Z", "updated_at": "2026-10-21T09:30:00Z" }
+```
+`Intro`. `connector` is `null` for a direct ask and must differ from the person. Notes are capped at 4000 characters; `follow_up` must be a `YYYY-MM-DD` date. Board order is stage, then follow-up date (earliest first, none last), then newest.
+
+```json
+{ "v": 1, "people": 1210, "bulk": 88, "sources": 5, "last_import": "2026-10-19T08:00:00Z",
+  "review": { "flagged": 4, "suggestions": 2 },
+  "enrich": { "requests_sent": 3, "spent_micro_usd": 30000 },
+  "shortlist": 6,
+  "intros": { "draft": 2, "asked": 1, "intro_made": 0, "met": 1, "closed": 0 },
+  "schema_version": 4 }
+```
+`Stats` (`GET /stats`). `people` excludes you and bulk senders. `review` counts the `GET /review` queue and `enrich` totals `enrich_log` (requests that left the machine and their actual cost).
+
+```json
+{ "id": 7, "kind": "linkedin_csv", "label": "linkedin 2026-10", "path": "Connections.csv",
+  "imported_at": "2026-10-19T08:00:00Z", "importer_version": 1, "stats": { "...": "ImportStats" } }
+```
+`Source` (`GET /sources`, oldest first). `stats` is `null` for enrichment sources.
+
+```json
+{ "tie_kind": "email", "n_shared": 9, "weight": 0.52, "last_at": "2026-06-02T08:00:00Z" }
+```
+`Tie` (inside `GET /people/{id}/ties/{other}`; `tie` is the strongest kind, `ties` all of them, `interactions` the shared interactions, newest first, `?limit` 1 to 50, default 10).
 
 ---
 
@@ -559,7 +620,7 @@ Output goes to stdout. Logs, progress bars and prompts go to stderr. With `--jso
 openstance init [--db <path>] [--me <email>]... [--force-keys]
 ```
 
-This creates `~/.openstance/`, the database (schema migrations applied), `config.toml` (all keys commented out, showing defaults), the age keypair `age.key`, and `api.token`. `--me` writes `[me] identities` (otherwise the first import proposes them). It is idempotent: on an existing setup it changes nothing. Pending migrations run automatically whenever any command opens an older database, after a `graph.db.bak-v<N>` backup ([data-model.md](data-model.md#8-migrations)).
+This creates `~/.openstance/`, the database (schema migrations applied), `config.toml` (all keys commented out, showing defaults), the age keypair `age.key`, and `api.token`. `--me` writes `[me] identities`; without it, imports adopt an unambiguous self handle (the dominant `Sent` From, the X archive account) and say so, and only propose ambiguous ones ([configuration.md](configuration.md) `[me]`). It is idempotent: on an existing setup it changes nothing. Pending migrations run automatically whenever any command opens an older database, after a `graph.db.bak-v<N>` backup ([data-model.md](data-model.md#8-migrations)).
 
 ```console
 $ openstance init
@@ -767,9 +828,9 @@ All playbook commands share `--json`, `--yes`, `--max-usd`, `--plan` (print the 
 | --- | --- | --- |
 | `openstance path "<target>"` | P3 | `--company`, `--linkedin`, `--find-email`, `--limit 3` |
 | `openstance brief <person>` | P3 | `--web` |
-| `openstance accounts <companies.txt>` | P4 | `--no-one-hop`, `--limit-per-company 10` |
+| `openstance accounts <companies.txt>` | P4 | `--no-one-hop`, `--limit-per-company 10`, `--csv` (one name or domain per line; `#` comments and blank lines are skipped) |
 | `openstance refresh` | P4 | `--min-interactions 5`, `--limit 50` |
-| `openstance watch` | P4 | `--targets <file or list>`, `--check-profiles`, `--top 100` |
+| `openstance watch` | P4 | `--targets <file or comma-separated list>`, `--check-profiles`, `--top 100` (alias `--top-n`) |
 | `openstance reconnect` | P4 | `--limit 10` |
 | `openstance verify <person>` | P4 | - |
 
@@ -835,6 +896,7 @@ This runs the MCP server on stdio. Logs go to stderr and the log file, never to 
 
 ```
 openstance serve [--port 7411] [--host 127.0.0.1] [--no-ui] [--mcp-only] [--rotate-token] [--print-token]
+                 [--i-understand-this-exposes-my-graph]
 ```
 
 ```console
@@ -843,6 +905,13 @@ openstance api  http://127.0.0.1:7411   (bearer token in ~/.openstance/api.token
 web ui          http://127.0.0.1:7411/#token=Zk3...   (open this link once)
 mcp             http://127.0.0.1:7411/mcp
 ```
+
+- `--port 0` picks a free port. `--host` (or `serve.host`) other than a loopback address is refused (exit 2) unless `--i-understand-this-exposes-my-graph` is also on the command line; it then prints a warning.
+- `--rotate-token` writes a new token before serving (the old one stops working at once). `--print-token` prints the token and exits without serving (with `--rotate-token`: the new one).
+- `--no-ui` turns the static UI off; `--mcp-only` serves only `/health` and `/mcp`.
+- `--json` prints one ready line instead: `{ "v": 1, "api": "http://127.0.0.1:7411", "ui": "http://127.0.0.1:7411/#token=...", "mcp": "http://127.0.0.1:7411/mcp", "token_file": "..." }` (`api` / `ui` are `null` when turned off).
+- The web UI is compiled in with the `ui` cargo feature (on by default) from `ui/dist`. A build without a built UI (no node in CI, say) still succeeds and `/` then shows a page telling you to run `npm run build` in `ui/`.
+- MCP over HTTP is for local clients that speak streamable HTTP. Hosted connectors (claude.ai, ChatGPT) cannot reach a loopback address, and no tunnel is shipped; see the hosted endpoint idea in [../product/pricing-and-cloud.md](../product/pricing-and-cloud.md). Over `/mcp`, `do_not_share` people are left out of every result (a call about one returns `not_found`), because results may leave the machine.
 
 ---
 

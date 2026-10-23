@@ -130,6 +130,7 @@ CREATE TABLE meta (
 --   normalizer_version        '1'   (see entity-resolution.md)
 --   last_rebuild_at           '<unix seconds>'
 --   self_identity_ids         '[12, 873]'  (derived cache, see section 4.3)
+--   me_adopted                '["email:you@example.com"]'  (self handles adopted at import while [me] identities is empty)
 
 -- ------------------------------------------------------------
 -- RAW: where data came from. One row per import run or enrichment run.
@@ -344,13 +345,35 @@ CREATE VIRTUAL TABLE person_vec USING vec0(
 );
 
 INSERT INTO meta(key, value) VALUES ('schema_version', '1'), ('normalizer_version', '1');
+
+-- 0004_workspace.sql (Phase 4). EDIT: the user's own follow-through workspace
+-- (the web UI's Shortlist and Introductions pages). User-authored like `override`,
+-- never touched by rebuild; ids are anchor identity ids (section 5).
+CREATE TABLE shortlist (
+  person_id INTEGER PRIMARY KEY,           -- anchor identity id
+  note      TEXT,
+  added_at  INTEGER NOT NULL
+);
+CREATE TABLE intro (
+  id           INTEGER PRIMARY KEY,
+  person_id    INTEGER NOT NULL,           -- who the user wants to meet (anchor identity id)
+  connector_id INTEGER,                    -- who could introduce them; NULL = direct
+  stage        TEXT    NOT NULL DEFAULT 'draft' CHECK (stage IN
+                 ('draft','asked','intro_made','met','closed')),
+  note         TEXT,
+  follow_up    TEXT,                       -- 'YYYY-MM-DD' (a local calendar date)
+  created_at   INTEGER NOT NULL,
+  updated_at   INTEGER NOT NULL
+);
+CREATE INDEX intro_person ON intro(person_id);
+CREATE INDEX intro_stage  ON intro(stage);
 ```
 
 Notes on the DDL:
 
 - **Notes are not in `person_fts`.** Override notes are free prose and often negative ("not an investor"); the v0.1 prototype excluded notes from retrieval for exactly this reason and has a test for it. Notes are shown in `who`/`get_person`, never matched. See [../prototype-v0.1.md](../prototype-v0.1.md).
 - **Deferred foreign keys to `person`.** A rebuild deletes and reinserts `person` inside one transaction; deferred FKs are checked only at `COMMIT`.
-- **No FK from `override` or `enrich_log` to `person`.** Both store an anchor identity id, which keeps resolving to the right person after merges (section 5). An FK to `person.id` would break when a merge removes the absorbed person's row.
+- **No FK from `override`, `enrich_log`, `shortlist` or `intro` to `person`.** Both store an anchor identity id, which keeps resolving to the right person after merges (section 5). An FK to `person.id` would break when a merge removes the absorbed person's row.
 - `WITHOUT ROWID` on `interaction_person` and `tie`: their primary keys are their access paths, which saves one B-tree each.
 
 ---
@@ -411,7 +434,7 @@ Identity kinds:
 | `list_unsub` | raw | Bulk signal from headers. |
 | `direction` | derived | Recomputed at rebuild: if a self identity has role `from`/`sender`/`organizer` -> `out`; else if a self identity is any other participant -> `in` (meetings -> `mutual`); else `dir_hint`; else `none`. |
 
-**Self.** The user's own handles come from config `[me] identities = ["email:rohan@example.com", "linkedin_url:rohan-sharma"]`, plus auto-detection at first import (the `From` that dominates Gmail's `Sent` label; the LinkedIn profile owner from `Profile.csv`), which `openstance init`/first import proposes and writes to config after confirmation. The person cluster containing any self identity gets `is_self = 1`. The resolved ids are cached in `meta.self_identity_ids`. Key definition: [configuration.md](configuration.md).
+**Self.** The user's own handles come from config `[me] identities = ["email:rohan@example.com", "linkedin_url:rohan-sharma"]`, or, while that key is empty, from auto-detection at import (the `From` that dominates Gmail's `Sent` label, the X archive account, the single LinkedIn owner in SENT messages and invitations): unambiguous candidates are adopted, reported in the import output and stored in `meta.me_adopted`; ambiguous ones are only proposed ([configuration.md](configuration.md) `[me]`). The person cluster containing any self identity gets `is_self = 1`. The resolved ids are cached in `meta.self_identity_ids`. Key definition: [configuration.md](configuration.md).
 
 **Global dedupe.** For `email` and `meeting`, `external_id` (Message-ID, event UID) is globally unique, so the Sink skips an interaction whose `(kind, external_id)` already exists in **any** source (index `interaction_global_id`). This prevents a Takeout mbox and a later IMAP sync from double-counting frequency.
 
@@ -516,6 +539,14 @@ Maintenance: on any change to a person (import touching them, edit, merge, split
 
 `person_vec`: one 384-d float vector per non-bulk, non-self person, from `display_name + title + company + bio + top 20 subjects`. `text_hash = blake3(text)`; the embed pass skips people whose hash is unchanged. If `meta.embedder_id` differs from the configured embedder, the table is dropped and recreated with the new dimension and every person is re-embedded. Embedding runs after the rebuild transaction commits, in batches of 256, each in its own transaction; search falls back to FTS-only for people without a vector. See [models.md](models.md) and [search.md](search.md).
 
+### 4.11 `shortlist` (edit, schema v4)
+
+People the user marked as worth a conversation (the web UI's Shortlist page; `GET/POST/PATCH/DELETE /shortlist`, [interfaces.md](interfaces.md#34-workspace-dashboard-and-source-shapes-p4)). One row per person: adding a person who is already there keeps `added_at` and replaces the note only when a new one is given. `person_id` is the anchor identity id the user picked; reads resolve it through `identity.person_id`, so after a merge two rows can resolve to the same person and the newest one wins. Notes are capped at 4000 characters, are never indexed for search, and never leave the machine (views, exports and enrichment do not read this table).
+
+### 4.12 `intro` (edit, schema v4)
+
+Introductions the user is tracking by hand (the web UI's Introductions board; `GET/POST/PATCH/DELETE /intros`). openstance never sends a message or contacts anyone from this table: stages are moved by the user. `stage` is one of `draft | asked | intro_made | met | closed` (board order). `connector_id` is who could make the introduction (`NULL` for a direct ask) and must differ from `person_id`; both are anchor identity ids resolved on read. `follow_up` is a `YYYY-MM-DD` calendar date, validated on write. A person may have several rows (for example a closed ask and a new one).
+
 ---
 
 ## 5. Stable person ids (anchor identities)
@@ -525,7 +556,7 @@ Maintenance: on any change to a person (import touching them, edit, merge, split
 - A rebuild with the same sources and overrides yields the same person ids (required for idempotence).
 - A new import that adds identities to an existing person never changes its id (new identity ids are larger).
 - When two people merge, the merged person takes the smaller id. The larger id is no longer a person id, but it is still an identity id **inside** the merged cluster.
-- Every place that stores a person reference outside the derived tables (`override.person_id`, `enrich_log.person_id`, ids held by MCP clients or scripts) stores an anchor identity id. Resolving it is always: "the person whose cluster contains identity `X`":
+- Every place that stores a person reference outside the derived tables (`override.person_id`, `enrich_log.person_id`, `shortlist.person_id`, `intro.person_id` / `connector_id`, ids held by MCP clients or scripts) stores an anchor identity id. Resolving it is always: "the person whose cluster contains identity `X`":
 
 ```sql
 SELECT person_id FROM identity WHERE id = :ref;

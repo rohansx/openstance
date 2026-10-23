@@ -9,8 +9,13 @@
 //! [`EgressGate::quote`] and never sends anything. The CLI, the MCP server
 //! and (later) the HTTP API all call [`Graph::run_playbook`].
 
+pub mod accounts;
 pub mod brief;
 pub mod path;
+pub mod reconnect;
+pub mod refresh;
+pub mod verify;
+pub mod watch;
 
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::Value;
@@ -21,8 +26,13 @@ use crate::error::{Error, Result};
 use crate::json::{iso, V};
 use crate::Graph;
 
+pub use accounts::Accounts;
 pub use brief::Brief;
 pub use path::PathPlaybook;
+pub use reconnect::Reconnect;
+pub use refresh::Refresh;
+pub use verify::Verify;
+pub use watch::Watch;
 
 /// What a step will do.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -182,11 +192,27 @@ pub trait Playbook: Send + Sync {
     ) -> Result<Outcome>;
 }
 
-/// The playbooks shipped in this phase.
+/// Every playbook name, in the order of playbooks.md.
+pub const NAMES: [&str; 7] = [
+    "path",
+    "brief",
+    "accounts",
+    "refresh",
+    "watch",
+    "reconnect",
+    "verify",
+];
+
+/// The playbooks shipped so far.
 pub fn by_name(name: &str) -> Option<&'static dyn Playbook> {
     match name {
         "path" => Some(&PathPlaybook),
         "brief" => Some(&Brief),
+        "reconnect" => Some(&Reconnect),
+        "accounts" => Some(&Accounts),
+        "refresh" => Some(&Refresh),
+        "verify" => Some(&Verify),
+        "watch" => Some(&Watch),
         _ => None,
     }
 }
@@ -351,6 +377,104 @@ pub(crate) fn egress_step(n: u8, description: &str, op: &str, q: &Quote) -> Plan
     }
 }
 
+/// The plan of a playbook whose steps are all local: an empty quote (which
+/// writes no `enrich_log` row) and the playbook's egress ceiling.
+pub(crate) fn local_plan(
+    pb: &dyn Playbook,
+    gate: &mut EgressGate<'_>,
+    steps: Vec<PlanStep>,
+) -> Result<Plan> {
+    let quote = gate.quote(Vec::new())?;
+    Ok(Plan {
+        playbook: pb.name().into(),
+        run_id: gate.run_id().to_string(),
+        steps,
+        quote,
+        egress_max: pb.egress_max(),
+    })
+}
+
+/// A finished run with no egress.
+pub(crate) fn local_outcome(
+    pb: &dyn Playbook,
+    gate: &EgressGate<'_>,
+    plan: Plan,
+    result: Value,
+    notes: Vec<String>,
+) -> Outcome {
+    Outcome {
+        v: V,
+        playbook: pb.name().into(),
+        status: RunStatus::Done,
+        receipt: gate.receipt(),
+        plan,
+        result: Some(result),
+        notes,
+    }
+}
+
+/// How a run that may have quoted egress ended: `quote` when egress was
+/// needed but not allowed, `partial` when something was not sent or failed.
+pub(crate) fn egress_status(plan: &Plan, allow_egress: bool, partial: bool) -> RunStatus {
+    if !plan.quote.lines.is_empty() && !allow_egress {
+        RunStatus::Quote
+    } else if partial {
+        RunStatus::Partial
+    } else {
+        RunStatus::Done
+    }
+}
+
+/// A company named by the caller (`accounts`, `watch.targets`): a name
+/// (`"Stripe"`) or a domain (`"stripe.com"`, `"www.stripe.com"`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct CompanyTarget {
+    /// As given, trimmed.
+    pub input: String,
+    /// `company_key` of the name, or of the domain's first label.
+    pub key: String,
+    /// The domain, lowercase, when the input was one.
+    pub domain: Option<String>,
+}
+
+impl CompanyTarget {
+    pub(crate) fn parse(s: &str) -> Option<CompanyTarget> {
+        let input = s.trim();
+        if input.is_empty() {
+            return None;
+        }
+        let lower = input.to_ascii_lowercase();
+        let looks_like_domain = !lower.contains(char::is_whitespace)
+            && lower.contains('.')
+            && lower
+                .rsplit('.')
+                .next()
+                .is_some_and(|tld| tld.len() >= 2 && tld.chars().all(|c| c.is_ascii_alphabetic()));
+        let (key, domain) = if looks_like_domain {
+            let d = lower
+                .trim_start_matches("https://")
+                .trim_start_matches("http://")
+                .trim_start_matches("www.")
+                .trim_end_matches('/')
+                .to_string();
+            let label = d.split('.').next().unwrap_or(&d).to_string();
+            (crate::resolve::normalize::company_key(&label), Some(d))
+        } else {
+            (crate::resolve::normalize::company_key(input), None)
+        };
+        (!key.is_empty()).then(|| CompanyTarget {
+            input: input.to_string(),
+            key,
+            domain,
+        })
+    }
+
+    /// Does a company field value name this company?
+    pub(crate) fn matches(&self, company: &str) -> bool {
+        crate::resolve::normalize::company_key(company) == self.key
+    }
+}
+
 /// Parse a playbook input object.
 pub(crate) fn parse_input<T: serde::de::DeserializeOwned>(name: &str, input: &Value) -> Result<T> {
     serde_json::from_value(input.clone())
@@ -359,3 +483,23 @@ pub(crate) fn parse_input<T: serde::de::DeserializeOwned>(name: &str, input: &Va
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod tests_p4;
+
+#[cfg(test)]
+mod target_tests {
+    use super::CompanyTarget;
+
+    #[test]
+    fn names_and_domains() {
+        let t = CompanyTarget::parse(" Stripe, Inc. ").unwrap();
+        assert_eq!((t.key.as_str(), t.domain), ("stripe", None));
+        let t = CompanyTarget::parse("www.Stripe.com").unwrap();
+        assert_eq!(t.key, "stripe");
+        assert_eq!(t.domain.as_deref(), Some("stripe.com"));
+        assert!(t.matches("Stripe"));
+        let t = CompanyTarget::parse("Acme Co.").unwrap();
+        assert_eq!(t.domain, None, "a trailing dot is not a domain");
+        assert!(CompanyTarget::parse("   ").is_none());
+    }
+}

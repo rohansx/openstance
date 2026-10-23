@@ -1,0 +1,323 @@
+/* Ported from the openstance v0.3 browser prototype (MIT, integrations.css). Landing ecosystem rules removed. */
+.integration-hero {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 40px;
+  padding: 35px;
+  background: #eaf0e5;
+  border: 1px solid #d8e2d1;
+  border-radius: 14px;
+  margin: 25px 0 18px
+}
+.integration-hero h2,.integration-contract h2 {
+  font: 600 36px/1.13 "Inter Tight Variable","Inter Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing: -0.025em;
+  letter-spacing: -1px;
+  margin: 18px 0
+}
+.integration-hero p {
+  max-width: 430px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #64715f
+}
+.integration-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 24px
+}
+.integration-flow {
+  display: grid;
+  gap: 0
+}
+.integration-flow>div {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px solid #d2ddcc;
+  padding: 16px 0
+}
+.integration-flow>div:last-child {
+  border: 0
+}
+.integration-flow>div>span {
+  font: 12px monospace;
+  color: #86947c;
+  background: #f6f8f1;
+  border-radius: 50%;
+  padding: 11px
+}
+.integration-flow strong {
+  font-size: 13px;
+  font-weight: 550
+}
+.integration-flow small {
+  display: block;
+  font-size: 11px;
+  margin-top: 6px;
+  color: #77816f
+}
+.integration-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid var(--line);
+  background: #f5f7ef;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #69755f;
+  margin: 16px 0
+}
+.integration-status svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px
+}
+.integration-filter {
+  display: flex;
+  gap: 7px;
+  overflow: auto;
+  margin: 30px 0 20px;
+  padding-bottom: 4px
+}
+.integration-filter button {
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: #6e7967;
+  font-size: 11px;
+  white-space: nowrap
+}
+.integration-filter button[aria-pressed=true] {
+  background: #354d3a;
+  color: #fff;
+  border-color: #354d3a
+}
+.provider-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 18px
+}
+.provider-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 23px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0
+}
+.provider-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 22px;
+  flex-wrap: wrap
+}
+.provider-top .tag {
+  font-size: 9px
+}
+.provider-mark {
+  width: 43px;
+  height: 43px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 12px;
+  font: 700 27px "Inter Tight Variable","Inter Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing: -0.025em;
+  flex-shrink: 0
+}
+.provider-mark.boardy {
+  background: #f4d568;
+  color: #3d3427
+}
+.provider-mark.treg {
+  background: #dce9cd;
+  color: #3f573a
+}
+.provider-mark.exa {
+  background: #dedcf3;
+  color: #56507b
+}
+.provider-mark.mail {
+  background: #f4dfd6;
+  color: #a05f46
+}
+.provider-mark.nylas {
+  background: #e0e8f4;
+  color: #42618c
+}
+.provider-mark.pdl {
+  background: #e4e6e1;
+  color: #506148;
+  font: 600 18px monospace
+}
+.provider-mark.hunter {
+  background: #fae7d6;
+  color: #b57240
+}
+.provider-category {
+  font: 9px/1.7 monospace;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: #8b9385
+}
+.provider-card h2 {
+  font: 600 24px "Inter Tight Variable","Inter Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing: -0.025em;
+  margin: 9px 0 13px
+}
+.provider-card p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #74806d;
+  margin-bottom: 23px
+}
+.provider-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: auto
+}
+.provider-actions .btn {
+  font-size: 10px;
+  padding: 8px 10px
+}
+.integration-contract {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1fr 1fr;
+  gap: 25px;
+  border-top: 1px solid var(--line);
+  margin-top: 40px;
+  padding-top: 35px
+}
+.integration-contract h2 {
+  font-size: 28px;
+  margin: 12px 0
+}
+.integration-contract h3,.integration-detail h3 {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 9px 0
+}
+.integration-contract p,.integration-detail p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #74806d
+}
+.integration-detail {
+  margin: 24px 0
+}
+.integration-detail h3 {
+  margin-top: 20px
+}
+.integration-nudge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 25px;
+  padding: 24px;
+  margin: 24px 0;
+  background: #eef2e8;
+  border: 1px solid var(--line);
+  border-radius: 10px
+}
+.integration-nudge>div {
+  display: flex;
+  gap: 15px;
+  align-items: center
+}
+.integration-nudge>div>svg {
+  width: 27px;
+  min-width: 27px;
+  height: 27px;
+  color: #829073
+}
+.integration-nudge strong {
+  font-size: 13px
+}
+.integration-nudge p {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #7a8373;
+  margin-top: 7px
+}
+.integration-nudge .btn {
+  white-space: nowrap
+}
+.plan-output {
+  min-height: 340px;
+  font: 12px/1.8 monospace!important;
+  resize: vertical;
+  width: 100%
+}
+.field textarea {
+  min-height: 85px
+}
+.field .plan-output {
+  min-height: 340px
+}
+.provider-card .btn.text {
+  color: #66745b
+}
+@media(max-width:1200px){
+  .provider-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr))
+  }
+  .integration-contract {
+    grid-template-columns: 1fr 1fr
+  }
+}
+@media(max-width:950px){
+  .integration-hero {
+    grid-template-columns: 1fr;
+    gap: 20px
+  }
+  .integration-flow {
+    grid-template-columns: 1fr 1fr;
+    gap: 0 20px
+  }
+  .integration-nudge {
+    align-items: flex-start;
+    flex-direction: column
+  }
+}
+@media(max-width:620px){
+  .provider-grid {
+    grid-template-columns: 1fr
+  }
+  .integration-hero {
+    padding: 24px
+  }
+  .integration-hero h2 {
+    font-size: 32px
+  }
+  .integration-flow {
+    grid-template-columns: 1fr
+  }
+  .integration-contract {
+    grid-template-columns: 1fr
+  }
+  .integration-filter {
+    margin-top: 23px
+  }
+  .integration-nudge {
+    padding: 20px
+  }
+  .integration-status {
+    font-size: 10px
+  }
+  .plan-output {
+    font-size: 10px!important
+  }
+  .page-head>a.btn {
+    font-size: 10px
+  }
+}

@@ -2,6 +2,7 @@
 //! Plain columns, no color, no truncation, so piping keeps every value.
 
 use std::collections::BTreeMap;
+use std::path::Path;
 
 use openstance_core::config::{Config, Origin};
 use openstance_core::json::{
@@ -194,7 +195,13 @@ pub fn search_table(r: &SearchResponse, explain: bool) {
 }
 
 /// Per-file import lines plus graph totals.
-pub fn import_summary(r: &ImportResponse, c: &GraphCounts, preset: &str) {
+/// A `kind:value` self handle as shown to the user (emails bare).
+fn handle_text(h: &str) -> &str {
+    h.strip_prefix("email:").unwrap_or(h)
+}
+
+pub fn import_summary(r: &ImportResponse, c: &GraphCounts, preset: &str, config_file: &Path) {
+    let has_self = c.persons > c.persons_excluding_self;
     for s in &r.sources {
         let name = std::path::Path::new(&s.path)
             .file_name()
@@ -225,6 +232,21 @@ pub fn import_summary(r: &ImportResponse, c: &GraphCounts, preset: &str) {
             "{:<13} {name}  {} records  {} identities  {} new interactions  {} ms{rate}{skipped}",
             s.kind, st.records_read, s.identities, s.interactions, st.elapsed_ms
         );
+        if !s.self_adopted.is_empty() {
+            let handles: Vec<&str> = s.self_adopted.iter().map(|h| handle_text(h)).collect();
+            println!(
+                "self          treating {} as you; to change it, set [me] identities in {}",
+                handles.join(", "),
+                config_file.display()
+            );
+        } else if !has_self && !st.self_candidates.is_empty() {
+            let handles: Vec<&str> = st.self_candidates.iter().map(|h| handle_text(h)).collect();
+            println!(
+                "self          is this you? {} (not adopted: not unambiguous); add it to [me] identities in {}",
+                handles.join(", "),
+                config_file.display()
+            );
+        }
     }
     println!(
         "graph         {} people, {} identities, {} interactions",

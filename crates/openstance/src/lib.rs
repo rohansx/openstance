@@ -16,11 +16,13 @@ mod brief;
 mod commands;
 mod embeddings;
 mod enrich;
+mod followup;
 mod how;
 pub mod mcp;
 mod path;
 mod playbook;
 mod render;
+mod serve;
 mod view;
 mod who;
 
@@ -86,6 +88,8 @@ pub enum Command {
     Config(ConfigArgs),
     /// Run the MCP server on stdio (for Claude Code, Cursor, Claude Desktop).
     Mcp(mcp::McpArgs),
+    /// Serve the local HTTP API, MCP over HTTP and the web UI on 127.0.0.1.
+    Serve(serve::ServeArgs),
     /// Share slices of the graph: saved queries exported as encrypted .ost files.
     View(view::ViewArgs),
     /// My age key for views (`keys show`).
@@ -96,6 +100,16 @@ pub enum Command {
     Brief(brief::BriefArgs),
     /// Enrichment audit: `enrich log` lists what left the machine and its cost.
     Enrich(enrich::EnrichArgs),
+    /// People you used to talk to and have lost touch with (no egress).
+    Reconnect(followup::ReconnectArgs),
+    /// Warm coverage of target companies from a file, one per line (no egress).
+    Accounts(followup::AccountsArgs),
+    /// Fill missing titles and companies through the enricher (quote first).
+    Refresh(followup::RefreshArgs),
+    /// Verify someone's best email before you send, plus the freshest mutual.
+    Verify(followup::VerifyArgs),
+    /// Job changes from your LinkedIn exports, optionally checked (quote first).
+    Watch(followup::WatchArgs),
 }
 
 /// `openstance init`.
@@ -442,6 +456,25 @@ impl std::fmt::Display for UsageError {
 
 impl std::error::Error for UsageError {}
 
+/// `{e:#}` without repeating a cause its parent already printed
+/// (`import failed: X` caused by `X`).
+fn chain_text(e: &anyhow::Error) -> String {
+    let mut out = String::new();
+    let mut prev = String::new();
+    for c in e.chain() {
+        let s = c.to_string();
+        if !prev.is_empty() && prev.ends_with(&s) {
+            continue;
+        }
+        if !out.is_empty() {
+            out.push_str(": ");
+        }
+        out.push_str(&s);
+        prev = s;
+    }
+    out
+}
+
 /// Print the error (stderr, and the JSON envelope on stdout with `--json`)
 /// and return the exit code.
 fn report_error(e: &anyhow::Error, json: bool) -> u8 {
@@ -465,7 +498,7 @@ fn report_error(e: &anyhow::Error, json: bool) -> u8 {
             },
         },
     };
-    eprintln!("error: {e:#}");
+    eprintln!("error: {}", chain_text(e));
     for c in &resp.error.candidates {
         eprintln!("  {:>6}  {}", c.id, c.display_name);
     }
@@ -481,6 +514,18 @@ fn report_error(e: &anyhow::Error, json: bool) -> u8 {
 mod tests {
     use super::*;
     use clap::CommandFactory;
+
+    #[test]
+    fn error_chain_does_not_repeat_a_cause_its_parent_printed() {
+        let inner = openstance_core::Error::Import(openstance_import::ImportError::Unsupported(
+            "zip".into(),
+        ));
+        let e = anyhow::Error::new(inner).context("importing");
+        assert_eq!(
+            chain_text(&e),
+            "importing: import failed: not supported: zip"
+        );
+    }
 
     #[test]
     fn cli_definition_is_valid() {

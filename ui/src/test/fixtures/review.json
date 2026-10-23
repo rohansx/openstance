@@ -1,0 +1,24 @@
+{ "v": 1,
+  "flagged": [
+    { "person": { "id": 3, "display_name": "Sam Ito", "title": null, "company": "Acme", "score": 0.41 },
+      "rule": "name_company", "confidence": 0.85,
+      "flagged_identities": [ { "id": 901, "kind": "linkedin_url", "value": "in/samito-example", "confidence": 0.85,
+        "source": { "id": 7, "kind": "linkedin_csv", "label": "linkedin 2026-10" } } ],
+      "other_identities": [ { "id": 3, "kind": "email", "value": "sam@acme.example", "confidence": 1.0,
+        "source": { "id": 2, "kind": "mbox", "label": "work gmail" } } ],
+      "why": "same name \"sam ito\"; company \"acme\"" },
+    { "person": { "id": 9, "display_name": "Jae Park", "title": null, "company": null, "score": 0.3 },
+      "rule": "name_thread", "confidence": 0.75,
+      "flagged_identities": [ { "id": 950, "kind": "email", "value": "jp@mail.example", "confidence": 0.75,
+        "source": { "id": 2, "kind": "mbox", "label": "work gmail" } } ],
+      "other_identities": [ { "id": 9, "kind": "email", "value": "jae@park.example", "confidence": 1.0,
+        "source": { "id": 2, "kind": "mbox", "label": "work gmail" } } ],
+      "why": "same name \"j park\" in a shared thread" }
+  ],
+  "suggestions": [
+    { "a": { "id": 40, "display_name": "Lena Ruiz", "title": null, "company": "Kontor", "score": 0.2 },
+      "b": { "id": 41, "display_name": "Lena Ruiz", "title": "CEO", "company": null, "score": 0.1 },
+      "rule": "rare_name", "confidence": 0.6, "why": "rare name \"lena ruiz\"" }
+  ],
+  "info": []
+}

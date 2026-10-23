@@ -14,6 +14,7 @@ Terms used across the openstance docs, in alphabetical order. Table and column n
 | **C, reciprocity** | Score component: `min(1, replies_from_them / max(1, messages_from_you))`; a thread they started counts double. |
 | **Candidate set** | In search, the union of the top 200 FTS5 hits and the top 200 vector hits, filtered by the structured `Query` fields, before fusion. |
 | **cargo-dist** | Release tool that builds cross-platform binaries, installers and a Homebrew formula from the Cargo workspace. Used in Phase 4. |
+| **Commitment** | A promise the user recorded about a person ("send Priya the deck"), with a due date, snooze and done. Planned for Phase 5 (P5-MEM-01); a model-extracted commitment stays a suggestion until the user accepts it. Not built. |
 | **Data directory** | `~/.openstance/`: `graph.db`, `config.toml`, `age.key`, cached models. |
 | **`do_not_share`** | Per-person scalar override flag. The person never appears in exported views, and by default is never sent to an enricher. Always respected. |
 | **E.164** | International phone-number format (`+15555550142`). Phones are normalized to it before identity matching. |
@@ -23,6 +24,7 @@ Terms used across the openstance docs, in alphabetical order. Table and column n
 | **Enricher** | Trait for fetching outside data (`Profile`, `FindEmail`, `VerifyEmail`, `Company`, `WebSearch`) with `quote()` before `enrich()`. Implementations: `Null` (default), `treg`, `OwnKeys`, `MockEnricher` (tests). See [tech-spec/enrichment.md](tech-spec/enrichment.md). |
 | **Entity resolution** | Turning many identities from many sources into one `person` per human, using ordered, conservative rules with confidences. See [tech-spec/entity-resolution.md](tech-spec/entity-resolution.md). |
 | **Evidence line** | A deterministic, checkable reason attached to a result: a dated interaction (thread subject, meeting title, who cc'd whom) or a matched field ("title contains founder"). Distinct from model-written prose, which is optional and labeled. |
+| **Evidence class** | Where a fact or edge came from: `observed` (an email, meeting or DM in your data), `curated_export` (a LinkedIn connection, contact card or follow), `user_assertion` (your edits, merges, intros), `enrichment` (an `enrich:<backend>` result) or `model_interpretation` (model output). Only observed interactions or user assertions can establish a relationship between two other people. Proposed in [ADR-0014](decisions/0014-evidence-classes-and-claim-provenance.md); not yet on the JSON. |
 | **Export-first** | Ingestion strategy: read files the user exported themselves (Takeout mbox, LinkedIn CSV, vcf, ics, X archive) rather than OAuth connectors. [ADR-0004](decisions/0004-export-first-ingestion.md). |
 | **F, frequency** | Score component: `1 - exp(-n_interactions / 20)`. |
 | **Federation** | Phase 5 team mode: each member keeps their own graph and exports views to a shared git or S3 remote; search fans out over imported views at query time. No central database. |
@@ -32,6 +34,7 @@ Terms used across the openstance docs, in alphabetical order. Table and column n
 | **Gmail aliasing** | Treating `a.b@gmail.com`, `ab@gmail.com` and `ab+x@gmail.com` as one identity (confidence 0.98). |
 | **Half-life** | `score.half_life_days`, default 180. The number of days after which recency R falls to 0.5. |
 | **`how_connected`** | MCP tool: top three paths from you to a person already in your graph, each with evidence. CLI equivalent: `openstance how <target>` (alias `how-connected`), see [tech-spec/interfaces.md](tech-spec/interfaces.md). |
+| **Handoff** | An integration where openstance prepares something (for example a brief) and the user sends it through another service themselves. No API call is made and nothing is shown as "connected". Boardy is a handoff ([plan/phase-5-and-beyond.md](plan/phase-5-and-beyond.md), P5-RES-03). |
 | **Identity** | A handle that points at a person: email, LinkedIn URL, X handle, phone, Instagram handle, or name+company. Stored normalized in `identity` with a confidence; `UNIQUE(kind, value)`. |
 | **Importer** | Trait that turns a file into a stream of `RawIdentity` and `RawInteraction` records via a `Sink`. Has `kind()`, `detect()` and `import()`. Never writes `person`. See [tech-spec/ingestion.md](tech-spec/ingestion.md). |
 | **Interaction** | One dated event between you and one or more people: email, meeting, DM, mention, follow or connection. The raw evidence for scores and ties. Deduplicated by `(source_id, external_id)`. |
@@ -50,6 +53,7 @@ Terms used across the openstance docs, in alphabetical order. Table and column n
 | **Override** | A user edit stored in `override(id, person_id, field, value, set_at)` that survives rebuilds and is never overwritten by import or enrichment. **Scalar** fields (`display_name, title, company, location, bio, do_not_share, no_enrich`, plus `is_bulk` for correcting bulk detection) are last-write-wins by `set_at`; **multi-valued** fields (`tag, note, merged_into, split_from`) keep every row. |
 | **`path` / `path_to`** | Playbook (CLI `openstance path`, MCP `path_to`) to reach a stranger: look up the target, optionally enrich their employers and school, intersect with your graph, rank mutuals, optionally find and verify an email. May spend money. |
 | **Person** | One row per human after resolution; `person.id` is the anchor identity id (smallest identity id in the cluster), so ids are stable across rebuilds and merges, with display fields, `first_seen`, `last_contact`, cached `score`, `is_bulk`, `do_not_share`, `no_enrich`. Derived; rebuildable from sources plus overrides. |
+| **Possible overlap** | A route to a target based only on an employer, past employer or school in common (often from enrichment). Not evidence that anyone knows anyone; shown apart from warm paths and never as a probability. See [ADR-0014](decisions/0014-evidence-classes-and-claim-provenance.md). |
 | **`person_vec`** | sqlite-vec `vec0` virtual table holding one 384-dimension embedding per person. |
 | **Phase** | A one-week (Phases 1 to 4) delivery increment. Phase 0 is the existing v0.1 prototype; Phase 5 is post-launch and gated on traction. See [plan/roadmap.md](plan/roadmap.md). |
 | **Playbook** | A small deterministic workflow over the graph and an `Enricher` with a fixed step list: `path`, `accounts`, `refresh`, `watch`, `brief`, `reconnect`, `verify`. Has `plan()` (steps + quoted cost) and `run()`. Each ships as an openstance-authored markdown skill in `playbooks/`. See [tech-spec/playbooks.md](tech-spec/playbooks.md). |
@@ -78,6 +82,7 @@ Terms used across the openstance docs, in alphabetical order. Table and column n
 | **treg** | A third-party data router (treg.to) with one key for many data endpoints. One `Enricher` implementation among several; never required, never promoted. |
 | **View** | A saved query (`view` table), the unit of sharing. Exported as an `.ost` file encrypted to a recipient. [ADR-0008](decisions/0008-views-as-encrypted-files.md), [tech-spec/sharing-and-views.md](tech-spec/sharing-and-views.md). |
 | **`verify`** | Playbook: best email from identities, verify it, attach the freshest mutual who replied. One egress call. |
+| **Warm path** | `you -> mutual -> target` where both hops rest on observed interactions or a user assertion (for the mutual-target hop, a tie from shared threads, meetings or group DMs). Returned by `how_connected` and `path` with evidence per hop. Contrast with **possible overlap**. |
 | **`watch`** | Playbook: diff the latest two LinkedIn exports, optionally profile-check the top 100 by score, flag company changes. |
 | **`who`** | CLI command: one person with score components, inputs and evidence (`get_person` in MCP). |
 
@@ -89,6 +94,6 @@ These appear in [prototype-v0.1.md](prototype-v0.1.md) and may return in later p
 |---|---|---|
 | **Matched / missing terms** | For each result, which query terms matched a structured field and which did not. | Kept as an idea: search responses expose which `Query` filters and text terms each result satisfied. |
 | **Strict search** | Only results that match every term. | Structured filters are always hard constraints; free text is ranked. |
-| **Intro stages** | Shortlisted, Asked for intro, Introduced, Meeting booked. | Not in Phases 1 to 4; see Q7 in [risks-and-open-questions.md](risks-and-open-questions.md). |
+| **Intro stages** | Shortlisted, Asked for intro, Introduced, Meeting booked. | Built in Phase 4 as the `shortlist` table and the `intro` table with stages `draft, asked, intro_made, met, closed` ([ADR-0013](decisions/0013-react-vite-web-ui-and-workspace.md)); extension proposed in Q25. |
 | **`via`** | A user-asserted connector name. | Replaced by derived ties and `how_connected` paths with evidence. |
 | **Freshness warning** | Record older than 90 days flagged as stale. | Replaced by recency R and dated evidence lines. |

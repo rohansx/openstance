@@ -70,6 +70,8 @@ pub mod mbox;
 pub mod vcf;
 #[cfg(feature = "x-archive")]
 pub mod x_archive;
+#[cfg(any(feature = "linkedin", feature = "x-archive"))]
+mod zip_limits;
 
 /// Bytes an importer's `detect` may read from the start of a file.
 pub const DETECT_SNIFF_BYTES: usize = 64 * 1024;

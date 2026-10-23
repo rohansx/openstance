@@ -1,0 +1,3 @@
+{ "v": 1, "sources": [ { "id": 7, "kind": "linkedin_csv", "label": "linkedin 2026-10",
+  "identities": 4812, "interactions": 4812, "skipped_duplicate_file": false } ],
+  "resolution": { "people_created": 1210, "auto_merged": 3402, "flagged": 37 }, "took_ms": 1640 }

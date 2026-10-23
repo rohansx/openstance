@@ -1,0 +1,6 @@
+{ "v": 1, "people": 1210, "bulk": 88, "sources": 3, "last_import": "2026-10-10T18:00:00Z",
+  "review": { "flagged": 2, "suggestions": 1 },
+  "enrich": { "requests_sent": 3, "spent_micro_usd": 25000 },
+  "shortlist": 1,
+  "intros": { "draft": 0, "asked": 1, "intro_made": 0, "met": 0, "closed": 0 },
+  "schema_version": 4 }

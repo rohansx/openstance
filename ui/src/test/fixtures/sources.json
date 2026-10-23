@@ -1,0 +1,73 @@
+{
+  "v": 1,
+  "sources": [
+    {
+      "id": 2,
+      "kind": "mbox",
+      "label": "work gmail",
+      "path": "work.mbox",
+      "imported_at": "2026-10-01T09:00:00Z",
+      "importer_version": 1,
+      "stats": {
+        "records_read": 18210,
+        "interactions_new": 18030,
+        "interactions_dup": 0,
+        "identities_new": 3120,
+        "identities_seen": 3300,
+        "skipped": {
+          "no_address": 180
+        },
+        "bytes": 1000,
+        "elapsed_ms": 120,
+        "self_candidates": []
+      }
+    },
+    {
+      "id": 4,
+      "kind": "ics",
+      "label": "work calendar",
+      "path": "work.ics",
+      "imported_at": "2026-10-01T09:05:00Z",
+      "importer_version": 1,
+      "stats": {
+        "records_read": 640,
+        "interactions_new": 640,
+        "interactions_dup": 0,
+        "identities_new": 410,
+        "identities_seen": 410,
+        "skipped": {},
+        "bytes": 1000,
+        "elapsed_ms": 120,
+        "self_candidates": []
+      }
+    },
+    {
+      "id": 7,
+      "kind": "linkedin_csv",
+      "label": "linkedin 2026-10",
+      "path": "Connections.csv",
+      "imported_at": "2026-10-10T18:00:00Z",
+      "importer_version": 1,
+      "stats": {
+        "records_read": 4812,
+        "interactions_new": 4812,
+        "interactions_dup": 0,
+        "identities_new": 4812,
+        "identities_seen": 4812,
+        "skipped": {},
+        "bytes": 1000,
+        "elapsed_ms": 120,
+        "self_candidates": []
+      }
+    },
+    {
+      "id": 9,
+      "kind": "enrich:treg",
+      "label": "treg",
+      "path": null,
+      "imported_at": "2026-10-19T12:00:00Z",
+      "importer_version": null,
+      "stats": null
+    }
+  ]
+}

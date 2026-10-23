@@ -188,7 +188,7 @@ The Sink caches `(kind, value) -> identity.id` in a bounded LRU (100k entries, ~
 | Importer | Strong | Weak |
 |---|---|---|
 | `mbox` | First non-empty line starts with `From ` and the next 64 KiB contain a `Message-ID:` or `Date:` header | `.mbox` extension |
-| `linkedin_csv` | CSV whose header row (after an optional `Notes:` preamble of up to 10 lines) contains `First Name,Last Name` and `URL` (Connections), or `CONVERSATION ID` and `SENDER PROFILE URL` (messages), or `Direction` and `inviterProfileUrl` (Invitations); or a `.zip` containing `Connections.csv` | `Connections.csv` file name |
+| `linkedin_csv` | CSV whose header row (after an optional `Notes:` preamble of up to 10 lines) contains `First Name,Last Name` and `URL` (Connections), or `CONVERSATION ID` and `SENDER PROFILE URL` (messages), or `Direction` and `inviterProfileUrl` (Invitations); or a `.zip` holding `Connections.csv`, `messages.csv`, `Invitations.csv` or `Profile.csv` at the root or one folder down (a Basic export is claimed so the import can say what is missing) | `Connections.csv` file name; any other `.zip` named `*LinkedInDataExport*` |
 | `x_archive` | `.zip` (or directory) containing `data/manifest.js` and any of `data/following.js`, `data/follower.js`, `data/direct-messages.js` | a `.js` file starting with `window.YTD.` |
 | `vcf` | Starts with `BEGIN:VCARD` (after BOM/whitespace) | `.vcf` / `.vcard` |
 | `ics` | Starts with `BEGIN:VCALENDAR` | `.ics` |
@@ -230,7 +230,7 @@ Phases follow [../plan/roadmap.md](../plan/roadmap.md).
 | Importer | Phase | Feature flag | Input | Emits |
 |---|---|---|---|---|
 | `mbox` | 1 | `mbox` (default) | Google Takeout / any mboxo/mboxrd file, `.zip` Takeout | email interactions, email identities |
-| `linkedin_csv` | 1 | `linkedin` (default) | `Connections.csv`, `messages.csv`, `Invitations.csv`, or the export `.zip` | linkedin_url (+ email) identities, connection + dm interactions |
+| `linkedin_csv` | 1 | `linkedin` (default) | `Connections.csv`, `messages.csv`, `Invitations.csv`, or the export `.zip` (`Complete_LinkedInDataExport_*.zip`; the Basic export is rejected, 6.2) | linkedin_url (+ email) identities, connection + dm interactions |
 | `vcf` | 1 | `vcf` (default) | Apple / Google Contacts `.vcf` (3.0, 4.0) | contact records: email, phone, linkedin/x/ig handles, name/title/company hints |
 | `ics` | 3 | `ics` (default) | Calendar `.ics` export | meeting interactions with attendees |
 | `x_archive` | 3 | `x` (default) | X/Twitter archive `.zip` | x_user_id identities, follow + dm interactions |
@@ -253,18 +253,20 @@ Phases follow [../plan/roadmap.md](../plan/roadmap.md).
 | `subject` | `Subject`, decoded, `Re:`/`Fwd:`/`AW:`/`SV:` prefixes kept (shown as evidence as the user saw it) |
 | `external_id` | `Message-ID` |
 | `thread_key` | `X-GM-THRID` if present, else the first id in `References`, else `In-Reply-To`, else own `Message-ID` |
-| `dir_hint` | `out` if `X-Gmail-Labels` contains `Sent`; else none (direction is derived from self identities at resolution) |
+| `dir_hint` | `out` if `X-Gmail-Labels` contains `Sent`; `in` if it has any other label (the message reached the owner's mailbox); none without labels. Resolution derives direction from self identities when a self person exists and falls back to the hint otherwise, so Takeout reciprocity works even when `[me] identities` is empty |
 | `list_unsub` | `List-Unsubscribe` present, or `Precedence` in (bulk, list, junk), or `Auto-Submitted` other than `no` |
 | participants | `From` -> role `from`; `To` -> `to`; `Cc` -> `cc`; `Bcc` -> `bcc`; each address is one participant with one `Email` handle and the display name as `hints.name` |
 
 - **Skips:** `X-Gmail-Labels` containing `Spam` or `Trash` (counted, configurable with `--include-spam`); `Chat` labelled items (Hangouts logs) skipped.
-- **Self inference:** the importer counts `From` addresses on `Sent`-labelled messages and reports the top one in `ImportStats` (`self_candidates`); the CLI proposes it for `[me] identities` on first import.
+- **Self inference:** the importer counts `From` addresses on `Sent`-labelled messages and reports the top one in `ImportStats` (`self_candidates`). While `[me] identities` is empty, core adopts it as the self handle when it sent at least 80% of this source's `Sent` mail (stored in `meta.me_adopted`, reported as `self_adopted` and by the CLI); otherwise the CLI only proposes it ([configuration.md](configuration.md) `[me]`).
 - **Bodies (opt-in, Phase 3 stretch):** with `email_bodies = true`, for messages **from** non-self people only, read up to 8 KiB of the `text/plain` part, take the block after `-- ` or the last 12 lines, and extract title/company/phone/location with regexes plus the domain map. Hints go to the `from` participant's `hints`; the body is discarded. Never applied to bulk senders.
 - **Target:** 5 GB mbox in under 2 minutes, RSS under 500 MB ([../engineering/performance-targets.md](../engineering/performance-targets.md)).
 
 ### 6.2 `linkedin_csv` (Phase 1)
 
-All three files may come as separate CSVs or in the export zip. Each import of an export is its own `source`, labelled `linkedin <export date>` (export date from the zip name `Basic_LinkedInDataExport_10-15-2026.zip` or file mtime). CSV parsing ports the v0.1 prototype's tested behavior: UTF-8 BOM, quoted commas, doubled quotes, CRLF, multiline values, and a `Notes:` preamble before the header (see [../prototype-v0.1.md](../prototype-v0.1.md)).
+All three files may come as separate CSVs or in the export zip. Each import of an export is its own `source`, labelled `linkedin <export date>` (export date from the zip or folder name `Complete_LinkedInDataExport_10-15-2026.zip`, also when the browser saved it as `.zip.zip`, else file mtime).
+
+**The export zip.** `openstance import Complete_LinkedInDataExport_10-20-2026.zip` (and `POST /import` with the zip as the uploaded file) reads `Connections.csv`, `messages.csv` and `Invitations.csv` from inside the zip, at the root or one folder down, in that order, into **one** source; the opaque-URL join for messages uses the zip's own `Connections.csv`. Zip safety is the same as `x_archive` (6.5): only those three named entries are opened (every other member, such as `Rich_Media.csv` or `Profile.csv`, is never read), nothing is written to disk, and decompressed bytes are capped at 1 GiB per entry and 4 GiB per archive (an over-cap entry aborts the import). Skip locators name the entry (`messages.csv row 3`). LinkedIn's **Basic** export (`Basic_LinkedInDataExport_*.zip`) has no `Connections.csv`; importing it fails with a `bad_request` error (CLI exit 2, HTTP 400) whose message is: *This is LinkedIn's Basic export; it has no Connections.csv. Request the larger archive (Settings > Data privacy > Get a copy of your data > 'Download larger data archive').* CSV parsing ports the v0.1 prototype's tested behavior: UTF-8 BOM, quoted commas, doubled quotes, CRLF, multiline values, and a `Notes:` preamble before the header (see [../prototype-v0.1.md](../prototype-v0.1.md)).
 
 | File | Columns used | Emits |
 |---|---|---|
@@ -315,7 +317,7 @@ Target: 5k connection rows in under 2 s.
 
 | File | Fields | Emits |
 |---|---|---|
-| `data/account.js` | `accountId`, `username`, `accountDisplayName` | self candidates (`XUserId`, `XHandle`) |
+| `data/account.js` | `accountId`, `username`, `accountDisplayName` | self candidates (`XUserId`, `XHandle`), adopted as the self handles while `[me] identities` is empty |
 | `data/following.js` | `following.accountId`, `following.userLink` | `follow` interaction, `dir_hint=out`, participant role `subject` with `XUserId` |
 | `data/follower.js` | `follower.accountId` | `follow` interaction, `dir_hint=in` |
 | `data/direct-messages.js` | `dmConversation.conversationId`, `messages[].messageCreate.{id, senderId, recipientId, createdAt}` | `dm` interaction per message, `thread_key` = conversationId; `text` never read |
@@ -407,7 +409,7 @@ openstance source rm <id>
 $ openstance import ~/Downloads/takeout-2026-10.zip ~/Downloads/Connections.csv
 mbox          work gmail (Inbox, Sent)   412,233 messages  38.2s  10,791/s
               skipped: 1,204 spam/trash, 37 bad date, 2 header too large
-              self: rohan@example.com (from Sent) -> added to [me] identities
+self          treating rohan@example.com as you; to change it, set [me] identities in ~/.openstance/config.toml
 linkedin_csv  linkedin 2026-10-15        4,812 connections, 3,140 messages  0.9s
 resolution    +6,912 people, 214 merged by email, 31 flagged (name+company 22, name+thread 9)
               run `openstance review` to confirm or split flagged merges

@@ -1,0 +1,18 @@
+{
+  "v": 1,
+  "target": { "id": 1203, "display_name": "Kai Wu", "company": "Ramp", "score": 0.12 },
+  "direct": { "score": 0.12, "last_contact": "2024-01-11T00:00:00Z" },
+  "paths": [
+    {
+      "via": { "id": 812, "display_name": "Tom Okafor", "company": "Stripe", "score": 0.78 },
+      "strength": 0.406,
+      "reason": "tie",
+      "my_score": 0.78,
+      "link_weight": 0.52,
+      "evidence": [
+        { "kind": "tie", "with": { "id": 77, "display_name": "Ana Lee" }, "tie_kind": "email",
+          "n_shared": 9, "weight": 0.52, "last_at": "2026-06-02T08:00:00Z" }
+      ]
+    }
+  ]
+}

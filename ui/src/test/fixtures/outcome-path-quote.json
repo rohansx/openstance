@@ -1,0 +1,25 @@
+{
+  "v": 1,
+  "playbook": "path",
+  "status": "quote",
+  "plan": {
+    "run_id": "01JC4Z6Y3R1M8Q",
+    "steps": [
+      { "n": 1, "description": "lookup target in graph", "egress": null, "will_run": "run" },
+      { "n": 2, "description": "enrich profile", "egress": "profile", "will_run": "skip_no_egress" }
+    ],
+    "quote": {
+      "backend": "treg",
+      "lines": [ { "job": { "person_id": null, "request": { "kind": "profile", "name": "Priya Raman", "company": "Stripe", "linkedin": null } },
+                   "micro_usd": 10000, "basis": "exact", "provider_hint": null } ],
+      "total_micro_usd": 10000, "budget_micro_usd": 500000, "within_budget": true,
+      "skipped": [], "quoted_at": "2026-10-20T09:00:00Z"
+    },
+    "egress_max": [ { "op": "profile", "max": 1 }, { "op": "find_email", "max": 1 }, { "op": "verify_email", "max": 1 } ]
+  },
+  "result": { "target": { "in_graph": false }, "paths": [] },
+  "receipt": { "run_id": "01JC4Z6Y3R1M8Q", "backend": "treg", "requests_sent": 0,
+               "quoted_micro_usd": 10000, "spent_micro_usd": 0, "budget_micro_usd": 500000,
+               "skipped": [], "enrich_log_ids": [] },
+  "notes": ["egress not allowed: pass allow_egress=true to send 1 request for $0.0100"]
+}

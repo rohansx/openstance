@@ -25,6 +25,12 @@ CREATE INDEX interaction_person_person   ON interaction_person(person_id, intera
 -- index interaction_thread on interaction
 CREATE INDEX interaction_thread    ON interaction(thread_key) WHERE thread_key IS NOT NULL;
 
+-- index intro_person on intro
+CREATE INDEX intro_person ON intro(person_id);
+
+-- index intro_stage on intro
+CREATE INDEX intro_stage  ON intro(stage);
+
 -- index override_field on override
 CREATE INDEX override_field  ON override(field);
 
@@ -141,6 +147,19 @@ CREATE TABLE interaction_person (
   PRIMARY KEY (interaction_id, identity_id, role)
 ) WITHOUT ROWID;
 
+-- table intro on intro
+CREATE TABLE intro (
+  id           INTEGER PRIMARY KEY,
+  person_id    INTEGER NOT NULL,           -- who the user wants to meet (anchor identity id)
+  connector_id INTEGER,                    -- who could introduce them; NULL = direct
+  stage        TEXT    NOT NULL DEFAULT 'draft' CHECK (stage IN
+                 ('draft','asked','intro_made','met','closed')),
+  note         TEXT,
+  follow_up    TEXT,                       -- 'YYYY-MM-DD' (a local calendar date)
+  created_at   INTEGER NOT NULL,
+  updated_at   INTEGER NOT NULL
+);
+
 -- table meta on meta
 CREATE TABLE meta (
   key   TEXT PRIMARY KEY,
@@ -231,6 +250,13 @@ CREATE TABLE "person_vec_rowids"(rowid INTEGER PRIMARY KEY AUTOINCREMENT,id,chun
 
 -- table person_vec_vector_chunks00 on person_vec_vector_chunks00
 CREATE TABLE "person_vec_vector_chunks00"(rowid PRIMARY KEY,vectors BLOB NOT NULL);
+
+-- table shortlist on shortlist
+CREATE TABLE shortlist (
+  person_id INTEGER PRIMARY KEY,           -- anchor identity id
+  note      TEXT,
+  added_at  INTEGER NOT NULL
+);
 
 -- table source on source
 CREATE TABLE source (

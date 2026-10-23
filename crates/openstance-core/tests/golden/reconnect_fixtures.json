@@ -1,0 +1,42 @@
+{
+  "default": {
+    "people": []
+  },
+  "loose": {
+    "people": [
+      {
+        "id": 4,
+        "display_name": "Sam Ito",
+        "title": "Product Manager",
+        "company": "Northwind",
+        "past_score": 0.661,
+        "score": 0.444,
+        "last_contact": "2026-02-10T12:00:00Z",
+        "last_subject": "Re: Roadmap feedback",
+        "last_interaction_id": 88
+      },
+      {
+        "id": 30,
+        "display_name": "Amara Nwosu",
+        "title": "Head of Sales",
+        "company": "Contoso",
+        "past_score": 0.64,
+        "score": 0.413,
+        "last_contact": "2026-01-21T09:00:00Z",
+        "last_subject": null,
+        "last_interaction_id": 191
+      },
+      {
+        "id": 7,
+        "display_name": "Dana Whitfield",
+        "title": null,
+        "company": null,
+        "past_score": 0.64,
+        "score": 0.371,
+        "last_contact": "2025-10-02T18:00:00Z",
+        "last_subject": "Book club: October",
+        "last_interaction_id": 95
+      }
+    ]
+  }
+}

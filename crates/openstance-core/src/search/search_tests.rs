@@ -204,6 +204,26 @@ fn zero_results_suggest_which_filter_to_drop() {
 }
 
 #[test]
+fn drop_suggestion_count_matches_the_rerun_total() {
+    // "devtools" hits 7 (non-zero) and 3 (zero relevance). With limit 1 the
+    // rerun without `company` keeps only 7, so the hint must say 1, not 2.
+    let narrow = run(&SearchRequest {
+        filters: patch(|p| {
+            p.company = Some(vec!["no-such-company".into()]);
+            p.limit = Some(1);
+        }),
+        ..req(Some("devtools"))
+    });
+    assert!(narrow.results.is_empty());
+    let rerun = run(&SearchRequest {
+        filters: patch(|p| p.limit = Some(1)),
+        ..req(Some("devtools"))
+    });
+    assert_eq!(rerun.total, 1);
+    assert_eq!(narrow.suggestions, ["drop company -> 1 result"]);
+}
+
+#[test]
 fn explain_fills_timings() {
     let r = run(&SearchRequest {
         explain: true,

@@ -1,0 +1,2 @@
+{ "v": 1, "error": { "code": "ambiguous", "message": "3 people match \"Sam\"",
+  "candidates": [ { "id": 3, "display_name": "Sam Ito" }, { "id": 9, "display_name": "Sam Park" } ] } }

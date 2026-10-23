@@ -15,7 +15,8 @@
 //! - `external_id` = Message-ID (angle brackets stripped, lowercased);
 //! - `thread_key` = X-GM-THRID, else first References id, else In-Reply-To,
 //!   else own Message-ID;
-//! - `dir_hint = Out` when X-Gmail-Labels contains `Sent`;
+//! - `dir_hint = Out` when X-Gmail-Labels contains `Sent`, `In` when it has
+//!   any other label (the message reached the owner's mailbox), else none;
 //! - `list_unsub` from List-Unsubscribe / Precedence / Auto-Submitted;
 //! - skips Spam/Trash (unless `include_spam`) and Chat as `Unsupported`, and
 //!   messages whose body exceeds `max_message_bytes` as `Unsupported`;
@@ -299,7 +300,16 @@ impl MboxImporter {
         Ok(RawInteraction {
             kind: InteractionKind::Email,
             at,
-            dir_hint: sent.then_some(Direction::Out),
+            // Takeout labels say whose mailbox this is: `Sent` is the owner
+            // writing, any other label means it reached the owner. Without
+            // labels (a plain mbox) direction is left to the self person.
+            dir_hint: if sent {
+                Some(Direction::Out)
+            } else if labels.is_empty() {
+                None
+            } else {
+                Some(Direction::In)
+            },
             subject: m
                 .subject()
                 .map(|s| s.split_whitespace().collect::<Vec<_>>().join(" "))
